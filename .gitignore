@@ -1,24 +1,57 @@
 *.iml
-.kotlin
 .gradle
-**/build/
-xcuserdata
-!src/**/build/
-local.properties
 .idea
 .DS_Store
+build
 captures
 .externalNativeBuild
 .cxx
+local.properties
+build_output.txt
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+.api_prev.txt
+dependencies.txt
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Kotlin / IntelliJ
+.kotlin/
+*.kotlin_module
+
+# iOS / Xcode
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Kotlin Multiplatform
+kotlin-js-store/
+yarn.lock
 node_modules/
 
-# Project exclude paths
-/composeApp/
-/gradle/
-/iosApp/
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
