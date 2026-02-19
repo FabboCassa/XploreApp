@@ -56,6 +56,12 @@ kotlin {
 
             // Kotlinx Serialization
             implementation(libs.kotlinx.serialization.json)
+
+            // Navigation
+            implementation(libs.navigation.compose)
+
+            // Multiplatform Settings (token storage)
+            implementation(libs.multiplatform.settings.no.arg)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

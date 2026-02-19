@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.xplore.project.domain.model.PinType
+import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.MuseumRepository
 import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.filter_artworks
@@ -29,6 +30,7 @@ import xploreapp.composeapp.generated.resources.filter_nearby
  */
 class HomeViewModel(
     private val museumRepository: MuseumRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -67,6 +69,10 @@ class HomeViewModel(
 
     fun onClearSearch() {
         _uiState.update { it.copy(searchQuery = "") }
+    }
+
+    fun logout() {
+        authRepository.logout()
     }
 
     // ── Data Loading ──────────────────────────────────────────────

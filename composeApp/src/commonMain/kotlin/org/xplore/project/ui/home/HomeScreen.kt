@@ -22,29 +22,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
+import org.xplore.project.ui.chat.ChatScreen
 import org.xplore.project.ui.components.XploreBottomNavBar
 import org.xplore.project.ui.components.XploreFilterChips
 import org.xplore.project.ui.components.XploreMap
 import org.xplore.project.ui.components.XploreSearchBar
+import org.xplore.project.ui.profile.ProfileScreen
 
 /**
- * The main Homepage / "Mappa" screen composable.
+ * The main container screen that hosts the Bottom Navigation and switches
+ * between Map, Chat, and Profile content.
  *
  * ## UI Structure
- * Uses a [Scaffold] to organize the layout:
- * - **Background**: Full-screen [XploreMap] (z-index 0).
- * - **Top Overlay**: [XploreSearchBar] and [XploreFilterChips] (z-index 1).
- * - **Bottom Bar**: [XploreBottomNavBar] for main navigation.
+ * Uses a [Scaffold] with a bottom [XploreBottomNavBar].
+ * Content is switched based on [HomeUiState.selectedNavIndex]:
+ * - **Tab 0 (Map)**: Full-screen map with search bar and filter chips overlay.
+ * - **Tab 1 (Chat)**: AI Chat interface.
+ * - **Tab 2 (Profile)**: User profile and settings.
  *
  * ## State Management
  * - Observes [HomeViewModel.uiState] via `collectAsState()`.
- * - Passes strictly necessary data (simple types/lambdas) to child components.
- * - Does NOT handle business logic; delegates events to [HomeViewModel].
- *
- * @param viewModel Injected via [koinViewModel]. Default value allows for easy preview/testing.
+ * - Tab switching is handled within [HomeViewModel.onNavItemSelected].
  */
 @Composable
 fun HomeScreen(
+    onLogout: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -64,45 +66,68 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            // ── Layer 1: Map (full-bleed behind everything) ──
-            XploreMap(
-                pins = uiState.pins,
-                onPinClick = { /* TODO: Navigate to museum detail */ },
-                modifier = Modifier.fillMaxSize(),
+            when (uiState.selectedNavIndex) {
+                0 -> MapContent(uiState = uiState, viewModel = viewModel)
+                1 -> ChatScreen()
+                2 -> ProfileScreen(
+                    onLogout = {
+                        viewModel.logout()
+                        onLogout()
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Map tab content — extracted for clarity.
+ * Shows the map background with search bar and filter chips overlay.
+ */
+@Composable
+private fun MapContent(
+    uiState: HomeUiState,
+    viewModel: HomeViewModel,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // ── Layer 1: Map (full-bleed behind everything) ──
+        XploreMap(
+            pins = uiState.pins,
+            onPinClick = { /* TODO: Navigate to museum detail */ },
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        // ── Layer 2: Top overlay (search + filters) ──
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .padding(top = 12.dp),
+        ) {
+            XploreSearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChanged,
+                onClear = viewModel::onClearSearch,
             )
 
-            // ── Layer 2: Top overlay (search + filters) ──
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .padding(top = 12.dp),
-            ) {
-                XploreSearchBar(
-                    query = uiState.searchQuery,
-                    onQueryChange = viewModel::onSearchQueryChanged,
-                    onClear = viewModel::onClearSearch,
-                )
+            Spacer(Modifier.height(12.dp))
 
-                Spacer(Modifier.height(12.dp))
+            XploreFilterChips(
+                filters = uiState.filters,
+                onFilterClick = viewModel::onFilterSelected,
+            )
+        }
 
-                XploreFilterChips(
-                    filters = uiState.filters,
-                    onFilterClick = viewModel::onFilterSelected,
-                )
-            }
-
-            // ── Layer 3: Loading indicator ──
-            AnimatedVisibility(
-                visible = uiState.isLoading,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.Center),
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+        // ── Layer 3: Loading indicator ──
+        AnimatedVisibility(
+            visible = uiState.isLoading,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.Center),
+        ) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
