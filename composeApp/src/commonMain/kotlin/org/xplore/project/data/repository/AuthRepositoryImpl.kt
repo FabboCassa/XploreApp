@@ -37,11 +37,11 @@ class AuthRepositoryImpl(
     override suspend fun register(
         email: String,
         password: String,
-        displayName: String?,
+        userName: String,
     ): Result<Boolean> {
         return try {
             authApiService.registerPersonal(
-                RegisterPersonalRequestDto(email, password, displayName)
+                RegisterPersonalRequestDto(email, password, userName)
             )
             // Auto-login after registration
             login(email, password)

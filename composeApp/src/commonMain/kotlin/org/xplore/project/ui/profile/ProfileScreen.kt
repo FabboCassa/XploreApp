@@ -42,7 +42,7 @@ fun ProfileScreen(
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
             ) {
-                Text("Logout (Test)")
+                Text("Esci (Logout)")
             }
         }
     }

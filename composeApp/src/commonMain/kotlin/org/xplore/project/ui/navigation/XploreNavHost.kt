@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.koin.compose.koinInject
+import org.xplore.project.data.local.TokenManager
 import org.xplore.project.ui.auth.LoginScreen
 import org.xplore.project.ui.auth.RegisterScreen
 import org.xplore.project.ui.auth.WelcomeScreen
@@ -27,10 +29,13 @@ import org.xplore.project.ui.home.HomeScreen
 @Composable
 fun XploreNavHost(
     navController: NavHostController = rememberNavController(),
+    tokenManager: TokenManager = koinInject(),
 ) {
+    val startDest = if (tokenManager.isLoggedIn || tokenManager.isGuest) MainRoute else WelcomeRoute
+
     NavHost(
         navController = navController,
-        startDestination = WelcomeRoute,
+        startDestination = startDest,
     ) {
         // ── Welcome Gate ─────────────────────────────────────
         composable<WelcomeRoute> {

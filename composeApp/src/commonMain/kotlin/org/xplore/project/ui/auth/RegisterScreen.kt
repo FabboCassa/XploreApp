@@ -97,11 +97,11 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // ── Display Name ──
+        // ── Username ──
         OutlinedTextField(
-            value = uiState.displayName,
-            onValueChange = viewModel::onDisplayNameChanged,
-            label = { Text("Nome (opzionale)") },
+            value = uiState.userName,
+            onValueChange = viewModel::onUserNameChanged,
+            label = { Text("Nome utente") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(

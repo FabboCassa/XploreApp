@@ -112,11 +112,11 @@ fun LoginScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            // ── Email Field ──
+            // ── Email / Username Field ──
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = viewModel::onEmailChanged,
-                label = { Text("Email") },
+                label = { Text("Email o Username") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,

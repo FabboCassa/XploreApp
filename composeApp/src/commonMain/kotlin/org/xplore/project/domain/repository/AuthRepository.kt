@@ -14,7 +14,7 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): Result<Boolean>
 
     /** Register a personal account. Returns true on success. */
-    suspend fun register(email: String, password: String, displayName: String?): Result<Boolean>
+    suspend fun register(email: String, password: String, userName: String): Result<Boolean>
 
     /** Create a guest session (no credentials needed). Returns true on success. */
     suspend fun guestLogin(): Result<Boolean>

@@ -14,7 +14,7 @@ data class LoginRequestDto(
 data class RegisterPersonalRequestDto(
     val email: String,
     val password: String,
-    val displayName: String? = null,
+    val userName: String,
 )
 
 @Serializable

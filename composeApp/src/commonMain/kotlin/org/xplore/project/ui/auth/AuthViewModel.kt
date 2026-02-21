@@ -88,20 +88,20 @@ class AuthViewModel(
 
     // ── Register ─────────────────────────────────────────────
 
-    fun onDisplayNameChanged(name: String) {
-        _uiState.update { it.copy(displayName = name, errorMessage = null) }
+    fun onUserNameChanged(name: String) {
+        _uiState.update { it.copy(userName = name, errorMessage = null) }
     }
 
     fun onRegisterClicked() {
         val state = _uiState.value
-        if (state.email.isBlank() || state.password.isBlank()) {
+        if (state.email.isBlank() || state.password.isBlank() || state.userName.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Compila tutti i campi") }
             return
         }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = authRepository.register(state.email, state.password, state.displayName)
+            val result = authRepository.register(state.email, state.password, state.userName)
             result.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, loginSuccess = true) }
@@ -145,7 +145,7 @@ class AuthViewModel(
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
-    val displayName: String = "",
+    val userName: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val loginSuccess: Boolean = false,
