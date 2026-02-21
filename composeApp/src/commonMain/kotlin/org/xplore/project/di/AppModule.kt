@@ -1,7 +1,7 @@
 package org.xplore.project.di
 
-import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
@@ -14,6 +14,7 @@ import org.xplore.project.data.repository.AuthRepositoryImpl
 import org.xplore.project.data.repository.MuseumRepositoryImpl
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.MuseumRepository
+import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.auth.AuthViewModel
 import org.xplore.project.ui.home.HomeViewModel
 
@@ -28,13 +29,17 @@ import org.xplore.project.ui.home.HomeViewModel
 val appModule = module {
     // ── Network ──────────────────────────────────────────────
     single {
-        HttpClient {
+        createHttpClient().config {
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
                     isLenient = true
                     prettyPrint = false
                 })
+            }
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
             }
         }
     }
@@ -43,8 +48,8 @@ val appModule = module {
     single {
         AuthApiService(
             httpClient = get(),
-            // TODO: Move to BuildConfig / env config
-            baseUrl = "http://10.0.2.2:5000",
+            // Aspire redirects HTTP 5140 to HTTPS 7109. Using 7109 directly with bypassed SSL.
+            baseUrl = "https://10.0.2.2:7109",
         )
     }
 

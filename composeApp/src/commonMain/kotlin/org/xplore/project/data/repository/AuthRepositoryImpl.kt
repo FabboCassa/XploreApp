@@ -28,6 +28,8 @@ class AuthRepositoryImpl(
             )
             Result.success(true)
         } catch (e: Exception) {
+            println("AuthError [login]: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -44,6 +46,8 @@ class AuthRepositoryImpl(
             // Auto-login after registration
             login(email, password)
         } catch (e: Exception) {
+            println("AuthError [register]: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -58,6 +62,8 @@ class AuthRepositoryImpl(
             )
             Result.success(true)
         } catch (e: Exception) {
+            println("AuthError [guestLogin]: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -69,6 +75,8 @@ class AuthRepositoryImpl(
             val user = authApiService.getCurrentUser(token)
             Result.success(user)
         } catch (e: Exception) {
+            println("AuthError [getCurrentUser]: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }
