@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * Placeholder screen for the User Profile feature.
@@ -28,7 +30,7 @@ fun ProfileScreen(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Profilo — Coming Soon",
+                text = stringResource(Res.string.profile_coming_soon),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             )
@@ -42,7 +44,7 @@ fun ProfileScreen(
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
             ) {
-                Text("Esci (Logout)")
+                Text(stringResource(Res.string.profile_btn_logout))
             }
         }
     }

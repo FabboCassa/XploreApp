@@ -30,7 +30,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * Welcome gate screen — first screen the user sees.
@@ -86,13 +88,13 @@ fun WelcomeScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Xplore",
+                        text = stringResource(Res.string.welcome_title),
                         style = MaterialTheme.typography.displayLarge,
                         color = colorScheme.primary,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Scopri la cultura intorno a te",
+                        text = stringResource(Res.string.welcome_subtitle),
                         style = MaterialTheme.typography.bodyLarge,
                         color = colorScheme.onBackground.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
@@ -115,7 +117,7 @@ fun WelcomeScreen(
                 ),
             ) {
                 Text(
-                    text = "Accedi",
+                    text = stringResource(Res.string.welcome_btn_login),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -132,7 +134,7 @@ fun WelcomeScreen(
                 enabled = !uiState.isLoading,
             ) {
                 Text(
-                    text = if (uiState.isLoading) "Accesso in corso…" else "Continua senza account",
+                    text = if (uiState.isLoading) stringResource(Res.string.welcome_guest_loading) else stringResource(Res.string.welcome_btn_guest),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
@@ -141,7 +143,7 @@ fun WelcomeScreen(
             uiState.errorMessage?.let { error ->
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = error,
+                    text = stringResource(error),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.error,
                     textAlign = TextAlign.Center,

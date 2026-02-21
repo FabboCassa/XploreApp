@@ -41,7 +41,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * Registration screen for new Personal accounts.
@@ -78,19 +80,19 @@ fun RegisterScreen(
             onClick = onNavigateBack,
             modifier = Modifier.align(Alignment.Start),
         ) {
-            Text("← Indietro", color = colorScheme.primary)
+            Text(stringResource(Res.string.register_back), color = colorScheme.primary)
         }
 
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = "Crea Account",
+            text = stringResource(Res.string.register_title),
             style = MaterialTheme.typography.headlineMedium,
             color = colorScheme.onBackground,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Registrati per sbloccare tutte le funzionalità",
+            text = stringResource(Res.string.register_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = colorScheme.onBackground.copy(alpha = 0.6f),
         )
@@ -101,7 +103,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.userName,
             onValueChange = viewModel::onUserNameChanged,
-            label = { Text("Nome utente") },
+            label = { Text(stringResource(Res.string.register_username_label)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -121,7 +123,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.email,
             onValueChange = viewModel::onEmailChanged,
-            label = { Text("Email") },
+            label = { Text(stringResource(Res.string.register_email_label)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -144,7 +146,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.password,
             onValueChange = viewModel::onPasswordChanged,
-            label = { Text("Password") },
+            label = { Text(stringResource(Res.string.register_password_label)) },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None
                 else PasswordVisualTransformation(),
@@ -170,7 +172,7 @@ fun RegisterScreen(
         uiState.errorMessage?.let { error ->
             Spacer(Modifier.height(12.dp))
             Text(
-                text = error,
+                text = stringResource(error),
                 style = MaterialTheme.typography.bodySmall,
                 color = colorScheme.error,
                 textAlign = TextAlign.Center,
@@ -200,7 +202,7 @@ fun RegisterScreen(
                     strokeWidth = 2.dp,
                 )
             } else {
-                Text("Registrati", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.register_btn), style = MaterialTheme.typography.labelLarge)
             }
         }
     }

@@ -49,9 +49,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import xploreapp.composeapp.generated.resources.Res
-import xploreapp.composeapp.generated.resources.ic_close
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * Login screen with email/password form and social sign-in buttons.
@@ -99,13 +99,13 @@ fun LoginScreen(
 
             // ── Header ──
             Text(
-                text = "Bentornato",
+                text = stringResource(Res.string.login_welcome_back),
                 style = MaterialTheme.typography.headlineMedium,
                 color = colorScheme.onBackground,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Accedi per esplorare la cultura",
+                text = stringResource(Res.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colorScheme.onBackground.copy(alpha = 0.6f),
             )
@@ -116,7 +116,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = viewModel::onEmailChanged,
-                label = { Text("Email o Username") },
+                label = { Text(stringResource(Res.string.login_email_username_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
@@ -139,7 +139,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = viewModel::onPasswordChanged,
-                label = { Text("Password") },
+                label = { Text(stringResource(Res.string.login_password_label)) },
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
@@ -157,7 +157,7 @@ fun LoginScreen(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_close),
-                            contentDescription = if (passwordVisible) "Nascondi" else "Mostra",
+                            contentDescription = if (passwordVisible) stringResource(Res.string.login_hide_password) else stringResource(Res.string.login_show_password),
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -174,7 +174,7 @@ fun LoginScreen(
             uiState.errorMessage?.let { error ->
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = error,
+                    text = stringResource(error),
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.error,
                     textAlign = TextAlign.Center,
@@ -204,7 +204,7 @@ fun LoginScreen(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text("Accedi", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(Res.string.login_btn), style = MaterialTheme.typography.labelLarge)
                 }
             }
 
@@ -220,7 +220,7 @@ fun LoginScreen(
                     color = colorScheme.outline.copy(alpha = 0.5f),
                 )
                 Text(
-                    text = "  oppure  ",
+                    text = stringResource(Res.string.login_or),
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onBackground.copy(alpha = 0.5f),
                 )
@@ -240,7 +240,7 @@ fun LoginScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium,
             ) {
-                Text("Continua con Google", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.login_google_btn), style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -253,7 +253,7 @@ fun LoginScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium,
             ) {
-                Text("Continua con Apple", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.login_apple_btn), style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(Modifier.height(32.dp))
@@ -264,12 +264,12 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    text = "Non hai un account? ",
+                    text = stringResource(Res.string.login_no_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.onBackground.copy(alpha = 0.6f),
                 )
                 Text(
-                    text = "Registrati",
+                    text = stringResource(Res.string.login_register_link),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colorScheme.primary,
                     modifier = Modifier.clickable { onNavigateToRegister() },

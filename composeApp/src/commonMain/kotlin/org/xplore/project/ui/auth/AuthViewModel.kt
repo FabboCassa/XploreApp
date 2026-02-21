@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import org.xplore.project.domain.repository.AuthRepository
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * ViewModel shared across all auth screens (Welcome, Login, Register).
@@ -40,7 +42,7 @@ class AuthViewModel(
     fun onLoginClicked() {
         val state = _uiState.value
         if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Inserisci email e password") }
+            _uiState.update { it.copy(errorMessage = Res.string.error_missing_email_password) }
             return
         }
 
@@ -56,7 +58,7 @@ class AuthViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Credenziali non valide. Riprova.",
+                            errorMessage = Res.string.error_invalid_credentials,
                         )
                     }
                 },
@@ -78,7 +80,7 @@ class AuthViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Impossibile accedere. Controlla la connessione.",
+                            errorMessage = Res.string.error_guest_failed,
                         )
                     }
                 },
@@ -95,7 +97,7 @@ class AuthViewModel(
     fun onRegisterClicked() {
         val state = _uiState.value
         if (state.email.isBlank() || state.password.isBlank() || state.userName.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Compila tutti i campi") }
+            _uiState.update { it.copy(errorMessage = Res.string.error_missing_fields) }
             return
         }
 
@@ -110,7 +112,7 @@ class AuthViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = e.message ?: "Registrazione fallita. Riprova.",
+                            errorMessage = Res.string.error_register_failed,
                         )
                     }
                 },
@@ -122,12 +124,12 @@ class AuthViewModel(
 
     fun onGoogleSignIn() {
         // TODO: Trigger native Google Sign-In → send idToken to backend
-        _uiState.update { it.copy(errorMessage = "Google Sign-In non ancora disponibile") }
+        _uiState.update { it.copy(errorMessage = Res.string.error_google_unavailable) }
     }
 
     fun onAppleSignIn() {
         // TODO: Trigger native Apple Sign-In → send idToken to backend
-        _uiState.update { it.copy(errorMessage = "Apple Sign-In non ancora disponibile") }
+        _uiState.update { it.copy(errorMessage = Res.string.error_apple_unavailable) }
     }
 
     fun clearError() {
@@ -147,6 +149,6 @@ data class AuthUiState(
     val password: String = "",
     val userName: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    val errorMessage: StringResource? = null,
     val loginSuccess: Boolean = false,
 )

@@ -23,4 +23,47 @@
     <!-- General -->
     <string name="loading">Caricamento…</string>
     <string name="error_generic">Qualcosa è andato storto</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Xplore</string>
+    <string name="welcome_subtitle">Scopri la cultura intorno a te</string>
+    <string name="welcome_btn_login">Accedi</string>
+    <string name="welcome_btn_guest">Continua senza account</string>
+    <string name="welcome_guest_loading">Accesso in corso…</string>
+
+    <!-- Login Screen -->
+    <string name="login_welcome_back">Bentornato</string>
+    <string name="login_subtitle">Accedi per esplorare la cultura</string>
+    <string name="login_email_username_label">Email o Username</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_hide_password">Nascondi</string>
+    <string name="login_show_password">Mostra</string>
+    <string name="login_btn">Accedi</string>
+    <string name="login_or">  oppure  </string>
+    <string name="login_google_btn">Continua con Google</string>
+    <string name="login_apple_btn">Continua con Apple</string>
+    <string name="login_no_account">Non hai un account? </string>
+    <string name="login_register_link">Registrati</string>
+
+    <!-- Register Screen -->
+    <string name="register_back">← Indietro</string>
+    <string name="register_title">Crea Account</string>
+    <string name="register_subtitle">Registrati per sbloccare tutte le funzionalità</string>
+    <string name="register_username_label">Nome utente</string>
+    <string name="register_email_label">Email</string>
+    <string name="register_password_label">Password</string>
+    <string name="register_btn">Registrati</string>
+
+    <!-- Auth View Model / Errors -->
+    <string name="error_missing_email_password">Inserisci email e password</string>
+    <string name="error_invalid_credentials">Credenziali non valide. Riprova.</string>
+    <string name="error_guest_failed">Impossibile accedere. Controlla la connessione.</string>
+    <string name="error_missing_fields">Compila tutti i campi</string>
+    <string name="error_register_failed">Registrazione fallita. Riprova.</string>
+    <string name="error_google_unavailable">Google Sign-In non ancora disponibile</string>
+    <string name="error_apple_unavailable">Apple Sign-In non ancora disponibile</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_coming_soon">Profilo — Coming Soon</string>
+    <string name="profile_btn_logout">Esci (Logout)</string>
 </resources>
