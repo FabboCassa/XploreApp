@@ -18,6 +18,10 @@ ktor = "3.4.0"
 kotlinx-serialization = "1.8.1"
 navigation-compose = "2.9.2"
 multiplatform-settings = "1.3.0"
+maplibre-compose = "0.12.1"
+moko-geo = "0.8.0"
+moko-permissions = "0.18.0"
+spm-for-kmp = "1.4.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -61,6 +65,15 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 # Multiplatform Settings (token storage)
 multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
 
+# MapLibre Compose (MIT — interactive OSM maps with offline support)
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibre-compose" }
+
+# Moko Geo (Apache 2.0 — GPS location tracking for KMP)
+moko-geo = { module = "dev.icerock.moko:geo", version.ref = "moko-geo" }
+moko-geo-compose = { module = "dev.icerock.moko:geo-compose", version.ref = "moko-geo" }
+moko-permissions = { module = "dev.icerock.moko:permissions", version.ref = "moko-permissions" }
+moko-permissions-compose = { module = "dev.icerock.moko:permissions-compose", version.ref = "moko-permissions" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -68,3 +81,4 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spmForKmp = { id = "io.github.frankois944.spmForKmp", version.ref = "spm-for-kmp" }

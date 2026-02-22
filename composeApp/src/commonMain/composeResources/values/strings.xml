@@ -16,9 +16,21 @@
     <string name="nav_scan">Scan</string>
     <string name="nav_profile">Profilo</string>
 
-    <!-- Map Placeholder -->
+    <!-- Map -->
     <string name="map_placeholder_label">Map View</string>
     <string name="map_placeholder_subtitle">La tua mappa culturale apparirà qui</string>
+    <string name="map_loading">Caricamento mappa…</string>
+    <string name="map_error_loading">Impossibile caricare la mappa</string>
+
+    <!-- Location -->
+    <string name="location_permission_rationale">Xplore ha bisogno della tua posizione per mostrarti i luoghi culturali vicini</string>
+    <string name="location_permission_denied">Permesso di localizzazione negato. Attivalo nelle impostazioni.</string>
+    <string name="location_btn_enable">Attiva posizione</string>
+
+    <!-- Offline -->
+    <string name="offline_saving_in_progress">Salvataggio area offline in corso…</string>
+    <string name="offline_mode_active">Modalità offline attiva</string>
+    <string name="offline_save_success">Area offline salvata con successo</string>
 
     <!-- General -->
     <string name="loading">Caricamento…</string>
@@ -67,3 +79,4 @@
     <string name="profile_coming_soon">Profilo — Coming Soon</string>
     <string name="profile_btn_logout">Esci (Logout)</string>
 </resources>
+

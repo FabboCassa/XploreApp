@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -6,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.spmForKmp)
 }
 
 kotlin {
@@ -19,6 +21,11 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
+        iosTarget.compilations {
+            val main by getting {
+                cinterops.create("spmMaplibre")
+            }
+        }
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
@@ -63,6 +70,15 @@ kotlin {
 
             // Multiplatform Settings (token storage)
             implementation(libs.multiplatform.settings.no.arg)
+
+            // MapLibre Compose (OSM interactive map with offline support)
+            implementation(libs.maplibre.compose)
+
+            // Moko Geo & Permissions (GPS location + permission handling)
+            implementation(libs.moko.geo)
+            implementation(libs.moko.geo.compose)
+            implementation(libs.moko.permissions)
+            implementation(libs.moko.permissions.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -99,4 +115,16 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+}
+
+swiftPackageConfig {
+    create("spmMaplibre") {
+        dependency {
+            remotePackageVersion(
+                url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+                products = { add("MapLibre") },
+                version = "6.17.1",
+            )
+        }
+    }
 }
