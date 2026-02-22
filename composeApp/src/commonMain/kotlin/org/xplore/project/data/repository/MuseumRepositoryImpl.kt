@@ -21,16 +21,9 @@ class MuseumRepositoryImpl : MuseumRepository {
 
     override suspend fun getMuseums(): List<Museum> = sampleMuseums
 
-    override suspend fun getMapPins(): List<MapPin> =
-        sampleMuseums.map { museum ->
-            MapPin(
-                id = museum.id,
-                label = museum.name,
-                latitude = museum.latitude,
-                longitude = museum.longitude,
-                type = PinType.MUSEUM,
-            )
-        } + sampleArtworkPins + sampleEventPins
+    // TODO: Replace with real API data when backend is ready
+    override suspend fun getMapPins(): List<MapPin> = emptyList()
+
 
     companion object {
         private val sampleMuseums = listOf(

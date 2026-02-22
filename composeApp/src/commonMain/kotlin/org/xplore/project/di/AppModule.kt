@@ -25,6 +25,10 @@ import org.xplore.project.ui.home.HomeViewModel
  * - **Network**: Ktor HttpClient with JSON serialization.
  * - **Data**: Repository implementations and token storage.
  * - **Presentation**: ViewModels for Home and Auth screens.
+ *
+ * Note: Location services (PermissionsController, LocationTracker) are created
+ * at the Composable layer via moko-permissions-compose / moko-geo-compose
+ * because they require platform-specific context (applicationContext on Android).
  */
 val appModule = module {
     // ── Network ──────────────────────────────────────────────

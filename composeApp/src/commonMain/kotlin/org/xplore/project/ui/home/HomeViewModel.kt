@@ -27,6 +27,7 @@ import xploreapp.composeapp.generated.resources.filter_nearby
  *
  * ## Dependencies
  * @param museumRepository Injected via Koin. Used to fetch the raw list of museums/pins.
+ * @param authRepository Injected via Koin. Used for logout.
  */
 class HomeViewModel(
     private val museumRepository: MuseumRepository,
@@ -73,6 +74,28 @@ class HomeViewModel(
 
     fun logout() {
         authRepository.logout()
+    }
+
+    // ── Location Updates (called from Composable layer) ───────────
+
+    /**
+     * Called by the Composable layer when a new GPS location is received.
+     */
+    fun onLocationUpdate(latitude: Double, longitude: Double) {
+        _uiState.update {
+            it.copy(
+                userLatitude = latitude,
+                userLongitude = longitude,
+                locationPermissionGranted = true,
+            )
+        }
+    }
+
+    /**
+     * Called when location permission is denied or location is unavailable.
+     */
+    fun onLocationUnavailable() {
+        _uiState.update { it.copy(locationPermissionGranted = false) }
     }
 
     // ── Data Loading ──────────────────────────────────────────────

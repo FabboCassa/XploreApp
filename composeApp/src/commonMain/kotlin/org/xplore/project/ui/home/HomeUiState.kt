@@ -16,6 +16,9 @@ import org.xplore.project.domain.model.MapPin
  * @param isLoading Whether data is currently being fetched.
  * @param selectedNavIndex Index of the currently active bottom nav tab.
  * @param errorMessage User-facing error message, if any.
+ * @param userLatitude User's current latitude (null if unknown).
+ * @param userLongitude User's current longitude (null if unknown).
+ * @param locationPermissionGranted Whether location permission has been granted.
  */
 data class HomeUiState(
     val searchQuery: String = "",
@@ -24,6 +27,9 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val selectedNavIndex: Int = 0,
     val errorMessage: String? = null,
+    val userLatitude: Double? = null,
+    val userLongitude: Double? = null,
+    val locationPermissionGranted: Boolean = false,
 )
 
 /**

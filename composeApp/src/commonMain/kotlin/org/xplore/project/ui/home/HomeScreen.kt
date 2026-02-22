@@ -16,11 +16,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.icerock.moko.geo.LocationTracker
+import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
+import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
+import dev.icerock.moko.geo.compose.rememberLocationTrackerFactory
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.compose.viewmodel.koinViewModel
 import org.xplore.project.ui.chat.ChatScreen
 import org.xplore.project.ui.components.XploreBottomNavBar
@@ -40,9 +47,10 @@ import org.xplore.project.ui.profile.ProfileScreen
  * - **Tab 1 (Chat)**: AI Chat interface.
  * - **Tab 2 (Profile)**: User profile and settings.
  *
- * ## State Management
- * - Observes [HomeViewModel.uiState] via `collectAsState()`.
- * - Tab switching is handled within [HomeViewModel.onNavItemSelected].
+ * ## Location Tracking
+ * LocationTracker is created at the Composable level using moko-geo-compose
+ * because it requires platform-specific context (applicationContext on Android).
+ * Location updates are forwarded to [HomeViewModel] via [HomeViewModel.onLocationUpdate].
  */
 @Composable
 fun HomeScreen(
@@ -50,6 +58,29 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // ── Location Tracking (composable-level, platform-aware) ──
+    val locationTrackerFactory = rememberLocationTrackerFactory(LocationTrackerAccuracy.Best)
+    val locationTracker: LocationTracker = remember { locationTrackerFactory.createLocationTracker() }
+
+    BindLocationTrackerEffect(locationTracker = locationTracker)
+
+    // Collect location updates and forward to ViewModel
+    LaunchedEffect(locationTracker) {
+        try {
+            locationTracker.startTracking()
+            locationTracker.getLocationsFlow()
+                .distinctUntilChanged()
+                .collect { latLng ->
+                    viewModel.onLocationUpdate(
+                        latitude = latLng.latitude,
+                        longitude = latLng.longitude,
+                    )
+                }
+        } catch (_: Exception) {
+            viewModel.onLocationUnavailable()
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -95,6 +126,8 @@ private fun MapContent(
             pins = uiState.pins,
             onPinClick = { /* TODO: Navigate to museum detail */ },
             modifier = Modifier.fillMaxSize(),
+            userLatitude = uiState.userLatitude,
+            userLongitude = uiState.userLongitude,
         )
 
         // ── Layer 2: Top overlay (search + filters) ──
