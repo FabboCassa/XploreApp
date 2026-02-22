@@ -7,6 +7,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
@@ -46,7 +47,7 @@ fun XploreBottomNavBar(
     )
 
     NavigationBar(
-        modifier = modifier,
+        modifier = modifier.height(56.dp),
         containerColor = colorScheme.surface.copy(alpha = 0.95f),
         contentColor = colorScheme.onSurface,
         tonalElevation = 0.dp,
@@ -62,17 +63,11 @@ fun XploreBottomNavBar(
                         contentDescription = stringResource(item.labelRes),
                     )
                 },
-                label = {
-                    Text(
-                        text = stringResource(item.labelRes),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                },
+                label = null,
+                alwaysShowLabel = false,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = colorScheme.primary,
-                    selectedTextColor = colorScheme.primary,
                     unselectedIconColor = colorScheme.onSurfaceVariant,
-                    unselectedTextColor = colorScheme.onSurfaceVariant,
                     indicatorColor = colorScheme.primaryContainer.copy(alpha = 0.4f),
                 ),
             )

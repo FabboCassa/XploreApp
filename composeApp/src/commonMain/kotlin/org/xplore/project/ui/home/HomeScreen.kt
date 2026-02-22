@@ -102,7 +102,7 @@ private fun MapContent(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(top = 12.dp),
+                .padding(top = 4.dp),
         ) {
             XploreSearchBar(
                 query = uiState.searchQuery,

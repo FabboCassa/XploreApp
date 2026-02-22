@@ -67,6 +67,7 @@ multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings
 
 # MapLibre Compose (MIT — interactive OSM maps with offline support)
 maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibre-compose" }
+maplibre-compose-material3 = { module = "org.maplibre.compose:maplibre-compose-material3", version.ref = "maplibre-compose" }
 
 # Moko Geo (Apache 2.0 — GPS location tracking for KMP)
 moko-geo = { module = "dev.icerock.moko:geo", version.ref = "moko-geo" }

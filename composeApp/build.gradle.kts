@@ -73,6 +73,7 @@ kotlin {
 
             // MapLibre Compose (OSM interactive map with offline support)
             implementation(libs.maplibre.compose)
+            implementation(libs.maplibre.compose.material3)
 
             // Moko Geo & Permissions (GPS location + permission handling)
             implementation(libs.moko.geo)
