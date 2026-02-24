@@ -78,5 +78,18 @@
     <!-- Profile Screen -->
     <string name="profile_coming_soon">Profilo — Coming Soon</string>
     <string name="profile_btn_logout">Esci (Logout)</string>
+
+    <!-- Settings / Cache -->
+    <string name="clear_map_cache">Svuota cache mappa</string>
+    <string name="clear_map_cache_description">I dati della mappa più vecchi di 30 giorni vengono eliminati automaticamente</string>
+    <string name="cache_cleared">Cache mappa eliminata</string>
+
+    <!-- POI Loading -->
+    <string name="loading_poi_search">Ricerca punti di interesse…</string>
+    <string name="loading_poi_found">%d luoghi trovati!</string>
+
+    <!-- Chat Screen -->
+    <string name="chat_coming_soon">Chat — Coming Soon</string>
 </resources>
+
 

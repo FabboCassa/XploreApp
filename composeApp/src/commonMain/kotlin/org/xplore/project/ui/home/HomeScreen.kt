@@ -3,18 +3,22 @@ package org.xplore.project.ui.home
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,7 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.icerock.moko.geo.LocationTracker
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
@@ -104,7 +111,8 @@ fun HomeScreen(
                     onLogout = {
                         viewModel.logout()
                         onLogout()
-                    }
+                    },
+                    onClearMapCache = { viewModel.clearMapCache() },
                 )
             }
         }
@@ -124,13 +132,15 @@ private fun MapContent(
         // ── Layer 1: Map (full-bleed behind everything) ──
         XploreMap(
             pins = uiState.pins,
-            onPinClick = { /* TODO: Navigate to museum detail */ },
+            onPinClick = { pin -> viewModel.onPinSelected(pin) },
             modifier = Modifier.fillMaxSize(),
             userLatitude = uiState.userLatitude,
             userLongitude = uiState.userLongitude,
+            selectedPin = uiState.selectedPin,
+            onDismissCallout = { viewModel.onDismissCallout() },
         )
 
-        // ── Layer 2: Top overlay (search + filters) ──
+        // ── Layer 2: Top overlay (search + filters + loading bar) ──
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -149,18 +159,44 @@ private fun MapContent(
                 filters = uiState.filters,
                 onFilterClick = viewModel::onFilterSelected,
             )
-        }
 
-        // ── Layer 3: Loading indicator ──
-        AnimatedVisibility(
-            visible = uiState.isLoading,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.Center),
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-            )
+            // ── Loading bar + status text ──
+            AnimatedVisibility(
+                visible = uiState.isLoading,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(4.dp),
+                        color = Color(0xFF4A90D9),
+                        trackColor = Color(0xFF4A90D9).copy(alpha = 0.15f),
+                    )
+
+                    if (uiState.loadingStatusText != null) {
+                        Text(
+                            text = uiState.loadingStatusText.asString(),
+                            fontSize = 12.sp,
+                            color = Color(0xFF333333),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .background(
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    shape = RoundedCornerShape(8.dp),
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+            }
         }
     }
 }
+

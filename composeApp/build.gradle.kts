@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.spmForKmp)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -37,9 +38,11 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.sqldelight.android.driver)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -64,6 +67,7 @@ kotlin {
 
             // Kotlinx Serialization
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
 
             // Navigation
             implementation(libs.navigation.compose)
@@ -80,6 +84,9 @@ kotlin {
             implementation(libs.moko.geo.compose)
             implementation(libs.moko.permissions)
             implementation(libs.moko.permissions.compose)
+
+            // SQLDelight (local POI caching)
+            implementation(libs.sqldelight.coroutines)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -126,6 +133,14 @@ swiftPackageConfig {
                 products = { add("MapLibre") },
                 version = "6.17.1",
             )
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("XploreDatabase") {
+            packageName.set("org.xplore.project.data.local.db")
         }
     }
 }

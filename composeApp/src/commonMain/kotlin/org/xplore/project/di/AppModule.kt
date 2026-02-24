@@ -2,14 +2,19 @@ package org.xplore.project.di
 
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.xplore.project.data.local.MapPinLocalDataSource
 import org.xplore.project.data.local.TokenManager
+import org.xplore.project.data.local.db.DatabaseDriverFactory
+import org.xplore.project.data.local.db.XploreDatabase
 import org.xplore.project.data.remote.AuthApiService
+import org.xplore.project.data.remote.MapPinRemoteDataSource
 import org.xplore.project.data.repository.AuthRepositoryImpl
 import org.xplore.project.data.repository.MuseumRepositoryImpl
 import org.xplore.project.domain.repository.AuthRepository
@@ -23,7 +28,8 @@ import org.xplore.project.ui.home.HomeViewModel
  *
  * Provides:
  * - **Network**: Ktor HttpClient with JSON serialization.
- * - **Data**: Repository implementations and token storage.
+ * - **Database**: SQLDelight XploreDatabase for local POI caching.
+ * - **Data**: Repository implementations, data sources, and token storage.
  * - **Presentation**: ViewModels for Home and Auth screens.
  *
  * Note: Location services (PermissionsController, LocationTracker) are created
@@ -45,6 +51,11 @@ val appModule = module {
                 logger = Logger.DEFAULT
                 level = LogLevel.ALL
             }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
+            }
         }
     }
 
@@ -59,6 +70,19 @@ val appModule = module {
 
     // ── Local Storage ────────────────────────────────────────
     single { TokenManager() }
+
+    // ── SQLDelight Database ──────────────────────────────────
+    single { get<DatabaseDriverFactory>().createDriver() }
+    single { XploreDatabase(get()) }
+
+    // ── Data Sources ─────────────────────────────────────────
+    single { MapPinLocalDataSource(get()) }
+    single {
+        MapPinRemoteDataSource(
+            httpClient = get(),
+            baseUrl = "https://10.0.2.2:7109",
+        )
+    }
 
     // ── Data layer ───────────────────────────────────────────
     singleOf(::MuseumRepositoryImpl) bind MuseumRepository::class

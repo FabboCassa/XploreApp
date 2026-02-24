@@ -3,6 +3,7 @@ package org.xplore.project
 import androidx.compose.runtime.Composable
 import org.koin.compose.KoinApplication
 import org.xplore.project.di.appModule
+import org.xplore.project.di.platformModule
 import org.xplore.project.ui.navigation.XploreNavHost
 import org.xplore.project.ui.theme.XploreTheme
 
@@ -23,7 +24,7 @@ import org.xplore.project.ui.theme.XploreTheme
 @Composable
 fun App() {
     KoinApplication(application = {
-        modules(appModule)
+        modules(platformModule(), appModule)
     }) {
         XploreTheme {
             XploreNavHost()

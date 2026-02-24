@@ -15,5 +15,16 @@ import org.xplore.project.domain.model.Museum
  */
 interface MuseumRepository {
     suspend fun getMuseums(): List<Museum>
-    suspend fun getMapPins(): List<MapPin>
+
+    /**
+     * Fetches POIs for the given map viewport.
+     * Tries network first, falls back to local cache if offline.
+     */
+    suspend fun getMapPins(lat: Double, lon: Double, radiusKm: Double): List<MapPin>
+
+    /**
+     * Clears all locally cached map data.
+     * Does NOT affect user login, progress, or saved places.
+     */
+    suspend fun clearMapCache()
 }

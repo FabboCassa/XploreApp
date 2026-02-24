@@ -9,7 +9,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.flow.drop
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -31,12 +33,20 @@ import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
 
 /**
- * Interactive map component powered by **MapLibre Compose** + OpenStreetMap tiles.
+ * Interactive map with POI markers colored by type, user location dot,
+ * and a centered callout popup on tap.
  *
- * Displays:
- * - POI markers as colored circles (blue=Museum, orange=Artwork, green=Event)
- * - User location as a blue pulsing dot
- * - Custom compass and scale bar
+ * Color Palette (no blue — reserved for user location):
+ * - MUSEUM      → Red #D32F2F
+ * - ARTWORK     → Orange #E8833A
+ * - HISTORIC    → Brown #8D6E63
+ * - RELIGIOUS   → Purple #7B1FA2
+ * - NATURE      → Green #388E3C
+ * - CULTURE     → Pink #E91E90
+ * - ATTRACTION  → Golden #F9A825
+ * - VIEWPOINT   → Teal #00897B
+ * - EVENT       → Deep Orange #E64A19
+ * - OTHER       → Grey #78909C
  */
 @Composable
 fun XploreMap(
@@ -45,6 +55,8 @@ fun XploreMap(
     modifier: Modifier = Modifier,
     userLatitude: Double? = null,
     userLongitude: Double? = null,
+    selectedPin: MapPin? = null,
+    onDismissCallout: () -> Unit = {},
 ) {
     val styleUrl = "https://tiles.openfreemap.org/styles/liberty"
     val cameraState = rememberCameraState()
@@ -63,23 +75,39 @@ fun XploreMap(
         }
     }
 
-    // ── Pre-compute pin lists (no map-scope needed) ──
-    val museumPins = remember(pins) { pins.filter { it.type == PinType.MUSEUM } }
-    val artworkPins = remember(pins) { pins.filter { it.type == PinType.ARTWORK } }
-    val eventPins = remember(pins) { pins.filter { it.type == PinType.EVENT } }
+    // ── Dismiss callout when camera moves ──
+    LaunchedEffect(selectedPin) {
+        if (selectedPin != null) {
+            snapshotFlow { cameraState.position }
+                .drop(1)
+                .collect { onDismissCallout() }
+        }
+    }
 
-    // ── Build raw GeoJSON strings (avoids spatial-k serialization issues) ──
-    val museumJson = remember(museumPins) { pinsToGeoJsonString(museumPins) }
-    val artworkJson = remember(artworkPins) { pinsToGeoJsonString(artworkPins) }
-    val eventJson = remember(eventPins) { pinsToGeoJsonString(eventPins) }
+    // ── ID-based click resolution ──
+    val pinById = remember(pins) { pins.associateBy { it.id } }
+    val idRegex = remember { """"id"\s*:\s*"([^"]+)"""".toRegex() }
+
+    val resolveClick: (Any?) -> Unit = { clickedFeatures ->
+        val clickedId = try {
+            val featureStr = (clickedFeatures as? List<*>)?.firstOrNull()?.toString().orEmpty()
+            idRegex.find(featureStr)?.groupValues?.getOrNull(1)
+        } catch (_: Exception) { null }
+        clickedId?.let { pinById[it] }?.let(onPinClick)
+    }
+
+    // ── Group pins by type ──
+    val pinsByType = remember(pins) { pins.groupBy { it.type } }
+
+    // ── GeoJSON per type ──
+    val jsonByType = remember(pinsByType) {
+        pinsByType.mapValues { (_, typePins) -> pinsToGeoJsonString(typePins) }
+    }
+
     val userJson = remember(userLatitude, userLongitude) {
         userLocationGeoJsonString(userLatitude, userLongitude)
     }
 
-    // ── Colors ──
-    val museumColor = Color(0xFF4A90D9)
-    val artworkColor = Color(0xFFE8833A)
-    val eventColor = Color(0xFF4CAF50)
     val userDotColor = Color(0xFF2196F3)
 
     Box(modifier = modifier) {
@@ -87,33 +115,20 @@ fun XploreMap(
             modifier = Modifier.fillMaxSize(),
             baseStyle = BaseStyle.Uri(styleUrl),
             cameraState = cameraState,
-            options = MapOptions(
-                ornamentOptions = OrnamentOptions.AllDisabled
-            )
+            options = MapOptions(ornamentOptions = OrnamentOptions.AllDisabled),
         ) {
-            // ══════════════════════════════════════════════════════
-            // rememberGeoJsonSource MUST be inside MaplibreMap { }
-            // Using GeoJsonData.JsonString to bypass spatial-k
-            // polymorphic serializer issues with Feature<Geometry?, ...>
-            // ══════════════════════════════════════════════════════
-
-            val museumSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(museumJson))
-            val artworkSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(artworkJson))
-            val eventSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(eventJson))
             val userSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(userJson))
 
-            // ── User location — outer glow ring ──
+            // ── User location ──
             CircleLayer(
-                id = "user-location-glow",
+                id = "user-glow",
                 source = userSource,
                 radius = const(16.dp),
                 color = const(userDotColor.copy(alpha = 0.2f)),
                 visible = userLatitude != null && userLongitude != null,
             )
-
-            // ── User location — inner dot ──
             CircleLayer(
-                id = "user-location-dot",
+                id = "user-dot",
                 source = userSource,
                 radius = const(8.dp),
                 color = const(userDotColor),
@@ -122,46 +137,31 @@ fun XploreMap(
                 visible = userLatitude != null && userLongitude != null,
             )
 
-            // ── Museum markers (Blue) ──
-            CircleLayer(
-                id = "poi-museums",
-                source = museumSource,
-                radius = const(8.dp),
-                color = const(museumColor),
-                strokeColor = const(Color.White),
-                strokeWidth = const(2.dp),
-                onClick = { _ ->
-                    museumPins.firstOrNull()?.let(onPinClick)
-                    ClickResult.Consume
-                },
-            )
+            // ── Per-type POI layers ──
+            for ((type, json) in jsonByType) {
+                val source = rememberGeoJsonSource(data = GeoJsonData.JsonString(json))
+                val color = pinTypeColor(type)
 
-            // ── Artwork markers (Orange) ──
-            CircleLayer(
-                id = "poi-artworks",
-                source = artworkSource,
-                radius = const(8.dp),
-                color = const(artworkColor),
-                strokeColor = const(Color.White),
-                strokeWidth = const(2.dp),
-                onClick = { _ ->
-                    artworkPins.firstOrNull()?.let(onPinClick)
-                    ClickResult.Consume
-                },
-            )
+                CircleLayer(
+                    id = "poi-${type.name.lowercase()}",
+                    source = source,
+                    radius = const(8.dp),
+                    color = const(color),
+                    strokeColor = const(Color.White),
+                    strokeWidth = const(2.dp),
+                    onClick = { features ->
+                        resolveClick(features)
+                        ClickResult.Consume
+                    },
+                )
+            }
+        }
 
-            // ── Event markers (Green) ──
-            CircleLayer(
-                id = "poi-events",
-                source = eventSource,
-                radius = const(8.dp),
-                color = const(eventColor),
-                strokeColor = const(Color.White),
-                strokeWidth = const(2.dp),
-                onClick = { _ ->
-                    eventPins.firstOrNull()?.let(onPinClick)
-                    ClickResult.Consume
-                },
+        // ── Callout popup ──
+        if (selectedPin != null) {
+            PinCallout(
+                pin = selectedPin,
+                modifier = Modifier.align(Alignment.Center),
             )
         }
 
@@ -170,7 +170,7 @@ fun XploreMap(
             metersPerDp = cameraState.metersPerDpAtTarget,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 16.dp)
+                .padding(start = 16.dp, bottom = 16.dp),
         )
 
         // Compass
@@ -178,17 +178,27 @@ fun XploreMap(
             cameraState = cameraState,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 16.dp)
+                .padding(end = 16.dp, bottom = 16.dp),
         )
     }
 }
 
-// ── GeoJSON String Builders ──────────────────────────────────────
+// ── Pin type → color mapping ──
+fun pinTypeColor(type: PinType): Color = when (type) {
+    PinType.MUSEUM     -> Color(0xFFD32F2F)  // Red
+    PinType.ARTWORK    -> Color(0xFFE8833A)  // Orange
+    PinType.HISTORIC   -> Color(0xFF8D6E63)  // Brown
+    PinType.RELIGIOUS  -> Color(0xFF7B1FA2)  // Purple
+    PinType.NATURE     -> Color(0xFF388E3C)  // Green
+    PinType.CULTURE    -> Color(0xFFE91E90)  // Pink
+    PinType.ATTRACTION -> Color(0xFFF9A825)  // Golden
+    PinType.VIEWPOINT  -> Color(0xFF00897B)  // Teal
+    PinType.EVENT      -> Color(0xFFE64A19)  // Deep Orange
+    PinType.OTHER      -> Color(0xFF78909C)  // Grey
+}
 
-/**
- * Build a raw GeoJSON FeatureCollection string from [MapPin] list.
- * Uses raw JSON to avoid spatial-k serialization/polymorphic issues.
- */
+// ── GeoJSON String Builders ──
+
 private fun pinsToGeoJsonString(pins: List<MapPin>): String {
     val features = pins.joinToString(",") { pin ->
         """{"type":"Feature","geometry":{"type":"Point","coordinates":[${pin.longitude},${pin.latitude}]},"properties":{"id":"${pin.id}","label":"${pin.label.replace("\"", "\\\"")}"}}"""
@@ -196,10 +206,6 @@ private fun pinsToGeoJsonString(pins: List<MapPin>): String {
     return """{"type":"FeatureCollection","features":[$features]}"""
 }
 
-/**
- * Build a raw GeoJSON FeatureCollection string for the user location dot.
- * Returns an empty collection if coordinates are null.
- */
 private fun userLocationGeoJsonString(lat: Double?, lng: Double?): String {
     if (lat == null || lng == null) {
         return """{"type":"FeatureCollection","features":[]}"""

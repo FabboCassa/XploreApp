@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,12 +19,12 @@ import org.jetbrains.compose.resources.stringResource
 import xploreapp.composeapp.generated.resources.*
 
 /**
- * Placeholder screen for the User Profile feature.
- * Now includes a Logout button for testing auth flow.
+ * User Profile screen with Logout and Cache Management.
  */
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
+    onClearMapCache: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -34,9 +36,21 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
             )
-            
+
             Spacer(Modifier.height(32.dp))
-            
+
+            // ── Clear Map Cache ──
+            OutlinedButton(onClick = onClearMapCache) {
+                Text(stringResource(Res.string.clear_map_cache))
+            }
+            Text(
+                text = stringResource(Res.string.clear_map_cache_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                modifier = Modifier.padding(top = 4.dp, bottom = 24.dp),
+            )
+
+            // ── Logout ──
             Button(
                 onClick = onLogout,
                 colors = ButtonDefaults.buttonColors(

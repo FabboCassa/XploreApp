@@ -1,99 +1,88 @@
 package org.xplore.project.data.repository
 
+import org.xplore.project.data.local.MapPinLocalDataSource
+import org.xplore.project.data.remote.MapPinRemoteDataSource
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.Museum
-import org.xplore.project.domain.model.PinType
 import org.xplore.project.domain.repository.MuseumRepository
 
 /**
  * Concrete implementation of the [MuseumRepository].
  *
- * ## Data Layer
- * This class handles data retrieval. Currently, it uses **Mock Data** (`sampleMuseums`) to simulate a backend.
- *
- * ## Future Implementation
- * When the .NET backend is ready, this class will be updated to:
- * 1. Inject a `HttpClient` (Ktor).
- * 2. Make network requests to endpoints (e.g., `GET /api/museums`).
- * 3. Map API DTOs to Domain [Museum] entities.
+ * ## Data Strategy (Stateless Proxy + Client Cache)
+ * - **Network first**: Calls the backend proxy (which queries OpenStreetMap).
+ * - **Cache locally**: Stores fetched POIs in SQLDelight for offline use.
+ * - **Offline fallback**: If the network call fails, returns cached data.
+ * - **Auto-expiry**: Cleans entries older than 30 days on first use.
  */
-class MuseumRepositoryImpl : MuseumRepository {
+class MuseumRepositoryImpl(
+    private val localDataSource: MapPinLocalDataSource,
+    private val remoteDataSource: MapPinRemoteDataSource,
+) : MuseumRepository {
 
-    override suspend fun getMuseums(): List<Museum> = sampleMuseums
+    private var hasCleanedExpired = false
 
-    // TODO: Replace with real API data when backend is ready
-    override suspend fun getMapPins(): List<MapPin> = emptyList()
+    override suspend fun getMuseums(): List<Museum> {
+        return emptyList()
+    }
 
+    override suspend fun getMapPins(lat: Double, lon: Double, radiusKm: Double): List<MapPin> {
+        // Clean expired cache once per session
+        if (!hasCleanedExpired) {
+            try {
+                println("📱 [Repository] Clearing expired cache (>30 days)...")
+                localDataSource.clearExpiredCache()
+            } catch (e: Exception) {
+                println("📱 [Repository] ⚠️ Cache cleanup failed (schema change?): ${e.message}")
+            }
+            hasCleanedExpired = true
+        }
 
-    companion object {
-        private val sampleMuseums = listOf(
-            Museum(
-                id = "1",
-                name = "Galleria degli Uffizi",
-                description = "Uno dei musei d'arte più famosi al mondo.",
-                latitude = 43.7687,
-                longitude = 11.2558,
-                imageUrl = null,
-                address = "Piazzale degli Uffizi, 6, Firenze",
-                rating = 4.8,
-            ),
-            Museum(
-                id = "2",
-                name = "Museo Archeologico Nazionale",
-                description = "Il più importante museo archeologico d'Italia.",
-                latitude = 40.8538,
-                longitude = 14.2508,
-                imageUrl = null,
-                address = "Piazza Museo, 19, Napoli",
-                rating = 4.6,
-            ),
-            Museum(
-                id = "3",
-                name = "Musei Vaticani",
-                description = "Una delle raccolte d'arte più grandi del mondo.",
-                latitude = 41.9065,
-                longitude = 12.4536,
-                imageUrl = null,
-                address = "Viale Vaticano, Roma",
-                rating = 4.7,
-            ),
-            Museum(
-                id = "4",
-                name = "Pinacoteca di Brera",
-                description = "Galleria nazionale d'arte antica e moderna.",
-                latitude = 45.4720,
-                longitude = 9.1880,
-                imageUrl = null,
-                address = "Via Brera, 28, Milano",
-                rating = 4.5,
-            ),
-        )
+        println("📱 [Repository] Fetching POIs: lat=$lat, lon=$lon, radius=${radiusKm}km")
 
-        private val sampleArtworkPins = listOf(
-            MapPin(
-                id = "art_1",
-                label = "La Nascita di Venere",
-                latitude = 43.7697,
-                longitude = 11.2548,
-                type = PinType.ARTWORK,
-            ),
-            MapPin(
-                id = "art_2",
-                label = "La Scuola di Atene",
-                latitude = 41.9035,
-                longitude = 12.4546,
-                type = PinType.ARTWORK,
-            ),
-        )
+        return try {
+            // 1. Try fetching from the backend proxy (network)
+            println("📱 [Repository] → Calling backend /api/map/pois ...")
+            val remotePins = remoteDataSource.fetchPins(lat, lon, radiusKm)
+                .map { it.toDomain() }
 
-        private val sampleEventPins = listOf(
-            MapPin(
-                id = "evt_1",
-                label = "Notte al Museo",
-                latitude = 45.4730,
-                longitude = 9.1870,
-                type = PinType.EVENT,
-            ),
-        )
+            println("📱 [Repository] ← Received ${remotePins.size} POIs from backend")
+            remotePins.take(3).forEach { pin ->
+                println("📱   POI: ${pin.id} | ${pin.label} | ${pin.category} | ${pin.type}")
+            }
+            if (remotePins.size > 3) println("📱   ... and ${remotePins.size - 3} more")
+
+            // 2. Try to cache — don't let cache failure discard remote data
+            try {
+                localDataSource.cachePins(remotePins)
+                println("📱 [Repository] ✅ Cached ${remotePins.size} POIs to SQLDelight")
+            } catch (e: Exception) {
+                println("📱 [Repository] ⚠️ Caching failed (schema migration?): ${e.message}")
+                // Remote data is still valid — continue without caching
+            }
+
+            remotePins
+        } catch (e: Exception) {
+            // 3. Network failed → fall back to local cache
+            println("📱 [Repository] ❌ Network failed: ${e.message}")
+            try {
+                val cached = localDataSource.getCachedPins()
+                println("📱 [Repository] 📦 Falling back to ${cached.size} cached POIs")
+                cached
+            } catch (cacheError: Exception) {
+                println("📱 [Repository] ⚠️ Cache read also failed: ${cacheError.message}")
+                emptyList()
+            }
+        }
+    }
+
+    override suspend fun clearMapCache() {
+        println("📱 [Repository] 🗑️ Clearing ALL map cache...")
+        try {
+            localDataSource.clearAllCache()
+            println("📱 [Repository] ✅ Map cache cleared")
+        } catch (e: Exception) {
+            println("📱 [Repository] ⚠️ Cache clear failed: ${e.message}")
+        }
     }
 }
