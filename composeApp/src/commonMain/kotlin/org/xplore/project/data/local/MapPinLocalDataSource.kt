@@ -1,6 +1,6 @@
 package org.xplore.project.data.local
 
-import kotlinx.datetime.Clock
+import io.ktor.util.date.getTimeMillis
 import org.xplore.project.data.local.db.XploreDatabase
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
@@ -30,7 +30,7 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
         }
 
     fun cachePins(pins: List<MapPin>) {
-        val now = Clock.System.now().toEpochMilliseconds()
+        val now = getTimeMillis()
         pins.forEach { pin ->
             queries.insertPin(
                 id = pin.id,
@@ -47,7 +47,8 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
     }
 
     fun clearExpiredCache() {
-        val cutoff = Clock.System.now().minus(expiryDuration).toEpochMilliseconds()
+        val now = getTimeMillis()
+        val cutoff = now - expiryDuration.inWholeMilliseconds
         queries.deleteExpired(cutoff)
     }
 
