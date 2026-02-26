@@ -6,6 +6,7 @@ import org.xplore.project.data.remote.dto.LoginRequestDto
 import org.xplore.project.data.remote.dto.RegisterPersonalRequestDto
 import org.xplore.project.data.remote.dto.UserInfoDto
 import org.xplore.project.domain.repository.AuthRepository
+import org.xplore.project.domain.repository.AuthResult
 
 /**
  * Concrete implementation of [AuthRepository].
@@ -18,19 +19,21 @@ class AuthRepositoryImpl(
     private val tokenManager: TokenManager,
 ) : AuthRepository {
 
-    override suspend fun login(email: String, password: String): Result<Boolean> {
+    override suspend fun login(email: String, password: String): AuthResult {
         return try {
             val response = authApiService.login(LoginRequestDto(email, password))
+            if (response.requiresTwoFactor && response.userId != null) {
+                return AuthResult.RequiresTwoFactor(response.userId)
+            }
             tokenManager.saveTokens(
-                access = response.accessToken,
-                refresh = response.refreshToken,
+                access = response.actualAccessToken ?: "",
+                refresh = response.actualRefreshToken ?: "",
                 isGuest = false,
             )
-            Result.success(true)
+            AuthResult.Success
         } catch (e: Exception) {
-            println("AuthError [login]: ${e.message}")
-            e.printStackTrace()
-            Result.failure(e)
+            println("AuthError: ${e.message}")
+            AuthResult.Error(e.message ?: "Login failed")
         }
     }
 
@@ -44,27 +47,83 @@ class AuthRepositoryImpl(
                 RegisterPersonalRequestDto(email, password, userName)
             )
             // Auto-login after registration
-            login(email, password)
+            val loginResult = login(email, password)
+            if (loginResult is AuthResult.Success) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Login after registration failed"))
+            }
         } catch (e: Exception) {
             println("AuthError [register]: ${e.message}")
-            e.printStackTrace()
             Result.failure(e)
         }
     }
 
-    override suspend fun guestLogin(): Result<Boolean> {
+    override suspend fun guestLogin(): AuthResult {
         return try {
             val response = authApiService.guestLogin()
             tokenManager.saveTokens(
-                access = response.accessToken,
-                refresh = response.refreshToken,
+                access = response.actualAccessToken ?: "",
+                refresh = response.actualRefreshToken ?: "",
                 isGuest = true,
             )
-            Result.success(true)
+            AuthResult.Success
         } catch (e: Exception) {
             println("AuthError [guestLogin]: ${e.message}")
-            e.printStackTrace()
-            Result.failure(e)
+            AuthResult.Error(e.message ?: "Guest login failed")
+        }
+    }
+
+    override suspend fun externalLogin(provider: String, idToken: String): AuthResult {
+        return try {
+            val response = authApiService.externalLogin(
+                org.xplore.project.data.remote.dto.ExternalLoginRequestDto(provider, idToken)
+            )
+            if (response.requiresTwoFactor && response.userId != null) {
+                return AuthResult.RequiresTwoFactor(response.userId)
+            }
+            tokenManager.saveTokens(
+                access = response.actualAccessToken ?: "",
+                refresh = response.actualRefreshToken ?: "",
+                isGuest = false,
+            )
+            AuthResult.Success
+        } catch (e: Exception) {
+            println("AuthError [externalLogin]: ${e.message}")
+            AuthResult.Error(e.message ?: "External login failed")
+        }
+    }
+
+    override suspend fun verifyTwoFactor(userId: String, code: String, provider: String): AuthResult {
+        return try {
+            val response = authApiService.verifyTwoFactor(
+                org.xplore.project.data.remote.dto.TwoFactorVerifyRequestDto(userId, code, provider)
+            )
+            tokenManager.saveTokens(
+                access = response.actualAccessToken ?: "",
+                refresh = response.actualRefreshToken ?: "",
+                isGuest = false,
+            )
+            AuthResult.Success
+        } catch (e: Exception) {
+            println("AuthError [verifyTwoFactor]: ${e.message}")
+            AuthResult.Error(e.message ?: "2FA verification failed")
+        }
+    }
+
+    override suspend fun setupTwoFactor(): Result<Pair<String, String>> {
+        return try {
+            val token = tokenManager.accessToken
+                ?: return Result.failure(Exception("Not authenticated"))
+            val response = authApiService.setupTwoFactor(token)
+            Result.success(Pair(response.actualSharedKey, response.actualAuthenticatorUri))
+        } catch (e: Exception) {
+            println("AuthError [setupTwoFactor]: ${e.message}")
+            if (e.message?.contains("NoTransformationFoundException") == true || e.toString().contains("NoTransformationFoundException") || e.message?.contains("401") == true) {
+                Result.failure(Exception("Sessione scaduta. Effettua il logout e accedi nuovamente."))
+            } else {
+                Result.failure(e)
+            }
         }
     }
 
@@ -76,7 +135,6 @@ class AuthRepositoryImpl(
             Result.success(user)
         } catch (e: Exception) {
             println("AuthError [getCurrentUser]: ${e.message}")
-            e.printStackTrace()
             Result.failure(e)
         }
     }

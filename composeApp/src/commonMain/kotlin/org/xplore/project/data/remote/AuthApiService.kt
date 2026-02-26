@@ -8,7 +8,12 @@ import org.xplore.project.data.remote.dto.AuthResponseDto
 import org.xplore.project.data.remote.dto.LoginRequestDto
 import org.xplore.project.data.remote.dto.RegisterPersonalRequestDto
 import org.xplore.project.data.remote.dto.TokenResponseDto
+import org.xplore.project.data.remote.dto.TwoFactorSetupResponseDto
+import org.xplore.project.data.remote.dto.TwoFactorVerifyRequestDto
 import org.xplore.project.data.remote.dto.UserInfoDto
+import io.ktor.client.statement.*
+import io.ktor.http.isSuccess
+import kotlinx.serialization.json.Json
 
 /**
  * Ktor-based HTTP client for the Xplore Auth API.
@@ -24,30 +29,69 @@ class AuthApiService(
         return httpClient.post("$baseUrl/api/auth/login") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body()
+        }.handleResponse()
     }
 
     suspend fun registerPersonal(request: RegisterPersonalRequestDto): AuthResponseDto {
         return httpClient.post("$baseUrl/api/auth/register/personal") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }.body()
+        }.handleResponse()
     }
 
     suspend fun guestLogin(): TokenResponseDto {
-        return httpClient.post("$baseUrl/api/auth/guest").body()
+        return httpClient.post("$baseUrl/api/auth/guest").handleResponse()
+    }
+
+    suspend fun externalLogin(request: org.xplore.project.data.remote.dto.ExternalLoginRequestDto): TokenResponseDto {
+        return httpClient.post("$baseUrl/api/auth/external-login") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.handleResponse()
     }
 
     suspend fun refreshToken(accessToken: String, refreshToken: String): TokenResponseDto {
         return httpClient.post("$baseUrl/api/auth/refresh") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("accessToken" to accessToken, "refreshToken" to refreshToken))
-        }.body()
+        }.handleResponse()
+    }
+
+    suspend fun verifyTwoFactor(request: TwoFactorVerifyRequestDto): TokenResponseDto {
+        return httpClient.post("$baseUrl/api/auth/2fa/verify") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.handleResponse()
+    }
+
+    suspend fun setupTwoFactor(token: String): TwoFactorSetupResponseDto {
+        return httpClient.post("$baseUrl/api/auth/2fa/setup") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }.handleResponse()
     }
 
     suspend fun getCurrentUser(token: String): UserInfoDto {
         return httpClient.get("$baseUrl/api/auth/me") {
-            bearerAuth(token)
-        }.body()
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }.handleResponse()
+    }
+    
+    private suspend inline fun <reified T> HttpResponse.handleResponse(): T {
+        if (!status.isSuccess()) {
+            val errorText = try { bodyAsText() } catch (e: Exception) { "" }
+            var errorMsg = "HTTP Error ${status.value}"
+            try {
+                if (errorText.isNotBlank()) {
+                    val errorObj = Json { ignoreUnknownKeys = true }.decodeFromString<org.xplore.project.data.remote.dto.AuthResponseDto>(errorText)
+                    errorMsg = errorObj.message
+                } else if (status.value == 401) {
+                    errorMsg = "Non autorizzato (401)"
+                }
+            } catch (e: Exception) {
+                errorMsg = "HTTP Error ${status.value}"
+            }
+            throw Exception(errorMsg)
+        }
+        return body()
     }
 }

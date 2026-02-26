@@ -5,6 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import org.xplore.project.data.remote.dto.MapPinDto
+import io.ktor.http.isSuccess
 
 /**
  * Remote data source that calls the backend's stateless POI proxy endpoint.
@@ -26,10 +27,14 @@ class MapPinRemoteDataSource(
      * @return List of [MapPinDto] received from the backend.
      */
     suspend fun fetchPins(lat: Double, lon: Double, radiusKm: Double): List<MapPinDto> {
-        return httpClient.get("$baseUrl/api/map/pois") {
+        val response = httpClient.get("$baseUrl/api/map/pois") {
             parameter("lat", lat)
             parameter("lon", lon)
             parameter("radius", radiusKm)
-        }.body()
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
     }
 }

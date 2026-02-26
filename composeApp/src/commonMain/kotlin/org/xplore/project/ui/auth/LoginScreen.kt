@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +32,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +53,12 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import org.xplore.project.domain.auth.rememberGoogleAuthClient
+import org.xplore.project.domain.auth.GoogleSignInResult
+import org.xplore.project.domain.auth.rememberAppleAuthClient
+import org.xplore.project.domain.auth.AppleSignInResult
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -73,6 +81,9 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
     val colorScheme = MaterialTheme.colorScheme
+    val coroutineScope = rememberCoroutineScope()
+    val googleAuthClient = rememberGoogleAuthClient()
+    val appleAuthClient = rememberAppleAuthClient()
 
     // Navigate on success
     LaunchedEffect(uiState.loginSuccess) {
@@ -234,7 +245,22 @@ fun LoginScreen(
 
             // ── Google Sign-In ──
             OutlinedButton(
-                onClick = viewModel::onGoogleSignIn,
+                onClick = {
+                    viewModel.onGoogleSignIn() // Show loading state early
+                    coroutineScope.launch {
+                        when (val result = googleAuthClient.signIn()) {
+                            is GoogleSignInResult.Success -> {
+                                viewModel.onExternalLoginSuccess("Google", result.idToken)
+                            }
+                            is GoogleSignInResult.Error -> {
+                                viewModel.onExternalLoginError("Google", result.message)
+                            }
+                            GoogleSignInResult.Cancelled -> {
+                                viewModel.clearError() // o fai qualcos'altro per chiudere il loading state
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -247,7 +273,22 @@ fun LoginScreen(
 
             // ── Apple Sign-In ──
             OutlinedButton(
-                onClick = viewModel::onAppleSignIn,
+                onClick = {
+                    viewModel.onAppleSignIn() // Show loading state early
+                    coroutineScope.launch {
+                        when (val result = appleAuthClient.signIn()) {
+                            is AppleSignInResult.Success -> {
+                                viewModel.onExternalLoginSuccess("Apple", result.identityToken)
+                            }
+                            is AppleSignInResult.Error -> {
+                                viewModel.onExternalLoginError("Apple", result.message)
+                            }
+                            AppleSignInResult.Cancelled -> {
+                                viewModel.clearError()
+                            }
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -276,5 +317,62 @@ fun LoginScreen(
                 )
             }
         }
+    }
+
+    // ── 2FA Dialog ──
+    if (uiState.requiresTwoFactorUserId != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() }, // Also clears 2FA state if needed, or maybe add a specific dismiss method
+            title = { Text(text = "Verifica due fattori (2FA)") },
+            text = {
+                Column {
+                    Text(text = "Inserisci il codice temporaneo generato dalla tua app Authenticator o ricevuto via Email:")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = uiState.twoFactorCode,
+                        onValueChange = viewModel::onTwoFactorCodeChanged,
+                        label = { Text("Codice 2FA") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                viewModel.onVerifyTwoFactorClicked()
+                            }
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    uiState.errorMessage?.let { error ->
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(error),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colorScheme.error
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = viewModel::onVerifyTwoFactorClicked,
+                    enabled = uiState.twoFactorCode.isNotBlank() && !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = colorScheme.onPrimary, strokeWidth = 2.dp)
+                    } else {
+                        Text("Verifica")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::clearError) {
+                    Text("Annulla")
+                }
+            }
+        )
     }
 }

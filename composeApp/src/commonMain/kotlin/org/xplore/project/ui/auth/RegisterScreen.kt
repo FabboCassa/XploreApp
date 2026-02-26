@@ -1,7 +1,9 @@
 package org.xplore.project.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -30,6 +34,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import org.xplore.project.domain.auth.rememberGoogleAuthClient
+import org.xplore.project.domain.auth.GoogleSignInResult
+import org.xplore.project.domain.auth.rememberAppleAuthClient
+import org.xplore.project.domain.auth.AppleSignInResult
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +68,9 @@ fun RegisterScreen(
     val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
     val colorScheme = MaterialTheme.colorScheme
+    val coroutineScope = rememberCoroutineScope()
+    val googleAuthClient = rememberGoogleAuthClient()
+    val appleAuthClient = rememberAppleAuthClient()
 
     LaunchedEffect(uiState.loginSuccess) {
         if (uiState.loginSuccess) {
@@ -204,6 +217,84 @@ fun RegisterScreen(
             } else {
                 Text(stringResource(Res.string.register_btn), style = MaterialTheme.typography.labelLarge)
             }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        // ── Divider ──
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = colorScheme.outline.copy(alpha = 0.5f),
+            )
+            Text(
+                text = stringResource(Res.string.login_or),
+                style = MaterialTheme.typography.bodySmall,
+                color = colorScheme.onBackground.copy(alpha = 0.5f),
+            )
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = colorScheme.outline.copy(alpha = 0.5f),
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        // ── Google Sign-In ──
+        OutlinedButton(
+            onClick = {
+                viewModel.onGoogleSignIn() // Show loading state early
+                coroutineScope.launch {
+                    when (val result = googleAuthClient.signIn()) {
+                        is GoogleSignInResult.Success -> {
+                            viewModel.onExternalLoginSuccess("Google", result.idToken)
+                        }
+                        is GoogleSignInResult.Error -> {
+                            viewModel.onExternalLoginError("Google", result.message)
+                        }
+                        GoogleSignInResult.Cancelled -> {
+                            viewModel.clearError()
+                        }
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Text(stringResource(Res.string.login_google_btn), style = MaterialTheme.typography.labelLarge)
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // ── Apple Sign-In ──
+        OutlinedButton(
+            onClick = {
+                viewModel.onAppleSignIn() // Show loading state early
+                coroutineScope.launch {
+                    when (val result = appleAuthClient.signIn()) {
+                        is AppleSignInResult.Success -> {
+                            viewModel.onExternalLoginSuccess("Apple", result.identityToken)
+                        }
+                        is AppleSignInResult.Error -> {
+                            viewModel.onExternalLoginError("Apple", result.message)
+                        }
+                        AppleSignInResult.Cancelled -> {
+                            viewModel.clearError()
+                        }
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = MaterialTheme.shapes.medium,
+        ) {
+            Text(stringResource(Res.string.login_apple_btn), style = MaterialTheme.typography.labelLarge)
         }
     }
 }

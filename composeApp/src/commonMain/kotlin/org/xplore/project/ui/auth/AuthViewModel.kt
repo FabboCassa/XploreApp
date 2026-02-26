@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.xplore.project.domain.repository.AuthRepository
+import org.xplore.project.domain.repository.AuthResult
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -48,21 +49,22 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = authRepository.login(state.email, state.password)
-            result.fold(
-                onSuccess = {
+            when (val result = authRepository.login(state.email, state.password)) {
+                is AuthResult.Success -> {
                     _uiState.update { it.copy(isLoading = false, loginSuccess = true) }
-                },
-                onFailure = {
-                    // Generic error message — never reveal if email exists or password is wrong
+                }
+                is AuthResult.RequiresTwoFactor -> {
+                    _uiState.update { it.copy(isLoading = false, requiresTwoFactorUserId = result.userId) }
+                }
+                is AuthResult.Error -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             errorMessage = Res.string.error_invalid_credentials,
                         )
                     }
-                },
-            )
+                }
+            }
         }
     }
 
@@ -71,20 +73,23 @@ class AuthViewModel(
     fun onGuestAccess() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = authRepository.guestLogin()
-            result.fold(
-                onSuccess = {
+            when (val result = authRepository.guestLogin()) {
+                is AuthResult.Success -> {
                     _uiState.update { it.copy(isLoading = false, loginSuccess = true) }
-                },
-                onFailure = {
+                }
+                is AuthResult.RequiresTwoFactor -> {
+                    // Guests shouldn't require 2FA, but just in case
+                    _uiState.update { it.copy(isLoading = false, requiresTwoFactorUserId = result.userId) }
+                }
+                is AuthResult.Error -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             errorMessage = Res.string.error_guest_failed,
                         )
                     }
-                },
-            )
+                }
+            }
         }
     }
 
@@ -120,11 +125,41 @@ class AuthViewModel(
         }
     }
 
-    // ── Social Login (Prepared for backend) ──────────────────
+    // ── Social Login (Prepared for backend) ──────────────
+
+    fun onExternalLoginSuccess(provider: String, idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            when (val result = authRepository.externalLogin(provider, idToken)) {
+                is AuthResult.Success -> {
+                    _uiState.update { it.copy(isLoading = false, loginSuccess = true) }
+                }
+                is AuthResult.RequiresTwoFactor -> {
+                    _uiState.update { it.copy(isLoading = false, requiresTwoFactorUserId = result.userId) }
+                }
+                is AuthResult.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = Res.string.error_invalid_credentials,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun onExternalLoginError(provider: String, message: String) {
+        println("External Login Error [$provider]: $message")
+        _uiState.update { 
+            val res = if (provider == "Google") Res.string.error_google_unavailable else Res.string.error_apple_unavailable
+            it.copy(isLoading = false, errorMessage = res) 
+        }
+    }
 
     fun onGoogleSignIn() {
-        // TODO: Trigger native Google Sign-In → send idToken to backend
-        _uiState.update { it.copy(errorMessage = Res.string.error_google_unavailable) }
+        // UI will trigger rememberGoogleAuthClient
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
     }
 
     fun onAppleSignIn() {
@@ -133,11 +168,46 @@ class AuthViewModel(
     }
 
     fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
+        _uiState.update { it.copy(isLoading = false, errorMessage = null) }
     }
 
     fun resetLoginSuccess() {
         _uiState.update { it.copy(loginSuccess = false) }
+    }
+
+    // ── Two Factor Auth ────────────────────────────────────────
+
+    fun onTwoFactorCodeChanged(code: String) {
+        _uiState.update { it.copy(twoFactorCode = code, errorMessage = null) }
+    }
+
+    fun onVerifyTwoFactorClicked() {
+        val state = _uiState.value
+        val userId = state.requiresTwoFactorUserId ?: return
+        if (state.twoFactorCode.isBlank()) {
+            _uiState.update { it.copy(errorMessage = Res.string.error_missing_fields) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            when (val result = authRepository.verifyTwoFactor(userId, state.twoFactorCode)) {
+                is AuthResult.Success -> {
+                    _uiState.update { it.copy(isLoading = false, loginSuccess = true, requiresTwoFactorUserId = null) }
+                }
+                is AuthResult.RequiresTwoFactor -> {
+                    // Should not happen during verification
+                }
+                is AuthResult.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = Res.string.error_register_failed, // TODO: Use generic error or specific 2FA error
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -151,4 +221,6 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val errorMessage: StringResource? = null,
     val loginSuccess: Boolean = false,
+    val requiresTwoFactorUserId: String? = null,
+    val twoFactorCode: String = "",
 )

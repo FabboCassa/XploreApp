@@ -66,6 +66,9 @@
     <string name="register_password_label">Password</string>
     <string name="register_btn">Registrati</string>
 
+    <!-- Google Auth -->
+    <string name="google_web_client_id">963231567136-hpln3qj1ggjvonjl7l7t8t2psg54igom.apps.googleusercontent.com</string>
+
     <!-- Auth View Model / Errors -->
     <string name="error_missing_email_password">Inserisci email e password</string>
     <string name="error_invalid_credentials">Credenziali non valide. Riprova.</string>

@@ -22,6 +22,7 @@ import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.auth.AuthViewModel
 import org.xplore.project.ui.home.HomeViewModel
+import org.xplore.project.ui.profile.ProfileViewModel
 
 /**
  * Main Koin application module.
@@ -91,4 +92,5 @@ val appModule = module {
     // ── Presentation layer ───────────────────────────────────
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
+    viewModelOf(::ProfileViewModel)
 }

@@ -39,6 +39,11 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android.driver)
+            
+            // Google Sign-In (Credential Manager)
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.play.services.auth)
+            implementation(libs.googleid)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -71,6 +76,9 @@ kotlin {
 
             // Navigation
             implementation(libs.navigation.compose)
+
+            // QR Code (qrose)
+            implementation(libs.qrose)
 
             // Multiplatform Settings (token storage)
             implementation(libs.multiplatform.settings.no.arg)
