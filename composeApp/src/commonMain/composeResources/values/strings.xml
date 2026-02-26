@@ -67,7 +67,7 @@
     <string name="register_btn">Registrati</string>
 
     <!-- Google Auth -->
-    <string name="google_web_client_id">963231567136-hpln3qj1ggjvonjl7l7t8t2psg54igom.apps.googleusercontent.com</string>
+    <string name="google_web_client_id">816106524086-7cl7l2gdnqbpluft6s6pr2eg8a90fvdl.apps.googleusercontent.com</string>
 
     <!-- Auth View Model / Errors -->
     <string name="error_missing_email_password">Inserisci email e password</string>
