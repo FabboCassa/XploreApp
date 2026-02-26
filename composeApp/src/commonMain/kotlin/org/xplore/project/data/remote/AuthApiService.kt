@@ -70,6 +70,13 @@ class AuthApiService(
         }.handleResponse()
     }
 
+    suspend fun sendEmail2Fa(request: org.xplore.project.data.remote.dto.SendEmail2FARequestDto): AuthResponseDto {
+        return httpClient.post("$baseUrl/api/auth/2fa/send-email") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.handleResponse()
+    }
+
     suspend fun getCurrentUser(token: String): UserInfoDto {
         return httpClient.get("$baseUrl/api/auth/me") {
             header(HttpHeaders.Authorization, "Bearer $token")

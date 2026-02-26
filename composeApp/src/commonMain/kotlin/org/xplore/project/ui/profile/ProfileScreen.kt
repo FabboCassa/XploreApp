@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -75,11 +76,11 @@ fun ProfileScreen(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
             } else {
-                OutlinedButton(onClick = viewModel::onEnableTwoFactorClicked, enabled = !uiState.isLoading) {
+                OutlinedButton(onClick = viewModel::onInitiateTwoFactorSetup, enabled = !uiState.isLoading) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
                     }
-                    Text("Abilita 2FA (App Authenticator)")
+                    Text("Abilita 2FA")
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -97,45 +98,82 @@ fun ProfileScreen(
         }
     }
 
-    // ── 2FA Setup Dialog ──
+    // ── Method Selection Dialog ──
+    if (uiState.isSelectingTwoFactorMethod) {
+        AlertDialog(
+            onDismissRequest = viewModel::onCancelTwoFactorSetup,
+            title = { Text("Scegli un metodo 2FA") },
+            text = {
+                Column {
+                    Text("Seleziona come vuoi ricevere i codici di verifica a due fattori:")
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.onTwoFactorMethodSelected("Authenticator") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) {
+                        Text("App Authenticator (Google, Authy, ecc.)")
+                    }
+                    OutlinedButton(
+                        onClick = { viewModel.onTwoFactorMethodSelected("Email") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) {
+                        Text("Email")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
+                    Text("Annulla")
+                }
+            }
+        )
+    }
+
+    // ── 2FA Setup Dialog (Authenticator or Email) ──
     if (uiState.setupTwoFactorKey != null) {
         AlertDialog(
             onDismissRequest = viewModel::clearError,
             title = { Text("Configura 2FA") },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text("1. Scansiona questo QR Code con la tua app Authenticator (es. Google Authenticator):")
-                    Spacer(Modifier.height(8.dp))
-                    uiState.setupTwoFactorUri?.let { uri ->
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .background(Color.White)
-                                .padding(16.dp)
-                        ) {
-                            Image(
-                                painter = rememberQrCodePainter(data = uri),
-                                contentDescription = "QR Code per 2FA",
-                                modifier = Modifier.size(200.dp)
-                            )
-                        }
+                    if (uiState.selectedTwoFactorMethod == "Email") {
+                        Text("Abbiamo inviato un codice di conferma al tuo indirizzo email. Inseriscilo qui sotto per completare l'attivazione.")
                         Spacer(Modifier.height(16.dp))
+                    } else {
+                        Text("1. Scansiona questo QR Code con la tua app Authenticator:")
+                        Spacer(Modifier.height(8.dp))
+                        uiState.setupTwoFactorUri?.let { uri ->
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .background(Color.White)
+                                    .padding(8.dp)
+                            ) {
+                                Image(
+                                    painter = rememberQrCodePainter(data = uri),
+                                    contentDescription = "QR Code per 2FA",
+                                    modifier = Modifier.size(160.dp)
+                                )
+                            }
+                            Spacer(Modifier.height(16.dp))
+                        }
+                        Text(
+                            text = "Oppure inserisci manualmente questa chiave:",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = uiState.setupTwoFactorKey ?: "",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Text("2. Inserisci il codice a 6 cifre generato dall'app:")
+                        Spacer(Modifier.height(8.dp))
                     }
-                    Text(
-                        text = "Oppure inserisci manualmente questa chiave:",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = uiState.setupTwoFactorKey ?: "",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text("2. Inserisci il codice a 6 cifre generato dall'app per confermare:")
-                    Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = uiState.twoFactorCodeInput,
                         onValueChange = viewModel::onTwoFactorCodeChanged,
@@ -166,8 +204,8 @@ fun ProfileScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::clearError) {
-                    Text("Chiudi")
+                TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
+                    Text("Annulla")
                 }
             }
         )

@@ -34,6 +34,9 @@ interface AuthRepository {
     /** Setup 2FA. Returns SharedKey and AuthenticatorUri. */
     suspend fun setupTwoFactor(): Result<Pair<String, String>>
 
+    /** Send an email with 2FA code. */
+    suspend fun sendEmail2Fa(userId: String): Result<Boolean>
+
     /** Get the current user's info. Requires an active session. */
     suspend fun getCurrentUser(): Result<UserInfoDto>
 

@@ -77,6 +77,7 @@
     <string name="error_register_failed">Registrazione fallita. Riprova.</string>
     <string name="error_google_unavailable">Google Sign-In non ancora disponibile</string>
     <string name="error_apple_unavailable">Apple Sign-In non ancora disponibile</string>
+    <string name="success_email_sent">Codice inviato via Email</string>
 
     <!-- Profile Screen -->
     <string name="profile_coming_soon">Profilo — Coming Soon</string>

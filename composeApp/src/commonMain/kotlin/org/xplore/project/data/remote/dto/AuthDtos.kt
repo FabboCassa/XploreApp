@@ -25,6 +25,11 @@ data class ExternalLoginRequestDto(
 )
 
 @Serializable
+data class SendEmail2FARequestDto(
+    val userId: String,
+)
+
+@Serializable
 data class TwoFactorVerifyRequestDto(
     val userId: String,
     val code: String,

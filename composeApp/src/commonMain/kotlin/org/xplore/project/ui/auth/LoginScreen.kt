@@ -346,6 +346,21 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextButton(
+                        onClick = viewModel::onSendEmail2FaClicked,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Invia codice via Email")
+                    }
+                    uiState.emailSentMessage?.let { msg ->
+                        Text(
+                            text = stringResource(msg),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp).align(Alignment.CenterHorizontally)
+                        )
+                    }
                     uiState.errorMessage?.let { error ->
                         Spacer(Modifier.height(8.dp))
                         Text(

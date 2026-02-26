@@ -127,6 +127,18 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun sendEmail2Fa(userId: String): Result<Boolean> {
+        return try {
+            authApiService.sendEmail2Fa(
+                org.xplore.project.data.remote.dto.SendEmail2FARequestDto(userId)
+            )
+            Result.success(true)
+        } catch (e: Exception) {
+            println("AuthError [sendEmail2Fa]: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getCurrentUser(): Result<UserInfoDto> {
         return try {
             val token = tokenManager.accessToken

@@ -46,6 +46,7 @@ val appModule = module {
                     ignoreUnknownKeys = true
                     isLenient = true
                     prettyPrint = false
+                    encodeDefaults = true
                 })
             }
             install(Logging) {

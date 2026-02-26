@@ -177,6 +177,22 @@ class AuthViewModel(
 
     // ── Two Factor Auth ────────────────────────────────────────
 
+    fun onSendEmail2FaClicked() {
+        val userId = _uiState.value.requiresTwoFactorUserId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, emailSentMessage = null) }
+            val result = authRepository.sendEmail2Fa(userId)
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isLoading = false, emailSentMessage = Res.string.success_email_sent) }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = Res.string.error_register_failed) }
+                }
+            )
+        }
+    }
+
     fun onTwoFactorCodeChanged(code: String) {
         _uiState.update { it.copy(twoFactorCode = code, errorMessage = null) }
     }
@@ -223,4 +239,5 @@ data class AuthUiState(
     val loginSuccess: Boolean = false,
     val requiresTwoFactorUserId: String? = null,
     val twoFactorCode: String = "",
+    val emailSentMessage: StringResource? = null,
 )

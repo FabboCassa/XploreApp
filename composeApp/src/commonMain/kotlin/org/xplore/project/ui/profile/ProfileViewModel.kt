@@ -15,6 +15,8 @@ import xploreapp.composeapp.generated.resources.*
 data class ProfileUiState(
     val isLoading: Boolean = false,
     val errorMessage: StringResource? = null,
+    val isSelectingTwoFactorMethod: Boolean = false,
+    val selectedTwoFactorMethod: String? = null,
     val setupTwoFactorKey: String? = null,
     val setupTwoFactorUri: String? = null,
     val isTwoFactorEnabled: Boolean = false, // True when successfully setup
@@ -28,7 +30,30 @@ class ProfileViewModel(
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    fun onEnableTwoFactorClicked() {
+    fun onInitiateTwoFactorSetup() {
+        _uiState.update { it.copy(isSelectingTwoFactorMethod = true, errorMessage = null) }
+    }
+
+    fun onTwoFactorMethodSelected(method: String) {
+        _uiState.update { it.copy(isSelectingTwoFactorMethod = false, selectedTwoFactorMethod = method, errorMessage = null) }
+        when (method) {
+            "Authenticator" -> startAuthenticatorSetup()
+            "Email" -> startEmailSetup()
+        }
+    }
+
+    fun onCancelTwoFactorSetup() {
+        _uiState.update { it.copy(
+            isSelectingTwoFactorMethod = false,
+            setupTwoFactorKey = null,
+            setupTwoFactorUri = null,
+            selectedTwoFactorMethod = null,
+            errorMessage = null,
+            twoFactorCodeInput = ""
+        ) }
+    }
+
+    private fun startAuthenticatorSetup() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val result = authRepository.setupTwoFactor()
@@ -52,6 +77,29 @@ class ProfileViewModel(
         }
     }
 
+    private fun startEmailSetup() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val userResult = authRepository.getCurrentUser()
+            userResult.fold(
+                onSuccess = { userInfo ->
+                    val sendResult = authRepository.sendEmail2Fa(userInfo.id)
+                    sendResult.fold(
+                        onSuccess = {
+                            _uiState.update { it.copy(isLoading = false, setupTwoFactorKey = "EmailSent") } // Hack to trigger dialog
+                        },
+                        onFailure = {
+                            _uiState.update { it.copy(isLoading = false, errorMessage = Res.string.error_register_failed) }
+                        }
+                    )
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = Res.string.error_guest_failed) }
+                }
+            )
+        }
+    }
+
     fun onTwoFactorCodeChanged(code: String) {
         _uiState.update { it.copy(twoFactorCodeInput = code, errorMessage = null) }
     }
@@ -63,20 +111,16 @@ class ProfileViewModel(
             return
         }
 
+        val provider = state.selectedTwoFactorMethod ?: "Authenticator"
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            
-            // Note: In a real app we might need the userId, but maybe the backend infers it
-            // from the current token if the endpoint allows. 
-            // Wait, the verify endpoint takes a user ID according to TwoFactorVerifyRequestDto.
-            // Oh, but this is verifying the SETUP. The setup endpoint and verify endpoint...
-            // Let's get the current user to find their ID, then verify.
             
             val userResult = authRepository.getCurrentUser()
             userResult.fold(
                 onSuccess = { userInfo ->
                     val cleanCode = state.twoFactorCodeInput.trim().replace(" ", "")
-                    val verifyResult = authRepository.verifyTwoFactor(userInfo.id, cleanCode, "Authenticator")
+                    val verifyResult = authRepository.verifyTwoFactor(userInfo.id, cleanCode, provider)
                     when (verifyResult) {
                         is AuthResult.Success -> {
                             _uiState.update { 
