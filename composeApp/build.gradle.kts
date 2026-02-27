@@ -95,6 +95,10 @@ kotlin {
 
             // SQLDelight (local POI caching)
             implementation(libs.sqldelight.coroutines)
+
+            // Coil (Image loading)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
