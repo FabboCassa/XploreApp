@@ -323,15 +323,15 @@ fun LoginScreen(
     if (uiState.requiresTwoFactorUserId != null) {
         AlertDialog(
             onDismissRequest = { viewModel.clearError() }, // Also clears 2FA state if needed, or maybe add a specific dismiss method
-            title = { Text(text = "Verifica due fattori (2FA)") },
+            title = { Text(text = stringResource(Res.string.two_factor_title)) },
             text = {
                 Column {
-                    Text(text = "Inserisci il codice temporaneo generato dalla tua app Authenticator o ricevuto via Email:")
+                    Text(text = stringResource(Res.string.two_factor_desc))
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = uiState.twoFactorCode,
                         onValueChange = viewModel::onTwoFactorCodeChanged,
-                        label = { Text("Codice 2FA") },
+                        label = { Text(stringResource(Res.string.two_factor_code_label)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
@@ -351,7 +351,7 @@ fun LoginScreen(
                         onClick = viewModel::onSendEmail2FaClicked,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Invia codice via Email")
+                        Text(stringResource(Res.string.two_factor_btn_send_email))
                     }
                     uiState.emailSentMessage?.let { msg ->
                         Text(
@@ -379,13 +379,13 @@ fun LoginScreen(
                     if (uiState.isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), color = colorScheme.onPrimary, strokeWidth = 2.dp)
                     } else {
-                        Text("Verifica")
+                        Text(stringResource(Res.string.two_factor_btn_verify))
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::clearError) {
-                    Text("Annulla")
+                    Text(stringResource(Res.string.two_factor_btn_cancel))
                 }
             }
         )

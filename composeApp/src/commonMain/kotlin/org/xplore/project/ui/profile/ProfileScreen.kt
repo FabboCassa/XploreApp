@@ -70,7 +70,7 @@ fun ProfileScreen(
             // ── 2FA Setup ──
             if (uiState.isTwoFactorEnabled) {
                 Text(
-                    text = "Autenticazione a Due Fattori abilitata \u2705",
+                    text = stringResource(Res.string.profile_2fa_enabled),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 24.dp)
@@ -80,7 +80,7 @@ fun ProfileScreen(
                     if (uiState.isLoading) {
                         CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
                     }
-                    Text("Abilita 2FA")
+                    Text(stringResource(Res.string.profile_2fa_enable_btn))
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -102,29 +102,29 @@ fun ProfileScreen(
     if (uiState.isSelectingTwoFactorMethod) {
         AlertDialog(
             onDismissRequest = viewModel::onCancelTwoFactorSetup,
-            title = { Text("Scegli un metodo 2FA") },
+            title = { Text(stringResource(Res.string.profile_2fa_choose_method_title)) },
             text = {
                 Column {
-                    Text("Seleziona come vuoi ricevere i codici di verifica a due fattori:")
+                    Text(stringResource(Res.string.profile_2fa_choose_method_desc))
                     Spacer(Modifier.height(16.dp))
                     OutlinedButton(
                         onClick = { viewModel.onTwoFactorMethodSelected("Authenticator") },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) {
-                        Text("App Authenticator (Google, Authy, ecc.)")
+                        Text(stringResource(Res.string.profile_2fa_method_app))
                     }
                     OutlinedButton(
                         onClick = { viewModel.onTwoFactorMethodSelected("Email") },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) {
-                        Text("Email")
+                        Text(stringResource(Res.string.profile_2fa_method_email))
                     }
                 }
             },
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
-                    Text("Annulla")
+                    Text(stringResource(Res.string.two_factor_btn_cancel))
                 }
             }
         )
@@ -134,14 +134,14 @@ fun ProfileScreen(
     if (uiState.setupTwoFactorKey != null) {
         AlertDialog(
             onDismissRequest = viewModel::clearError,
-            title = { Text("Configura 2FA") },
+            title = { Text(stringResource(Res.string.profile_2fa_setup_title)) },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     if (uiState.selectedTwoFactorMethod == "Email") {
-                        Text("Abbiamo inviato un codice di conferma al tuo indirizzo email. Inseriscilo qui sotto per completare l'attivazione.")
+                        Text(stringResource(Res.string.profile_2fa_setup_email_desc))
                         Spacer(Modifier.height(16.dp))
                     } else {
-                        Text("1. Scansiona questo QR Code con la tua app Authenticator:")
+                        Text(stringResource(Res.string.profile_2fa_setup_app_step_1))
                         Spacer(Modifier.height(8.dp))
                         uiState.setupTwoFactorUri?.let { uri ->
                             Box(
@@ -152,14 +152,14 @@ fun ProfileScreen(
                             ) {
                                 Image(
                                     painter = rememberQrCodePainter(data = uri),
-                                    contentDescription = "QR Code per 2FA",
+                                    contentDescription = stringResource(Res.string.profile_2fa_qr_content_desc),
                                     modifier = Modifier.size(160.dp)
                                 )
                             }
                             Spacer(Modifier.height(16.dp))
                         }
                         Text(
-                            text = "Oppure inserisci manualmente questa chiave:",
+                            text = stringResource(Res.string.profile_2fa_setup_app_manual),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
@@ -171,13 +171,13 @@ fun ProfileScreen(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                         Spacer(Modifier.height(16.dp))
-                        Text("2. Inserisci il codice a 6 cifre generato dall'app:")
+                        Text(stringResource(Res.string.profile_2fa_setup_app_step_2))
                         Spacer(Modifier.height(8.dp))
                     }
                     OutlinedTextField(
                         value = uiState.twoFactorCodeInput,
                         onValueChange = viewModel::onTwoFactorCodeChanged,
-                        label = { Text("Codice confermato") },
+                        label = { Text(stringResource(Res.string.profile_2fa_confirmed_code_label)) },
                         singleLine = true,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -199,13 +199,13 @@ fun ProfileScreen(
                     if (uiState.isLoading) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                        Text("Verifica e Salva")
+                        Text(stringResource(Res.string.profile_2fa_btn_verify_save))
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
-                    Text("Annulla")
+                    Text(stringResource(Res.string.two_factor_btn_cancel))
                 }
             }
         )

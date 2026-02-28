@@ -104,6 +104,28 @@
     <string name="settings_btn_logout">Esci</string>
     <string name="settings_warning_slow">Tempi di caricamento più lunghi</string>
     <string name="settings_estimated_time">Tempo stimato: ~%ss</string>
+    
+    <!-- 2FA Setup & Login -->
+    <string name="two_factor_title">Verifica due fattori (2FA)</string>
+    <string name="two_factor_desc">Inserisci il codice temporaneo generato dalla tua app Authenticator o ricevuto via Email:</string>
+    <string name="two_factor_code_label">Codice 2FA</string>
+    <string name="two_factor_btn_send_email">Invia codice via Email</string>
+    <string name="two_factor_btn_verify">Verifica</string>
+    <string name="two_factor_btn_cancel">Annulla</string>
+    
+    <!-- Profile Screen 2FA -->
+    <string name="profile_2fa_enabled">Autenticazione a Due Fattori abilitata ✅</string>
+    <string name="profile_2fa_enable_btn">Abilita 2FA</string>
+    <string name="profile_2fa_choose_method_title">Scegli un metodo 2FA</string>
+    <string name="profile_2fa_choose_method_desc">Seleziona come vuoi ricevere i codici di verifica a due fattori:</string>
+    <string name="profile_2fa_method_app">App Authenticator (Google, Authy, ecc.)</string>
+    <string name="profile_2fa_method_email">Email</string>
+    <string name="profile_2fa_setup_title">Configura 2FA</string>
+    <string name="profile_2fa_setup_email_desc">Abbiamo inviato un codice di conferma al tuo indirizzo email. Inseriscilo qui sotto per completare l\'attivazione.</string>
+    <string name="profile_2fa_setup_app_step_1">1. Scansiona questo QR Code con la tua app Authenticator:</string>
+    <string name="profile_2fa_qr_content_desc">QR Code per 2FA</string>
+    <string name="profile_2fa_setup_app_manual">Oppure inserisci manualmente questa chiave:</string>
+    <string name="profile_2fa_setup_app_step_2">2. Inserisci il codice a 6 cifre generato dall\'app:</string>
+    <string name="profile_2fa_confirmed_code_label">Codice confermato</string>
+    <string name="profile_2fa_btn_verify_save">Verifica e Salva</string>
 </resources>
-
-
