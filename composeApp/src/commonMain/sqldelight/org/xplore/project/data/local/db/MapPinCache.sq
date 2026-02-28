@@ -15,6 +15,12 @@ CREATE TABLE MapPinCache (
 selectAll:
 SELECT * FROM MapPinCache;
 
+-- Fetch cached pins within a geographic bounding box
+selectInBoundingBox:
+SELECT * FROM MapPinCache
+WHERE latitude BETWEEN ? AND ?
+  AND longitude BETWEEN ? AND ?;
+
 -- Insert or replace a pin
 insertPin:
 INSERT OR REPLACE INTO MapPinCache(id, label, latitude, longitude, type, description, category, imageUrl, cachedAt)

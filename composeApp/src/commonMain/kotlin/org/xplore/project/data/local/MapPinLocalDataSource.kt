@@ -16,18 +16,26 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
     private val expiryDuration = 30.days
 
     fun getCachedPins(): List<MapPin> =
-        queries.selectAll().executeAsList().map { row ->
-            MapPin(
-                id = row.id,
-                label = row.label,
-                latitude = row.latitude,
-                longitude = row.longitude,
-                type = PinType.fromString(row.type),
-                description = row.description,
-                category = row.category,
-                imageUrl = row.imageUrl,
-            )
-        }
+        queries.selectAll().executeAsList().map { it.toDomain() }
+
+    fun getCachedPinsInArea(
+        minLat: Double, maxLat: Double,
+        minLon: Double, maxLon: Double,
+    ): List<MapPin> =
+        queries.selectInBoundingBox(minLat, maxLat, minLon, maxLon)
+            .executeAsList()
+            .map { it.toDomain() }
+
+    private fun org.xplore.project.data.local.db.MapPinCache.toDomain() = MapPin(
+        id = id,
+        label = label,
+        latitude = latitude,
+        longitude = longitude,
+        type = PinType.fromString(type),
+        description = description,
+        category = category,
+        imageUrl = imageUrl,
+    )
 
     fun cachePins(pins: List<MapPin>) {
         val now = getTimeMillis()
