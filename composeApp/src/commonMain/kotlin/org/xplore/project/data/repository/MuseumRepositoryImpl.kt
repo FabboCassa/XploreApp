@@ -36,7 +36,12 @@ class MuseumRepositoryImpl(
         return emptyList()
     }
 
-    override suspend fun getMapPins(lat: Double, lon: Double, radiusKm: Double): List<MapPin> {
+    override suspend fun getMapPins(
+        lat: Double,
+        lon: Double,
+        radiusKm: Double,
+        allowNetworkRefresh: Boolean
+    ): List<MapPin> {
         // Clean expired cache once per session
         if (!hasCleanedExpired) {
             try {
@@ -64,16 +69,18 @@ class MuseumRepositoryImpl(
         if (cached.isNotEmpty()) {
             println("📱 [Repository] ✅ Cache hit — ${cached.size} POIs returned instantly")
 
-            // Silently refresh in background so data stays fresh
-            refreshScope.launch {
-                try {
-                    println("📱 [Repository] 🔄 Background refresh started...")
-                    val fresh = remoteDataSource.fetchPins(lat, lon, radiusKm)
-                        .map { it.toDomain() }
-                    localDataSource.cachePins(fresh)
-                    println("📱 [Repository] 🔄 Background refresh done — ${fresh.size} POIs updated")
-                } catch (e: Exception) {
-                    println("📱 [Repository] 🔄 Background refresh failed (non-blocking): ${e.message}")
+            if (allowNetworkRefresh) {
+                // Silently refresh in background so data stays fresh
+                refreshScope.launch {
+                    try {
+                        println("📱 [Repository] 🔄 Background refresh started...")
+                        val fresh = remoteDataSource.fetchPins(lat, lon, radiusKm)
+                            .map { it.toDomain() }
+                        localDataSource.cachePins(fresh)
+                        println("📱 [Repository] 🔄 Background refresh done — ${fresh.size} POIs updated")
+                    } catch (e: Exception) {
+                        println("📱 [Repository] 🔄 Background refresh failed (non-blocking): ${e.message}")
+                    }
                 }
             }
 
@@ -135,6 +142,17 @@ class MuseumRepositoryImpl(
             println("📱 [Repository] ✅ Map cache cleared")
         } catch (e: Exception) {
             println("📱 [Repository] ⚠️ Cache clear failed: ${e.message}")
+        }
+    }
+
+    override suspend fun pruneCacheOutsideRadius(lat: Double, lon: Double, radiusKm: Double) {
+        println("📱 [Repository] ✂️ Pruning cache outside ${radiusKm}km...")
+        try {
+            val (minLat, maxLat, minLon, maxLon) = boundingBox(lat, lon, radiusKm)
+            localDataSource.deleteOutsideBoundingBox(minLat, maxLat, minLon, maxLon)
+            println("📱 [Repository] ✅ Pruned cache to ${radiusKm}km bounding box")
+        } catch (e: Exception) {
+            println("📱 [Repository] ⚠️ Pruning failed: ${e.message}")
         }
     }
 }

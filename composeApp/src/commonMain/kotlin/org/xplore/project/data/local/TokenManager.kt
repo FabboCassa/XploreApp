@@ -50,9 +50,21 @@ class TokenManager {
         settings.remove(KEY_IS_GUEST)
     }
 
+    // ── Radius settings (persisted across restarts) ────────────
+    var searchRadiusKm: Double
+        get() = settings.getDouble(KEY_SEARCH_RADIUS, 3.0)
+        set(value) = settings.putDouble(KEY_SEARCH_RADIUS, value)
+
+    /** Epoch millis when the current radius was set. */
+    var radiusSetAtMs: Long
+        get() = settings.getLong(KEY_RADIUS_SET_AT, 0L)
+        set(value) = settings.putLong(KEY_RADIUS_SET_AT, value)
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "xplore_access_token"
         private const val KEY_REFRESH_TOKEN = "xplore_refresh_token"
         private const val KEY_IS_GUEST = "xplore_is_guest"
+        private const val KEY_SEARCH_RADIUS = "xplore_search_radius"
+        private const val KEY_RADIUS_SET_AT = "xplore_radius_set_at"
     }
 }

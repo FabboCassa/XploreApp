@@ -15,6 +15,7 @@ import org.xplore.project.data.local.db.DatabaseDriverFactory
 import org.xplore.project.data.local.db.XploreDatabase
 import org.xplore.project.data.remote.AuthApiService
 import org.xplore.project.data.remote.MapPinRemoteDataSource
+import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.repository.AuthRepositoryImpl
 import org.xplore.project.data.repository.MuseumRepositoryImpl
 import org.xplore.project.domain.repository.AuthRepository
@@ -81,6 +82,12 @@ val appModule = module {
     single { MapPinLocalDataSource(get()) }
     single {
         MapPinRemoteDataSource(
+            httpClient = get(),
+            baseUrl = "https://10.0.2.2:7109",
+        )
+    }
+    single {
+        RadiusMetricsRemoteDataSource(
             httpClient = get(),
             baseUrl = "https://10.0.2.2:7109",
         )

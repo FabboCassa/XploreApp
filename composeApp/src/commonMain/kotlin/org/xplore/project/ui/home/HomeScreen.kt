@@ -3,6 +3,7 @@ package org.xplore.project.ui.home
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -36,7 +38,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -133,6 +137,7 @@ fun HomeScreen(
     if (uiState.isSettingsOpen) {
         SettingsDialog(
             searchRadiusKm = uiState.searchRadiusKm,
+            radiusAverages = uiState.radiusAverages,
             onRadiusChange = viewModel::updateSearchRadius,
             onDismiss = viewModel::closeSettings,
             onLogout = {
@@ -264,11 +269,15 @@ private fun closestIndex(km: Double): Int {
 @Composable
 private fun SettingsDialog(
     searchRadiusKm: Double,
+    radiusAverages: Map<Double, Long>,
     onRadiusChange: (Double) -> Unit,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
 ) {
-    val currentIndex = closestIndex(searchRadiusKm)
+    // Local state for the slider, so we only apply when the user clicks "Applica"
+    var localRadiusKm by remember { mutableStateOf(searchRadiusKm) }
+
+    val currentIndex = closestIndex(localRadiusKm)
     val isRedZone = currentIndex >= RED_START_INDEX
 
     Dialog(
@@ -278,7 +287,7 @@ private fun SettingsDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.88f)
-                .fillMaxHeight(0.72f)
+                .fillMaxHeight(0.80f) // Slightly taller to fit the new button
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface),
         ) {
@@ -322,7 +331,7 @@ private fun SettingsDialog(
 
                 // Current value label
                 Text(
-                    text = formatRadius(searchRadiusKm),
+                    text = formatRadius(localRadiusKm),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isRedZone) RED_COLOR else BLUE_COLOR,
@@ -337,12 +346,25 @@ private fun SettingsDialog(
                     )
                 }
 
+                // Estimated loading time from backend metrics
+                val avgMs = radiusAverages[localRadiusKm]
+                if (avgMs != null) {
+                    Spacer(Modifier.height(4.dp))
+                    val seconds = "%.1f".format(avgMs / 1000.0)
+                    Text(
+                        text = "Tempo stimato: ~${seconds}s",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isRedZone) RED_COLOR.copy(alpha = 0.8f)
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
                 Spacer(Modifier.height(8.dp))
 
                 // ── Custom dual-color slider ──
                 RadiusSlider(
                     currentIndex = currentIndex,
-                    onIndexChange = { idx -> onRadiusChange(RADIUS_STEPS[idx]) },
+                    onIndexChange = { idx -> localRadiusKm = RADIUS_STEPS[idx] },
                 )
 
                 // Min / max labels
@@ -387,15 +409,38 @@ private fun SettingsDialog(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(Modifier.height(16.dp))
 
-                // ── Logout ──
+                // ── Apply Radius Button ──
                 Button(
-                    onClick = onLogout,
+                    onClick = {
+                        onRadiusChange(localRadiusKm)
+                        onDismiss()
+                    },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
+                        containerColor = BLUE_COLOR,
+                        contentColor = Color.White,
                     ),
+                    enabled = localRadiusKm != searchRadiusKm
+                ) {
+                    Text(
+                        text = stringResource(Res.string.settings_btn_apply),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                // ── Logout ──
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                 ) {
                     Text(
                         text = stringResource(Res.string.settings_btn_logout),

@@ -7,10 +7,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.MuseumRepository
+import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
+import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
 import xploreapp.composeapp.generated.resources.filter_artworks
 import xploreapp.composeapp.generated.resources.filter_events
@@ -33,6 +36,8 @@ import xploreapp.composeapp.generated.resources.filter_nearby
 class HomeViewModel(
     private val museumRepository: MuseumRepository,
     private val authRepository: AuthRepository,
+    private val metricsDataSource: RadiusMetricsRemoteDataSource,
+    private val tokenManager: TokenManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -41,6 +46,18 @@ class HomeViewModel(
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        // Restore radius from persistent settings
+        val savedRadius = tokenManager.searchRadiusKm
+        _uiState.update { it.copy(searchRadiusKm = savedRadius) }
+
+        // Preload radius loading averages from backend
+        viewModelScope.launch {
+            val averages = metricsDataSource.getLoadingAverages()
+            _uiState.update { it.copy(radiusAverages = averages) }
+        }
+    }
 
     // ── User Actions ──────────────────────────────────────────────
 
@@ -86,6 +103,11 @@ class HomeViewModel(
 
     fun openSettings() {
         _uiState.update { it.copy(isSettingsOpen = true) }
+        // Load averages from backend in background
+        viewModelScope.launch {
+            val averages = metricsDataSource.getLoadingAverages()
+            _uiState.update { it.copy(radiusAverages = averages) }
+        }
     }
 
     fun closeSettings() {
@@ -93,10 +115,16 @@ class HomeViewModel(
     }
 
     fun updateSearchRadius(radiusKm: Double) {
+        val currentRadius = tokenManager.searchRadiusKm
+        val isDecrease = radiusKm <= currentRadius
+
+        tokenManager.searchRadiusKm = radiusKm
+        tokenManager.radiusSetAtMs = Clock.System.now().toEpochMilliseconds()
+
         _uiState.update { it.copy(searchRadiusKm = radiusKm) }
         val state = _uiState.value
         if (state.userLatitude != null && state.userLongitude != null) {
-            loadPins(state.userLatitude, state.userLongitude)
+            loadPins(state.userLatitude, state.userLongitude, allowNetworkRefresh = !isDecrease)
         }
     }
 
@@ -126,9 +154,25 @@ class HomeViewModel(
                 locationPermissionGranted = true,
             )
         }
+
+        // Prune SQLDelight cache if we've been at the same/smaller radius for > 30 mins
+        val now = Clock.System.now().toEpochMilliseconds()
+        val setAt = tokenManager.radiusSetAtMs
+        if (setAt > 0 && (now - setAt) > 30 * 60 * 1000) {
+            viewModelScope.launch {
+                museumRepository.pruneCacheOutsideRadius(
+                    lat = latitude,
+                    lon = longitude,
+                    radiusKm = _uiState.value.searchRadiusKm
+                )
+                // Update timestamp so we don't spam the DB pruning process
+                tokenManager.radiusSetAtMs = now
+            }
+        }
+
         // Load POIs on first location fix
         if (isFirstFix) {
-            loadPins(latitude, longitude)
+            loadPins(latitude, longitude, allowNetworkRefresh = true)
         }
     }
 
@@ -141,20 +185,37 @@ class HomeViewModel(
 
     // ── Data Loading ──────────────────────────────────────────────
 
-    private fun loadPins(lat: Double, lon: Double) {
+    private fun loadPins(lat: Double, lon: Double, allowNetworkRefresh: Boolean = true) {
         val radiusKm = _uiState.value.searchRadiusKm
         viewModelScope.launch {
             _uiState.update {
+                // Build loading text with estimated time if available
+                val avgMs = it.radiusAverages[radiusKm]
+                val loadingText = if (avgMs != null) {
+                    val sec = "%.1f".format(avgMs / 1000.0)
+                    org.xplore.project.ui.util.UiText.DynamicString(
+                        "Ricerca punti di interesse… (~${sec}s)"
+                    )
+                } else {
+                    org.xplore.project.ui.util.UiText.Resource(
+                        Res.string.loading_poi_search
+                    )
+                }
                 it.copy(
                     isLoading = true,
                     errorMessage = null,
-                    loadingStatusText = org.xplore.project.ui.util.UiText.Resource(
-                        Res.string.loading_poi_search
-                    )
+                    loadingStatusText = loadingText,
                 )
             }
             try {
-                val allPins = museumRepository.getMapPins(lat, lon, radiusKm)
+                val startMs = Clock.System.now().toEpochMilliseconds()
+                val allPins = museumRepository.getMapPins(lat, lon, radiusKm, allowNetworkRefresh)
+                val elapsedMs = Clock.System.now().toEpochMilliseconds() - startMs
+
+                // Fire-and-forget: submit timing metric to backend
+                viewModelScope.launch {
+                    metricsDataSource.postLoadingTime(radiusKm, elapsedMs)
+                }
 
                 _uiState.update {
                     it.copy(loadingStatusText = org.xplore.project.ui.util.UiText.Resource(

@@ -33,3 +33,9 @@ DELETE FROM MapPinCache WHERE cachedAt < ?;
 -- Delete all cached data
 deleteAll:
 DELETE FROM MapPinCache;
+
+-- Delete cached pins OUTSIDE a geographic bounding box (cache pruning)
+deleteOutsideBoundingBox:
+DELETE FROM MapPinCache
+WHERE latitude < ? OR latitude > ?
+   OR longitude < ? OR longitude > ?;

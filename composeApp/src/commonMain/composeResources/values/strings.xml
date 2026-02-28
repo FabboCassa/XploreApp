@@ -100,8 +100,10 @@
     <string name="settings_search_radius">Raggio di ricerca</string>
     <string name="settings_data_sources">Sorgenti dati</string>
     <string name="settings_notifications">Notifiche</string>
+    <string name="settings_btn_apply">Applica Filtro raggio</string>
     <string name="settings_btn_logout">Esci</string>
     <string name="settings_warning_slow">Tempi di caricamento più lunghi</string>
+    <string name="settings_estimated_time">Tempo stimato: ~%ss</string>
 </resources>
 
 

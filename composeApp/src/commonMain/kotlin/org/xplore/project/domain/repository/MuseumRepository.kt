@@ -20,11 +20,17 @@ interface MuseumRepository {
      * Fetches POIs for the given map viewport.
      * Tries network first, falls back to local cache if offline.
      */
-    suspend fun getMapPins(lat: Double, lon: Double, radiusKm: Double): List<MapPin>
+    suspend fun getMapPins(lat: Double, lon: Double, radiusKm: Double, allowNetworkRefresh: Boolean = true): List<MapPin>
 
     /**
      * Clears all locally cached map data.
      * Does NOT affect user login, progress, or saved places.
      */
     suspend fun clearMapCache()
+
+    /**
+     * Removes cached POIs that are outside the given radius from the center point.
+     * Used for pruning when the user has stayed at a smaller radius for 30+ minutes.
+     */
+    suspend fun pruneCacheOutsideRadius(lat: Double, lon: Double, radiusKm: Double)
 }

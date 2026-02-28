@@ -34,6 +34,7 @@ data class HomeUiState(
     val loadingStatusText: org.xplore.project.ui.util.UiText? = null,
     val isSettingsOpen: Boolean = false,
     val searchRadiusKm: Double = 3.0,
+    val radiusAverages: Map<Double, Long> = emptyMap(),
 )
 
 /**

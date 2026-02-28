@@ -63,4 +63,15 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
     fun clearAllCache() {
         queries.deleteAll()
     }
+
+    /**
+     * Deletes cached POIs that are OUTSIDE the given bounding box.
+     * Used for radius-decrease pruning after 30 minutes.
+     */
+    fun deleteOutsideBoundingBox(
+        minLat: Double, maxLat: Double,
+        minLon: Double, maxLon: Double,
+    ) {
+        queries.deleteOutsideBoundingBox(minLat, maxLat, minLon, maxLon)
+    }
 }
