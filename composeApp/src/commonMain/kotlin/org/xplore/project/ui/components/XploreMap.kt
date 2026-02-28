@@ -1,5 +1,5 @@
 package org.xplore.project.ui.components
-
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import kotlinx.coroutines.flow.drop
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
@@ -157,8 +158,15 @@ fun XploreMap(
             }
         }
 
-        // ── Callout popup ──
+        // ── Clickable scrim to dismiss callout on tap outside ──
         if (selectedPin != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { onDismissCallout() }
+                    },
+            )
             PinCallout(
                 pin = selectedPin,
                 modifier = Modifier.align(Alignment.Center),

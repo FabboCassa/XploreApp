@@ -15,10 +15,6 @@ import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
-import xploreapp.composeapp.generated.resources.filter_artworks
-import xploreapp.composeapp.generated.resources.filter_events
-import xploreapp.composeapp.generated.resources.filter_museums
-import xploreapp.composeapp.generated.resources.filter_nearby
 
 /**
  * ViewModel for the Home screen (Map view).
@@ -112,6 +108,27 @@ class HomeViewModel(
 
     fun closeSettings() {
         _uiState.update { it.copy(isSettingsOpen = false) }
+    }
+
+    fun openFilterDialog() {
+        _uiState.update { it.copy(isFilterDialogOpen = true) }
+    }
+
+    fun closeFilterDialog() {
+        _uiState.update { it.copy(isFilterDialogOpen = false) }
+    }
+
+    /**
+     * Applies the filter selection from the dialog.
+     * Receives the full list of updated [FilterChipData] with their new selection state.
+     */
+    fun applyFilters(updatedFilters: List<FilterChipData>) {
+        _uiState.update { it.copy(filters = updatedFilters, isFilterDialogOpen = false) }
+        // Re-filter with current location
+        val state = _uiState.value
+        if (state.userLatitude != null && state.userLongitude != null) {
+            loadPins(state.userLatitude, state.userLongitude)
+        }
     }
 
     fun updateSearchRadius(radiusKm: Double) {
@@ -233,10 +250,16 @@ class HomeViewModel(
                 } else {
                     allPins.filter { pin ->
                         when (pin.type) {
-                            PinType.MUSEUM -> "museums" in activeFilters
-                            PinType.ARTWORK -> "artworks" in activeFilters
-                            PinType.EVENT -> "events" in activeFilters
-                            else -> true
+                            PinType.MUSEUM     -> "museums" in activeFilters
+                            PinType.ARTWORK    -> "artworks" in activeFilters
+                            PinType.EVENT      -> "events" in activeFilters
+                            PinType.HISTORIC   -> "historic" in activeFilters
+                            PinType.RELIGIOUS  -> "religious" in activeFilters
+                            PinType.NATURE     -> "nature" in activeFilters
+                            PinType.CULTURE    -> "culture" in activeFilters
+                            PinType.ATTRACTION -> "attractions" in activeFilters
+                            PinType.VIEWPOINT  -> "viewpoints" in activeFilters
+                            PinType.OTHER      -> "other" in activeFilters
                         }
                     }
                 }
@@ -262,9 +285,15 @@ class HomeViewModel(
     // ── Default Filters ───────────────────────────────────────────
 
     private fun defaultFilters() = listOf(
-        FilterChipData(id = "museums", labelRes = Res.string.filter_museums),
-        FilterChipData(id = "artworks", labelRes = Res.string.filter_artworks),
-        FilterChipData(id = "events", labelRes = Res.string.filter_events),
-        FilterChipData(id = "nearby", labelRes = Res.string.filter_nearby),
+        FilterChipData(id = "museums",     labelRes = Res.string.filter_museums),
+        FilterChipData(id = "artworks",    labelRes = Res.string.filter_artworks),
+        FilterChipData(id = "events",      labelRes = Res.string.filter_events),
+        FilterChipData(id = "historic",    labelRes = Res.string.filter_historic),
+        FilterChipData(id = "religious",   labelRes = Res.string.filter_religious),
+        FilterChipData(id = "nature",      labelRes = Res.string.filter_nature),
+        FilterChipData(id = "culture",     labelRes = Res.string.filter_culture),
+        FilterChipData(id = "attractions", labelRes = Res.string.filter_attractions),
+        FilterChipData(id = "viewpoints",  labelRes = Res.string.filter_viewpoints),
+        FilterChipData(id = "other",       labelRes = Res.string.filter_other),
     )
 }

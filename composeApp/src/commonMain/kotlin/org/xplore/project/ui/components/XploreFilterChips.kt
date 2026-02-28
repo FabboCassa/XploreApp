@@ -25,10 +25,17 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.xplore.project.ui.home.FilterChipData
 import xploreapp.composeapp.generated.resources.Res
+import xploreapp.composeapp.generated.resources.filter_more
 import xploreapp.composeapp.generated.resources.ic_settings
+import xploreapp.composeapp.generated.resources.settings_title
+
+/** IDs of filters always visible as quick-access chips. */
+private val QUICK_FILTER_IDS = setOf("museums", "attractions")
 
 /**
- * Horizontally scrollable row of filter chips with a trailing settings gear icon.
+ * Horizontally scrollable row of the two main filter chips,
+ * a "+ Altri filtri" chip to open the full filter dialog,
+ * and a trailing settings gear icon.
  */
 @Composable
 fun XploreFilterChips(
@@ -36,8 +43,14 @@ fun XploreFilterChips(
     onFilterClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit = {},
+    onMoreFiltersClick: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
+
+    // Only show the two quick-access chips inline
+    val quickFilters = filters.filter { it.id in QUICK_FILTER_IDS }
+    // Whether any "extra" (non-quick) filter is currently active
+    val hasExtraActive = filters.any { it.id !in QUICK_FILTER_IDS && it.selected }
 
     Row(
         modifier = modifier
@@ -46,22 +59,17 @@ fun XploreFilterChips(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        filters.forEach { chip ->
+        // ── Quick-access chips (Museums, Attractions) ──
+        quickFilters.forEach { chip ->
             val containerColor by animateColorAsState(
-                targetValue = if (chip.selected) {
-                    colorScheme.primary
-                } else {
-                    colorScheme.surface.copy(alpha = 0.85f)
-                },
+                targetValue = if (chip.selected) colorScheme.primary
+                else colorScheme.surface.copy(alpha = 0.85f),
                 animationSpec = tween(durationMillis = 250),
                 label = "chipColor_${chip.id}",
             )
             val labelColor by animateColorAsState(
-                targetValue = if (chip.selected) {
-                    colorScheme.onPrimary
-                } else {
-                    colorScheme.onSurface
-                },
+                targetValue = if (chip.selected) colorScheme.onPrimary
+                else colorScheme.onSurface,
                 animationSpec = tween(durationMillis = 250),
                 label = "chipLabelColor_${chip.id}",
             )
@@ -90,6 +98,43 @@ fun XploreFilterChips(
             )
         }
 
+        // ── "+ Altri filtri" chip ──
+        val moreContainerColor by animateColorAsState(
+            targetValue = if (hasExtraActive) colorScheme.primary
+            else colorScheme.surface.copy(alpha = 0.85f),
+            animationSpec = tween(durationMillis = 250),
+            label = "chipColor_more",
+        )
+        val moreLabelColor by animateColorAsState(
+            targetValue = if (hasExtraActive) colorScheme.onPrimary
+            else colorScheme.onSurface,
+            animationSpec = tween(durationMillis = 250),
+            label = "chipLabelColor_more",
+        )
+
+        FilterChip(
+            selected = hasExtraActive,
+            onClick = onMoreFiltersClick,
+            label = {
+                Text(
+                    text = stringResource(Res.string.filter_more),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = moreLabelColor,
+                )
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = moreContainerColor,
+                selectedContainerColor = moreContainerColor,
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                borderColor = colorScheme.outline.copy(alpha = 0.2f),
+                selectedBorderColor = colorScheme.primary,
+                enabled = true,
+                selected = hasExtraActive,
+            ),
+        )
+
         // ── Settings gear icon ──
         IconButton(
             onClick = onSettingsClick,
@@ -101,7 +146,7 @@ fun XploreFilterChips(
         ) {
             Icon(
                 painter = painterResource(Res.drawable.ic_settings),
-                contentDescription = "Settings",
+                contentDescription = stringResource(Res.string.settings_title),
                 modifier = Modifier.size(20.dp),
                 tint = colorScheme.onSurface,
             )

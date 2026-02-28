@@ -33,6 +33,7 @@ data class HomeUiState(
     val selectedPin: MapPin? = null,
     val loadingStatusText: org.xplore.project.ui.util.UiText? = null,
     val isSettingsOpen: Boolean = false,
+    val isFilterDialogOpen: Boolean = false,
     val searchRadiusKm: Double = 3.0,
     val radiusAverages: Map<Double, Long> = emptyMap(),
 )

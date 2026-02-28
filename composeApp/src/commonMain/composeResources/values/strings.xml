@@ -128,4 +128,18 @@
     <string name="profile_2fa_setup_app_step_2">2. Inserisci il codice a 6 cifre generato dall\'app:</string>
     <string name="profile_2fa_confirmed_code_label">Codice confermato</string>
     <string name="profile_2fa_btn_verify_save">Verifica e Salva</string>
+
+    <!-- Filter Types (extended) -->
+    <string name="filter_historic">Monumenti</string>
+    <string name="filter_religious">Luoghi sacri</string>
+    <string name="filter_nature">Natura</string>
+    <string name="filter_culture">Cultura</string>
+    <string name="filter_attractions">Attrazioni</string>
+    <string name="filter_viewpoints">Panorami</string>
+    <string name="filter_other">Altro</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_dialog_title">Filtri</string>
+    <string name="filter_dialog_btn_apply">Applica filtri</string>
+    <string name="filter_more">Altri filtri</string>
 </resources>

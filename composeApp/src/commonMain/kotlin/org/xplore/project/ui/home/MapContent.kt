@@ -65,6 +65,7 @@ fun MapContent(
                 filters = uiState.filters,
                 onFilterClick = viewModel::onFilterSelected,
                 onSettingsClick = viewModel::openSettings,
+                onMoreFiltersClick = viewModel::openFilterDialog,
             )
 
             AnimatedVisibility(
