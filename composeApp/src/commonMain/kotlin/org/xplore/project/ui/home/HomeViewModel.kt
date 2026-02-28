@@ -84,6 +84,22 @@ class HomeViewModel(
         authRepository.logout()
     }
 
+    fun openSettings() {
+        _uiState.update { it.copy(isSettingsOpen = true) }
+    }
+
+    fun closeSettings() {
+        _uiState.update { it.copy(isSettingsOpen = false) }
+    }
+
+    fun updateSearchRadius(radiusKm: Double) {
+        _uiState.update { it.copy(searchRadiusKm = radiusKm) }
+        val state = _uiState.value
+        if (state.userLatitude != null && state.userLongitude != null) {
+            loadPins(state.userLatitude, state.userLongitude)
+        }
+    }
+
     /**
      * Clears the locally cached map data (POIs).
      * Does NOT affect user login, progress, or saved places.
@@ -125,7 +141,8 @@ class HomeViewModel(
 
     // ── Data Loading ──────────────────────────────────────────────
 
-    private fun loadPins(lat: Double, lon: Double, radiusKm: Double = 3.0) {
+    private fun loadPins(lat: Double, lon: Double) {
+        val radiusKm = _uiState.value.searchRadiusKm
         viewModelScope.launch {
             _uiState.update {
                 it.copy(

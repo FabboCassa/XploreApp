@@ -94,6 +94,14 @@
 
     <!-- Chat Screen -->
     <string name="chat_coming_soon">Chat — Coming Soon</string>
+
+    <!-- Settings Dialog -->
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_search_radius">Raggio di ricerca</string>
+    <string name="settings_data_sources">Sorgenti dati</string>
+    <string name="settings_notifications">Notifiche</string>
+    <string name="settings_btn_logout">Esci</string>
+    <string name="settings_warning_slow">Tempi di caricamento più lunghi</string>
 </resources>
 
 

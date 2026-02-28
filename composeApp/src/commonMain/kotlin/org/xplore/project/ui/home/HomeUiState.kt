@@ -32,6 +32,8 @@ data class HomeUiState(
     val locationPermissionGranted: Boolean = false,
     val selectedPin: MapPin? = null,
     val loadingStatusText: org.xplore.project.ui.util.UiText? = null,
+    val isSettingsOpen: Boolean = false,
+    val searchRadiusKm: Double = 3.0,
 )
 
 /**
