@@ -155,4 +155,68 @@ class MuseumRepositoryImpl(
             println("📱 [Repository] ⚠️ Pruning failed: ${e.message}")
         }
     }
+
+    override suspend fun searchPois(
+        query: String,
+        lat: Double,
+        lon: Double,
+        radiusKm: Double,
+    ): List<MapPin> {
+        println("🔎 [Repository] searchPois: query='$query', radius=${radiusKm}km")
+
+        // ── Step 1: Search local cache ──
+        val cachedResults = try {
+            localDataSource.searchByName(query)
+        } catch (e: Exception) {
+            println("🔎 [Repository] ⚠️ Cache search failed: ${e.message}")
+            emptyList()
+        }
+
+        if (cachedResults.isNotEmpty()) {
+            println("🔎 [Repository] ✅ Cache search found ${cachedResults.size} results")
+            return cachedResults
+        }
+
+        // ── Step 2: Remote search within current radius ──
+        println("🔎 [Repository] 📡 Cache empty, searching remote within ${radiusKm}km...")
+        try {
+            val remotePins = remoteDataSource.searchPins(query, lat, lon, radiusKm)
+                .map { it.toDomain() }
+            if (remotePins.isNotEmpty()) {
+                println("🔎 [Repository] ✅ Remote search (${radiusKm}km) found ${remotePins.size} results")
+                cacheResults(remotePins)
+                return remotePins
+            }
+        } catch (e: Exception) {
+            println("🔎 [Repository] ⚠️ Remote search (${radiusKm}km) failed: ${e.message}")
+        }
+
+        // ── Step 3: Fallback to 10km if radius was smaller ──
+        if (radiusKm < 10.0) {
+            println("🔎 [Repository] 📡 Expanding search to 10km...")
+            try {
+                val expandedPins = remoteDataSource.searchPins(query, lat, lon, 10.0)
+                    .map { it.toDomain() }
+                if (expandedPins.isNotEmpty()) {
+                    println("🔎 [Repository] ✅ Expanded search (10km) found ${expandedPins.size} results")
+                    cacheResults(expandedPins)
+                    return expandedPins
+                }
+            } catch (e: Exception) {
+                println("🔎 [Repository] ⚠️ Expanded search failed: ${e.message}")
+            }
+        }
+
+        println("🔎 [Repository] ❌ No results found for '$query'")
+        return emptyList()
+    }
+
+    private fun cacheResults(pins: List<MapPin>) {
+        try {
+            localDataSource.cachePins(pins)
+            println("🔎 [Repository] ✅ Cached ${pins.size} search results")
+        } catch (e: Exception) {
+            println("🔎 [Repository] ⚠️ Caching search results failed: ${e.message}")
+        }
+    }
 }

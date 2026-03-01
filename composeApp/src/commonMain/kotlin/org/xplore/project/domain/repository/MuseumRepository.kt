@@ -33,4 +33,9 @@ interface MuseumRepository {
      * Used for pruning when the user has stayed at a smaller radius for 30+ minutes.
      */
     suspend fun pruneCacheOutsideRadius(lat: Double, lon: Double, radiusKm: Double)
+
+    /**
+     * Searches POIs by name. Strategy: cache → remote within radius → remote up to 10km.
+     */
+    suspend fun searchPois(query: String, lat: Double, lon: Double, radiusKm: Double): List<MapPin>
 }

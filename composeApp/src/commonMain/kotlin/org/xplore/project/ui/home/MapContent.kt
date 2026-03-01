@@ -24,9 +24,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
 import org.xplore.project.ui.components.XploreFilterChips
 import org.xplore.project.ui.components.XploreMap
 import org.xplore.project.ui.components.XploreSearchBar
+import xploreapp.composeapp.generated.resources.Res
+import xploreapp.composeapp.generated.resources.search_no_results
+import xploreapp.composeapp.generated.resources.search_searching
 
 /**
  * Map tab content — extracted for clarity.
@@ -68,6 +72,65 @@ fun MapContent(
                 onMoreFiltersClick = viewModel::openFilterDialog,
             )
 
+            // ── Search indicator ──
+            AnimatedVisibility(
+                visible = uiState.isSearching,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(4.dp),
+                        color = Color(0xFF4A90D9),
+                        trackColor = Color(0xFF4A90D9).copy(alpha = 0.15f),
+                    )
+                    Text(
+                        text = stringResource(Res.string.search_searching),
+                        fontSize = 12.sp,
+                        color = Color(0xFF333333),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .background(
+                                color = Color.White.copy(alpha = 0.85f),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                    )
+                }
+            }
+
+            // ── No results label ──
+            AnimatedVisibility(
+                visible = !uiState.isSearching
+                        && uiState.searchQuery.length >= 2
+                        && uiState.searchResults.isEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                Text(
+                    text = stringResource(Res.string.search_no_results),
+                    fontSize = 12.sp,
+                    color = Color(0xFF333333),
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        .background(
+                            color = Color.White.copy(alpha = 0.85f),
+                            shape = RoundedCornerShape(8.dp),
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+            }
+
+            // ── POI loading indicator ──
             AnimatedVisibility(
                 visible = uiState.isLoading,
                 enter = fadeIn(),

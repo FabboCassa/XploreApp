@@ -2,6 +2,8 @@ package org.xplore.project.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,6 +43,8 @@ class HomeViewModel(
             filters = defaultFilters(),
         )
     )
+    private var searchJob: Job? = null
+    private var loadPinsJob: Job? = null
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
@@ -59,6 +63,22 @@ class HomeViewModel(
 
     fun onSearchQueryChanged(query: String) {
         _uiState.update { it.copy(searchQuery = query, selectedPin = null) }
+
+        // Cancel any in-flight search
+        searchJob?.cancel()
+
+        if (query.length < 2) {
+            // Query too short — restore regular pins
+            _uiState.update { it.copy(searchResults = emptyList(), isSearching = false) }
+            reapplyFilters()
+            return
+        }
+
+        // Debounce 300ms then search
+        searchJob = viewModelScope.launch {
+            delay(300)
+            performSearch(query)
+        }
     }
 
     fun onFilterSelected(filterId: String) {
@@ -67,14 +87,11 @@ class HomeViewModel(
                 filters = state.filters.map { chip ->
                     if (chip.id == filterId) chip.copy(selected = !chip.selected)
                     else chip
-                }
+                },
             )
         }
-        // Re-filter with current location
-        val state = _uiState.value
-        if (state.userLatitude != null && state.userLongitude != null) {
-            loadPins(state.userLatitude, state.userLongitude)
-        }
+        // Re-filter locally — NO network call needed
+        reapplyFilters()
     }
 
     fun onNavItemSelected(index: Int) {
@@ -82,7 +99,10 @@ class HomeViewModel(
     }
 
     fun onClearSearch() {
-        _uiState.update { it.copy(searchQuery = "") }
+        searchJob?.cancel()
+        _uiState.update { it.copy(searchQuery = "", searchResults = emptyList(), isSearching = false) }
+        // Restore regular filtered pins
+        reapplyFilters()
     }
 
     fun onPinSelected(pin: MapPin) {
@@ -124,24 +144,32 @@ class HomeViewModel(
      */
     fun applyFilters(updatedFilters: List<FilterChipData>) {
         _uiState.update { it.copy(filters = updatedFilters, isFilterDialogOpen = false) }
-        // Re-filter with current location
-        val state = _uiState.value
-        if (state.userLatitude != null && state.userLongitude != null) {
-            loadPins(state.userLatitude, state.userLongitude)
-        }
+        // Re-filter locally — NO network call needed
+        reapplyFilters()
     }
 
     fun updateSearchRadius(radiusKm: Double) {
         val currentRadius = tokenManager.searchRadiusKm
-        val isDecrease = radiusKm <= currentRadius
+        val isIncrease = radiusKm > currentRadius
 
         tokenManager.searchRadiusKm = radiusKm
         tokenManager.radiusSetAtMs = Clock.System.now().toEpochMilliseconds()
 
         _uiState.update { it.copy(searchRadiusKm = radiusKm) }
         val state = _uiState.value
-        if (state.userLatitude != null && state.userLongitude != null) {
-            loadPins(state.userLatitude, state.userLongitude, allowNetworkRefresh = !isDecrease)
+        val lat = state.userLatitude ?: return
+        val lon = state.userLongitude ?: return
+
+        if (isIncrease) {
+            // Radius increased — cached data is for a smaller area.
+            // Clear the cache so we force a full network fetch for the new area.
+            viewModelScope.launch {
+                museumRepository.clearMapCache()
+                loadPinsInternal(lat, lon, allowNetworkRefresh = true)
+            }
+        } else {
+            // Radius decreased — cached data already covers this area, just re-filter locally.
+            loadPinsInternal(lat, lon, allowNetworkRefresh = false)
         }
     }
 
@@ -152,7 +180,7 @@ class HomeViewModel(
     fun clearMapCache() {
         viewModelScope.launch {
             museumRepository.clearMapCache()
-            _uiState.update { it.copy(pins = emptyList()) }
+            _uiState.update { it.copy(allLoadedPins = emptyList(), pins = emptyList()) }
         }
     }
 
@@ -180,7 +208,7 @@ class HomeViewModel(
                 museumRepository.pruneCacheOutsideRadius(
                     lat = latitude,
                     lon = longitude,
-                    radiusKm = _uiState.value.searchRadiusKm
+                    radiusKm = _uiState.value.searchRadiusKm,
                 )
                 // Update timestamp so we don't spam the DB pruning process
                 tokenManager.radiusSetAtMs = now
@@ -189,7 +217,7 @@ class HomeViewModel(
 
         // Load POIs on first location fix
         if (isFirstFix) {
-            loadPins(latitude, longitude, allowNetworkRefresh = true)
+            loadPinsInternal(latitude, longitude, allowNetworkRefresh = true)
         }
     }
 
@@ -202,9 +230,18 @@ class HomeViewModel(
 
     // ── Data Loading ──────────────────────────────────────────────
 
-    private fun loadPins(lat: Double, lon: Double, allowNetworkRefresh: Boolean = true) {
+    /**
+     * Fetches POIs from the repository and stores them in [HomeUiState.allLoadedPins].
+     * Then applies current filters to produce [HomeUiState.pins].
+     *
+     * Cancels any previous in-flight loadPins coroutine to avoid race conditions.
+     */
+    private fun loadPinsInternal(lat: Double, lon: Double, allowNetworkRefresh: Boolean = true) {
+        // Cancel any previous load to avoid overlapping updates
+        loadPinsJob?.cancel()
+
         val radiusKm = _uiState.value.searchRadiusKm
-        viewModelScope.launch {
+        loadPinsJob = viewModelScope.launch {
             _uiState.update {
                 // Build loading text with estimated time if available
                 val avgMs = it.radiusAverages[radiusKm]
@@ -241,34 +278,15 @@ class HomeViewModel(
                     ))
                 }
 
-                val activeFilters = _uiState.value.filters
-                    .filter { it.selected }
-                    .map { it.id }
-
-                val filteredPins = if (activeFilters.isEmpty()) {
-                    allPins
-                } else {
-                    allPins.filter { pin ->
-                        when (pin.type) {
-                            PinType.MUSEUM     -> "museums" in activeFilters
-                            PinType.ARTWORK    -> "artworks" in activeFilters
-                            PinType.EVENT      -> "events" in activeFilters
-                            PinType.HISTORIC   -> "historic" in activeFilters
-                            PinType.RELIGIOUS  -> "religious" in activeFilters
-                            PinType.NATURE     -> "nature" in activeFilters
-                            PinType.CULTURE    -> "culture" in activeFilters
-                            PinType.ATTRACTION -> "attractions" in activeFilters
-                            PinType.VIEWPOINT  -> "viewpoints" in activeFilters
-                            PinType.OTHER      -> "other" in activeFilters
-                        }
-                    }
-                }
+                // Store ALL pins, then apply filters
+                _uiState.update { it.copy(allLoadedPins = allPins) }
+                reapplyFilters()
 
                 // Small delay so the user can read the count
-                kotlinx.coroutines.delay(800)
+                delay(800)
 
                 _uiState.update {
-                    it.copy(pins = filteredPins, isLoading = false, loadingStatusText = null)
+                    it.copy(isLoading = false, loadingStatusText = null)
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -276,6 +294,72 @@ class HomeViewModel(
                         isLoading = false,
                         loadingStatusText = null,
                         errorMessage = e.message ?: "Unknown error",
+                    )
+                }
+            }
+        }
+    }
+
+    // ── Client-side filtering ─────────────────────────────────────
+
+    /**
+     * Applies the currently selected filters to [HomeUiState.allLoadedPins]
+     * and updates [HomeUiState.pins]. No network call — purely local.
+     */
+    private fun reapplyFilters() {
+        val state = _uiState.value
+        val allPins = state.allLoadedPins
+        val activeFilters = state.filters
+            .filter { it.selected }
+            .map { it.id }
+
+        val filteredPins = if (activeFilters.isEmpty()) {
+            allPins
+        } else {
+            allPins.filter { pin ->
+                when (pin.type) {
+                    PinType.MUSEUM     -> "museums" in activeFilters
+                    PinType.ARTWORK    -> "artworks" in activeFilters
+                    PinType.EVENT      -> "events" in activeFilters
+                    PinType.HISTORIC   -> "historic" in activeFilters
+                    PinType.RELIGIOUS  -> "religious" in activeFilters
+                    PinType.NATURE     -> "nature" in activeFilters
+                    PinType.CULTURE    -> "culture" in activeFilters
+                    PinType.ATTRACTION -> "attractions" in activeFilters
+                    PinType.VIEWPOINT  -> "viewpoints" in activeFilters
+                    PinType.OTHER      -> "other" in activeFilters
+                }
+            }
+        }
+
+        _uiState.update { it.copy(pins = filteredPins) }
+    }
+
+    // ── Search ────────────────────────────────────────────────────
+
+    private fun performSearch(query: String) {
+        val state = _uiState.value
+        val lat = state.userLatitude ?: return
+        val lon = state.userLongitude ?: return
+        val radiusKm = state.searchRadiusKm
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSearching = true) }
+            try {
+                val results = museumRepository.searchPois(query, lat, lon, radiusKm)
+                _uiState.update {
+                    it.copy(
+                        searchResults = results,
+                        pins = results,
+                        isSearching = false,
+                        selectedPin = results.firstOrNull(),
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isSearching = false,
+                        errorMessage = e.message ?: "Search failed",
                     )
                 }
             }

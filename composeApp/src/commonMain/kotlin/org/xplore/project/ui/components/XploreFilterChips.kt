@@ -33,9 +33,8 @@ import xploreapp.composeapp.generated.resources.settings_title
 private val QUICK_FILTER_IDS = setOf("museums", "attractions")
 
 /**
- * Horizontally scrollable row of the two main filter chips,
- * a "+ Altri filtri" chip to open the full filter dialog,
- * and a trailing settings gear icon.
+ * Row containing horizontally scrollable filter chips (left) and a
+ * settings gear icon pinned to the far right.
  */
 @Composable
 fun XploreFilterChips(
@@ -47,98 +46,105 @@ fun XploreFilterChips(
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
-    // Only show the two quick-access chips inline
     val quickFilters = filters.filter { it.id in QUICK_FILTER_IDS }
-    // Whether any "extra" (non-quick) filter is currently active
     val hasExtraActive = filters.any { it.id !in QUICK_FILTER_IDS && it.selected }
 
+    // Outer row: scrollable chips on the left, settings icon fixed on the right
     Row(
-        modifier = modifier
-            .padding(horizontal = 20.dp)
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier.padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // ── Quick-access chips (Museums, Attractions) ──
-        quickFilters.forEach { chip ->
-            val containerColor by animateColorAsState(
-                targetValue = if (chip.selected) colorScheme.primary
+        // ── Scrollable chips ──
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // ── Quick-access chips (Museums, Attractions) ──
+            quickFilters.forEach { chip ->
+                val containerColor by animateColorAsState(
+                    targetValue = if (chip.selected) colorScheme.primary
+                    else colorScheme.surface.copy(alpha = 0.85f),
+                    animationSpec = tween(durationMillis = 250),
+                    label = "chipColor_${chip.id}",
+                )
+                val labelColor by animateColorAsState(
+                    targetValue = if (chip.selected) colorScheme.onPrimary
+                    else colorScheme.onSurface,
+                    animationSpec = tween(durationMillis = 250),
+                    label = "chipLabelColor_${chip.id}",
+                )
+
+                FilterChip(
+                    selected = chip.selected,
+                    onClick = { onFilterClick(chip.id) },
+                    label = {
+                        Text(
+                            text = stringResource(chip.labelRes),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = labelColor,
+                        )
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = containerColor,
+                        selectedContainerColor = containerColor,
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = colorScheme.outline.copy(alpha = 0.2f),
+                        selectedBorderColor = colorScheme.primary,
+                        enabled = true,
+                        selected = chip.selected,
+                    ),
+                )
+            }
+
+            // ── "+ Altri filtri" chip ──
+            val moreContainerColor by animateColorAsState(
+                targetValue = if (hasExtraActive) colorScheme.primary
                 else colorScheme.surface.copy(alpha = 0.85f),
                 animationSpec = tween(durationMillis = 250),
-                label = "chipColor_${chip.id}",
+                label = "chipColor_more",
             )
-            val labelColor by animateColorAsState(
-                targetValue = if (chip.selected) colorScheme.onPrimary
+            val moreLabelColor by animateColorAsState(
+                targetValue = if (hasExtraActive) colorScheme.onPrimary
                 else colorScheme.onSurface,
                 animationSpec = tween(durationMillis = 250),
-                label = "chipLabelColor_${chip.id}",
+                label = "chipLabelColor_more",
             )
 
             FilterChip(
-                selected = chip.selected,
-                onClick = { onFilterClick(chip.id) },
+                selected = hasExtraActive,
+                onClick = onMoreFiltersClick,
                 label = {
                     Text(
-                        text = stringResource(chip.labelRes),
+                        text = stringResource(Res.string.filter_more),
                         style = MaterialTheme.typography.labelLarge,
-                        color = labelColor,
+                        color = moreLabelColor,
                     )
                 },
                 shape = RoundedCornerShape(20.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = containerColor,
-                    selectedContainerColor = containerColor,
+                    containerColor = moreContainerColor,
+                    selectedContainerColor = moreContainerColor,
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     borderColor = colorScheme.outline.copy(alpha = 0.2f),
                     selectedBorderColor = colorScheme.primary,
                     enabled = true,
-                    selected = chip.selected,
+                    selected = hasExtraActive,
                 ),
             )
         }
 
-        // ── "+ Altri filtri" chip ──
-        val moreContainerColor by animateColorAsState(
-            targetValue = if (hasExtraActive) colorScheme.primary
-            else colorScheme.surface.copy(alpha = 0.85f),
-            animationSpec = tween(durationMillis = 250),
-            label = "chipColor_more",
-        )
-        val moreLabelColor by animateColorAsState(
-            targetValue = if (hasExtraActive) colorScheme.onPrimary
-            else colorScheme.onSurface,
-            animationSpec = tween(durationMillis = 250),
-            label = "chipLabelColor_more",
-        )
-
-        FilterChip(
-            selected = hasExtraActive,
-            onClick = onMoreFiltersClick,
-            label = {
-                Text(
-                    text = stringResource(Res.string.filter_more),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = moreLabelColor,
-                )
-            },
-            shape = RoundedCornerShape(20.dp),
-            colors = FilterChipDefaults.filterChipColors(
-                containerColor = moreContainerColor,
-                selectedContainerColor = moreContainerColor,
-            ),
-            border = FilterChipDefaults.filterChipBorder(
-                borderColor = colorScheme.outline.copy(alpha = 0.2f),
-                selectedBorderColor = colorScheme.primary,
-                enabled = true,
-                selected = hasExtraActive,
-            ),
-        )
-
-        // ── Settings gear icon ──
+        // ── Settings gear icon (fixed far right) ──
         IconButton(
             onClick = onSettingsClick,
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .size(36.dp),
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = colorScheme.surface.copy(alpha = 0.85f),
                 contentColor = colorScheme.onSurface,

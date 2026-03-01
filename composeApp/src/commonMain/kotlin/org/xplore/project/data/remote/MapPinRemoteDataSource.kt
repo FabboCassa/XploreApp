@@ -37,4 +37,20 @@ class MapPinRemoteDataSource(
         }
         return response.body()
     }
+
+    /**
+     * Searches POIs by name via the backend search endpoint.
+     */
+    suspend fun searchPins(query: String, lat: Double, lon: Double, radiusKm: Double): List<MapPinDto> {
+        val response = httpClient.get("$baseUrl/api/map/search") {
+            parameter("query", query)
+            parameter("lat", lat)
+            parameter("lon", lon)
+            parameter("radius", radiusKm)
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
+    }
 }

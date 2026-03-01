@@ -23,6 +23,7 @@ import org.xplore.project.domain.model.MapPin
 data class HomeUiState(
     val searchQuery: String = "",
     val filters: List<FilterChipData> = emptyList(),
+    val allLoadedPins: List<MapPin> = emptyList(),
     val pins: List<MapPin> = emptyList(),
     val isLoading: Boolean = true,
     val selectedNavIndex: Int = 0,
@@ -34,6 +35,8 @@ data class HomeUiState(
     val loadingStatusText: org.xplore.project.ui.util.UiText? = null,
     val isSettingsOpen: Boolean = false,
     val isFilterDialogOpen: Boolean = false,
+    val isSearching: Boolean = false,
+    val searchResults: List<MapPin> = emptyList(),
     val searchRadiusKm: Double = 3.0,
     val radiusAverages: Map<Double, Long> = emptyMap(),
 )

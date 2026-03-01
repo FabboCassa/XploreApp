@@ -74,4 +74,10 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
     ) {
         queries.deleteOutsideBoundingBox(minLat, maxLat, minLon, maxLon)
     }
+
+    /**
+     * Searches cached POIs whose label contains the given query (case-insensitive).
+     */
+    fun searchByName(query: String): List<MapPin> =
+        queries.searchByName(query).executeAsList().map { it.toDomain() }
 }

@@ -39,3 +39,8 @@ deleteOutsideBoundingBox:
 DELETE FROM MapPinCache
 WHERE latitude < ? OR latitude > ?
    OR longitude < ? OR longitude > ?;
+
+-- Search cached pins by name (case-insensitive LIKE)
+searchByName:
+SELECT * FROM MapPinCache
+WHERE label LIKE '%' || ? || '%' COLLATE NOCASE;
