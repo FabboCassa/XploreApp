@@ -247,8 +247,8 @@ class HomeViewModel(
                 val avgMs = it.radiusAverages[radiusKm]
                 val loadingText = if (avgMs != null) {
                     val sec = "%.1f".format(avgMs / 1000.0)
-                    org.xplore.project.ui.util.UiText.DynamicString(
-                        "Ricerca punti di interesse… (~${sec}s)"
+                    org.xplore.project.ui.util.UiText.Resource(
+                        Res.string.loading_poi_search_estimated, sec
                     )
                 } else {
                     org.xplore.project.ui.util.UiText.Resource(
@@ -293,7 +293,7 @@ class HomeViewModel(
                     it.copy(
                         isLoading = false,
                         loadingStatusText = null,
-                        errorMessage = e.message ?: "Unknown error",
+                        errorMessage = e.message ?: "Errore sconosciuto",
                     )
                 }
             }
@@ -359,7 +359,7 @@ class HomeViewModel(
                 _uiState.update {
                     it.copy(
                         isSearching = false,
-                        errorMessage = e.message ?: "Search failed",
+                        errorMessage = e.message ?: "Ricerca fallita",
                     )
                 }
             }

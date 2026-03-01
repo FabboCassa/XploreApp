@@ -7,6 +7,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import org.jetbrains.compose.resources.stringResource
+import xploreapp.composeapp.generated.resources.Res
+import xploreapp.composeapp.generated.resources.chat_coming_soon
 
 /**
  * Placeholder screen for the AI Chat feature.
@@ -19,7 +22,7 @@ fun ChatScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Chat AI — Coming Soon",
+            text = stringResource(Res.string.chat_coming_soon),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
         )

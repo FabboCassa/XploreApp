@@ -131,7 +131,7 @@ fun SettingsDialog(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_close),
-                            contentDescription = "Close",
+                            contentDescription = stringResource(Res.string.close),
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -172,7 +172,7 @@ fun SettingsDialog(
                     Spacer(Modifier.height(4.dp))
                     val seconds = "%.1f".format(avgMs / 1000.0)
                     Text(
-                        text = "Tempo stimato: ~${seconds}s",
+                        text = stringResource(Res.string.settings_estimated_time, seconds),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (isRedZone) RED_COLOR.copy(alpha = 0.8f)
                                 else MaterialTheme.colorScheme.onSurfaceVariant,
