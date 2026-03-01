@@ -1,11 +1,15 @@
 package org.xplore.project.ui.poi
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.xplore.project.data.local.MapPinLocalDataSource
+import org.xplore.project.data.remote.MapPinRemoteDataSource
+import org.xplore.project.data.local.TokenManager
 import org.xplore.project.domain.model.MapPin
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel for the POI Detail screen.
@@ -14,10 +18,18 @@ import org.xplore.project.domain.model.MapPin
  */
 class PoiDetailViewModel(
     private val localDataSource: MapPinLocalDataSource,
+    private val remoteDataSource: MapPinRemoteDataSource,
+    private val tokenManager: TokenManager,
 ) : ViewModel() {
 
     private val _pin = MutableStateFlow<MapPin?>(null)
     val pin: StateFlow<MapPin?> = _pin.asStateFlow()
+
+    private val _ratingStatus = MutableStateFlow<RatingStatus>(RatingStatus.Idle)
+    val ratingStatus: StateFlow<RatingStatus> = _ratingStatus.asStateFlow()
+
+    val isGuest: Boolean
+        get() = tokenManager.isGuest
 
     /**
      * Loads the POI with the given ID from the local cache.
@@ -29,4 +41,60 @@ class PoiDetailViewModel(
         val cached = localDataSource.getCachedPins().firstOrNull { it.id == poiId }
         _pin.value = cached
     }
+
+    /**
+     * Submits a rating for the current POI. Requires the user to be logged in.
+     */
+    fun submitRating(poiId: String, score: Int) {
+        val token = tokenManager.accessToken
+        if (token == null) {
+            _ratingStatus.value = RatingStatus.Error("Devi effettuare l'accesso per poter votare.")
+            return
+        }
+
+        _ratingStatus.value = RatingStatus.Submitting
+        
+        viewModelScope.launch {
+            try {
+                remoteDataSource.ratePoi(poiId, score, token)
+                
+                // Optimistically update local state & cache
+                val currentPin = _pin.value
+                if (currentPin != null) {
+                    val updatedCount = (currentPin.ratingsCount ?: 0) + 1
+                    val newAvg = if (currentPin.rating == null || currentPin.rating == 0.0) 
+                        score.toDouble()
+                    else 
+                        ((currentPin.rating!! * (updatedCount - 1)) + score) / updatedCount
+
+                    val updatedPin = currentPin.copy(
+                        rating = newAvg,
+                        ratingsCount = updatedCount
+                    )
+                    _pin.value = updatedPin
+                    localDataSource.cachePins(listOf(updatedPin))
+                }
+                
+                _ratingStatus.value = RatingStatus.Success
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Errore sconosciuto"
+                if (errorMsg.contains("400")) {
+                    _ratingStatus.value = RatingStatus.Error("Hai già votato questa tappa.")
+                } else {
+                    _ratingStatus.value = RatingStatus.Error(errorMsg)
+                }
+            }
+        }
+    }
+    
+    fun resetRatingStatus() {
+        _ratingStatus.value = RatingStatus.Idle
+    }
+}
+
+sealed class RatingStatus {
+    object Idle : RatingStatus()
+    object Submitting : RatingStatus()
+    object Success : RatingStatus()
+    data class Error(val message: String) : RatingStatus()
 }

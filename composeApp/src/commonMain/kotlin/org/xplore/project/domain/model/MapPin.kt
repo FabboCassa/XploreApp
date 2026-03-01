@@ -17,6 +17,8 @@ data class MapPin(
     val fee: String? = null,
     val phone: String? = null,
     val website: String? = null,
+    val rating: Double? = null,
+    val ratingsCount: Int? = null,
 )
 
 /**

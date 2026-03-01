@@ -27,6 +27,20 @@ import org.jetbrains.compose.resources.stringResource
 import org.xplore.project.domain.model.MapPin
 import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.poi_detail_discover
+import xploreapp.composeapp.generated.resources.poi_rating_format
+import xploreapp.composeapp.generated.resources.poi_rating_count_format
+import xploreapp.composeapp.generated.resources.poi_rating_count_format_single
+import xploreapp.composeapp.generated.resources.poi_no_rating
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 
 /**
  * Popup card that appears centered on the screen when a map pin is tapped.
@@ -63,17 +77,59 @@ fun PinCallout(
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // ── Category badge ──
-                if (!pin.category.isNullOrBlank()) {
-                    Text(
-                        text = pin.category.uppercase(),
-                        color = accentColor,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.8.sp,
-                    )
-                    Spacer(Modifier.height(4.dp))
+                // ── Category & Rating Row ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!pin.category.isNullOrBlank()) {
+                        Text(
+                            text = pin.category.uppercase(),
+                            color = accentColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp,
+                        )
+                    } else {
+                        Spacer(Modifier.width(1.dp))
+                    }
+
+                    if (pin.rating != null && pin.rating > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFC107),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.width(2.dp))
+                            Text(
+                                text = stringResource(Res.string.poi_rating_format, pin.rating),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1A2E)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = if (pin.ratingsCount == 1) 
+                                    stringResource(Res.string.poi_rating_count_format_single)
+                                else 
+                                    stringResource(Res.string.poi_rating_count_format, pin.ratingsCount ?: 0),
+                                fontSize = 10.sp,
+                                color = Color(0xFF888888)
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(Res.string.poi_no_rating),
+                            fontSize = 10.sp,
+                            color = Color(0xFF888888),
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
                 }
+                Spacer(Modifier.height(4.dp))
 
                 // ── Name ──
                 Text(

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.AuthResult
+import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
 
 data class ProfileUiState(
@@ -21,13 +22,15 @@ data class ProfileUiState(
     val setupTwoFactorUri: String? = null,
     val isTwoFactorEnabled: Boolean = false, // True when successfully setup
     val twoFactorCodeInput: String = "",
+    val isGuest: Boolean = false,
 )
 
 class ProfileViewModel(
     private val authRepository: AuthRepository,
+    private val tokenManager: TokenManager,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
+    private val _uiState = MutableStateFlow(ProfileUiState(isGuest = tokenManager.isGuest))
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     fun onInitiateTwoFactorSetup() {

@@ -103,6 +103,7 @@ fun XploreNavHost(
             PoiDetailScreen(
                 poiId = route.poiId,
                 onBack = { navController.popBackStack() },
+                onNavigateToLogin = { navController.navigate(LoginRoute) }
             )
         }
     }

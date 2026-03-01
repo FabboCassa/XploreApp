@@ -39,6 +39,8 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
         fee = fee,
         phone = phone,
         website = website,
+        rating = rating,
+        ratingsCount = ratingsCount?.toInt(),
     )
 
     fun cachePins(pins: List<MapPin>) {
@@ -57,6 +59,8 @@ class MapPinLocalDataSource(private val db: XploreDatabase) {
                 fee = pin.fee,
                 phone = pin.phone,
                 website = pin.website,
+                rating = pin.rating,
+                ratingsCount = pin.ratingsCount?.toLong(),
                 cachedAt = now,
             )
         }

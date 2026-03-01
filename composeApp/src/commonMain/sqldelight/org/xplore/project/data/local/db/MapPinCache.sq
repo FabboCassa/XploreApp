@@ -12,6 +12,8 @@ CREATE TABLE MapPinCache (
     fee           TEXT,
     phone         TEXT,
     website       TEXT,
+    rating        REAL,             -- Average rating score
+    ratingsCount  INTEGER,          -- Number of ratings
     cachedAt      INTEGER NOT NULL  -- epoch millis
 );
 
@@ -27,8 +29,8 @@ WHERE latitude BETWEEN ? AND ?
 
 -- Insert or replace a pin
 insertPin:
-INSERT OR REPLACE INTO MapPinCache(id, label, latitude, longitude, type, description, category, imageUrl, openingHours, fee, phone, website, cachedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO MapPinCache(id, label, latitude, longitude, type, description, category, imageUrl, openingHours, fee, phone, website, rating, ratingsCount, cachedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Delete entries older than a given epoch
 deleteExpired:

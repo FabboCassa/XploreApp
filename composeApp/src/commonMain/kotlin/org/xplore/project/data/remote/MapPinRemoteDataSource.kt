@@ -3,6 +3,12 @@ package org.xplore.project.data.remote
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.header
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.client.request.parameter
 import org.xplore.project.data.remote.dto.MapPinDto
 import io.ktor.http.isSuccess
@@ -52,5 +58,20 @@ class MapPinRemoteDataSource(
             throw Exception("HTTP Error ${response.status.value}")
         }
         return response.body()
+    }
+
+    /**
+     * Submits a rating for a specific POI.
+     * The token is passed explicitly since the global HttpClient lacks the Auth plugin.
+     */
+    suspend fun ratePoi(poiId: String, score: Int, token: String) {
+        val response = httpClient.post("$baseUrl/api/map/pois/$poiId/rate") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("score" to score))
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("Failed to submit rating: HTTP Error ${response.status.value}")
+        }
     }
 }

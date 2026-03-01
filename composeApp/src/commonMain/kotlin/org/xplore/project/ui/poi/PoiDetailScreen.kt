@@ -30,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -53,6 +57,23 @@ import xploreapp.composeapp.generated.resources.poi_detail_opening_hours
 import xploreapp.composeapp.generated.resources.poi_detail_paid
 import xploreapp.composeapp.generated.resources.poi_detail_phone
 import xploreapp.composeapp.generated.resources.poi_detail_website
+import xploreapp.composeapp.generated.resources.poi_rating_count_format
+import xploreapp.composeapp.generated.resources.poi_rating_count_format_single
+import xploreapp.composeapp.generated.resources.poi_no_rating
+import xploreapp.composeapp.generated.resources.poi_add_stop
+import xploreapp.composeapp.generated.resources.poi_rating_login_prompt
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 
 /**
  * Full-screen POI detail page.
@@ -67,6 +88,7 @@ import xploreapp.composeapp.generated.resources.poi_detail_website
 fun PoiDetailScreen(
     poiId: String,
     onBack: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
     viewModel: PoiDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(poiId) { viewModel.loadPin(poiId) }
@@ -114,6 +136,9 @@ fun PoiDetailScreen(
                 Text(text = notAvailable, color = Color(0xFF888888), fontSize = 14.sp)
             }
         } else {
+            var showRatingDialog by remember { mutableStateOf(false) }
+            val ratingStatus by viewModel.ratingStatus.collectAsState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -121,7 +146,29 @@ fun PoiDetailScreen(
                     .verticalScroll(rememberScrollState()),
             ) {
                 HeroImage(currentPin)
-                PoiDetailBody(currentPin, notAvailable, uriHandler)
+                PoiDetailBody(
+                    pin = currentPin,
+                    notAvailable = notAvailable,
+                    uriHandler = uriHandler,
+                    onRateClick = { 
+                        if (viewModel.isGuest) {
+                            onNavigateToLogin()
+                        } else {
+                            viewModel.resetRatingStatus()
+                            showRatingDialog = true 
+                        }
+                    },
+                    isGuest = viewModel.isGuest,
+                )
+            }
+
+            if (showRatingDialog) {
+                RatingDialog(
+                    poiName = currentPin.label,
+                    status = ratingStatus,
+                    onDismiss = { showRatingDialog = false },
+                    onSubmit = { score -> viewModel.submitRating(currentPin.id, score) }
+                )
             }
         }
     }
@@ -147,6 +194,8 @@ private fun PoiDetailBody(
     pin: org.xplore.project.domain.model.MapPin,
     notAvailable: String,
     uriHandler: androidx.compose.ui.platform.UriHandler,
+    onRateClick: () -> Unit,
+    isGuest: Boolean,
 ) {
     Column(modifier = Modifier.padding(20.dp)) {
         // Category badge
@@ -173,6 +222,92 @@ private fun PoiDetailBody(
             fontWeight = FontWeight.Bold,
             lineHeight = 28.sp,
         )
+
+        Spacer(Modifier.height(12.dp))
+
+        // Rating & Add Stop Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Rating
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onRateClick)
+                    .background(Color(0xFFF0F5FA))
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = "Vota",
+                    tint = Color(0xFF0050A0),
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                
+                if (pin.rating != null && pin.rating > 0) {
+                    Text(
+                        text = pin.rating.toString(),
+                        color = Color(0xFF0050A0),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = if (pin.ratingsCount == 1) 
+                                    stringResource(Res.string.poi_rating_count_format_single)
+                                else 
+                                    stringResource(Res.string.poi_rating_count_format, pin.ratingsCount ?: 0),
+                        color = Color(0xFF555555),
+                        fontSize = 13.sp
+                    )
+                    if (isGuest) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(Res.string.poi_rating_login_prompt),
+                            color = Color(0xFF0050A0),
+                            fontSize = 13.sp,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                } else {
+                    Text(
+                        text = if (isGuest) stringResource(Res.string.poi_rating_login_prompt) else "Vota per primo!",
+                        color = Color(0xFF0050A0),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
+            }
+
+            // Add Stop Button
+            Button(
+                onClick = { /* TODO: Implement add stop */ },
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4A90D9),
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                modifier = Modifier.height(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = stringResource(Res.string.poi_add_stop),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
 
         // Description
         if (!pin.description.isNullOrBlank()) {

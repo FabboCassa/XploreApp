@@ -68,32 +68,36 @@ fun ProfileScreen(
             )
 
             // ── 2FA Setup ──
-            if (uiState.isTwoFactorEnabled) {
-                Text(
-                    text = stringResource(Res.string.profile_2fa_enabled),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-            } else {
-                OutlinedButton(onClick = viewModel::onInitiateTwoFactorSetup, enabled = !uiState.isLoading) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
+            if (!uiState.isGuest) {
+                if (uiState.isTwoFactorEnabled) {
+                    Text(
+                        text = stringResource(Res.string.profile_2fa_enabled),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                } else {
+                    OutlinedButton(onClick = viewModel::onInitiateTwoFactorSetup, enabled = !uiState.isLoading) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
+                        }
+                        Text(stringResource(Res.string.profile_2fa_enable_btn))
                     }
-                    Text(stringResource(Res.string.profile_2fa_enable_btn))
+                    Spacer(Modifier.height(24.dp))
                 }
-                Spacer(Modifier.height(24.dp))
             }
 
-            // ── Logout ──
+            // ── Logout or Login ──
             Button(
-                onClick = onLogout,
+                onClick = onLogout, // onLogout will drop them to WelcomeRoute, which is correct for login redirect
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
+                    containerColor = if (uiState.isGuest) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    contentColor = if (uiState.isGuest) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
                 ),
             ) {
-                Text(stringResource(Res.string.profile_btn_logout))
+                Text(
+                    text = if (uiState.isGuest) stringResource(Res.string.profile_btn_login) else stringResource(Res.string.profile_btn_logout)
+                )
             }
         }
     }

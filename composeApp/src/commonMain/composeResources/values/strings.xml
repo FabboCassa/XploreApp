@@ -82,6 +82,7 @@
     <!-- Profile Screen -->
     <string name="profile_coming_soon">Profilo — Coming Soon</string>
     <string name="profile_btn_logout">Esci (Logout)</string>
+    <string name="profile_btn_login">Effettua il Login</string>
 
     <!-- Settings / Cache -->
     <string name="clear_map_cache">Svuota cache mappa</string>
@@ -162,4 +163,12 @@
     <string name="poi_detail_free">Gratuito</string>
     <string name="poi_detail_back">Indietro</string>
     <string name="poi_detail_paid">A pagamento</string>
+    
+    <!-- POI Ratings & Interactions -->
+    <string name="poi_add_stop">Aggiungi tappa</string>
+    <string name="poi_rating_format">%1$.1f / 10</string>
+    <string name="poi_rating_count_format">(%1$d voti)</string>
+    <string name="poi_rating_count_format_single">(1 voto)</string>
+    <string name="poi_no_rating">Voto: n.d.</string>
+    <string name="poi_rating_login_prompt">Effettua il login per votare</string>
 </resources>
