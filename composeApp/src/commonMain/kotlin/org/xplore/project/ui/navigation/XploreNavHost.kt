@@ -5,12 +5,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import org.koin.compose.koinInject
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.ui.auth.LoginScreen
 import org.xplore.project.ui.auth.RegisterScreen
 import org.xplore.project.ui.auth.WelcomeScreen
 import org.xplore.project.ui.home.HomeScreen
+import org.xplore.project.ui.poi.PoiDetailScreen
 
 /**
  * Root navigation host for the Xplore application.
@@ -20,6 +22,8 @@ import org.xplore.project.ui.home.HomeScreen
  * WelcomeRoute ──┬──> LoginRoute ──┬──> MainRoute (HomeScreen w/ BottomNav)
  *                │                 └──> RegisterRoute ──> MainRoute
  *                └──> MainRoute (Guest mode)
+ *
+ * MainRoute ──> PoiDetailRoute (POI Detail Screen)
  * ```
  *
  * ## Start Destination
@@ -86,7 +90,19 @@ fun XploreNavHost(
                     navController.navigate(WelcomeRoute) {
                         popUpTo(MainRoute) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToPoiDetail = { poiId ->
+                    navController.navigate(PoiDetailRoute(poiId))
+                },
+            )
+        }
+
+        // ── POI Detail ──────────────────────────────────────
+        composable<PoiDetailRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<PoiDetailRoute>()
+            PoiDetailScreen(
+                poiId = route.poiId,
+                onBack = { navController.popBackStack() },
             )
         }
     }

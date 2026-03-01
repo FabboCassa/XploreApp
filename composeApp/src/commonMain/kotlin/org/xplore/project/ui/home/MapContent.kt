@@ -39,6 +39,7 @@ import xploreapp.composeapp.generated.resources.search_searching
 fun MapContent(
     uiState: HomeUiState,
     viewModel: HomeViewModel,
+    onDetailClick: (String) -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         XploreMap(
@@ -49,6 +50,7 @@ fun MapContent(
             userLongitude = uiState.userLongitude,
             selectedPin = uiState.selectedPin,
             onDismissCallout = { viewModel.onDismissCallout() },
+            onDetailClick = onDetailClick,
         )
 
         Column(

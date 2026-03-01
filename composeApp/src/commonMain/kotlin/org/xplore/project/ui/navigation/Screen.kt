@@ -35,3 +35,8 @@ data object ChatRoute          // Tab 1: AI Chat
 
 @Serializable
 data object ProfileRoute       // Tab 2: User Profile
+
+// ── Detail Routes ────────────────────────────────────────────
+
+@Serializable
+data class PoiDetailRoute(val poiId: String)  // POI Detail Screen

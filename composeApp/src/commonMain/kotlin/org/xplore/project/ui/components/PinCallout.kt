@@ -3,12 +3,14 @@ package org.xplore.project.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,7 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.stringResource
 import org.xplore.project.domain.model.MapPin
+import xploreapp.composeapp.generated.resources.Res
+import xploreapp.composeapp.generated.resources.poi_detail_discover
 
 /**
  * Popup card that appears centered on the screen when a map pin is tapped.
@@ -31,6 +36,7 @@ import org.xplore.project.domain.model.MapPin
 @Composable
 fun PinCallout(
     pin: MapPin,
+    onDetailClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val accentColor = pinTypeColor(pin.type)
@@ -88,6 +94,24 @@ fun PinCallout(
                         maxLines = 4, // Allow more lines since it's richer text now
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 18.sp,
+                    )
+                }
+
+                // ── "Scopri di più" Button ──
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = { onDetailClick(pin.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4A90D9),
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.poi_detail_discover),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
                     )
                 }
             } // Close inner Column

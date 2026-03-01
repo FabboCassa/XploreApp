@@ -58,6 +58,7 @@ fun XploreMap(
     userLongitude: Double? = null,
     selectedPin: MapPin? = null,
     onDismissCallout: () -> Unit = {},
+    onDetailClick: (String) -> Unit = {},
 ) {
     val styleUrl = "https://tiles.openfreemap.org/styles/liberty"
     val cameraState = rememberCameraState()
@@ -169,6 +170,7 @@ fun XploreMap(
             )
             PinCallout(
                 pin = selectedPin,
+                onDetailClick = onDetailClick,
                 modifier = Modifier.align(Alignment.Center),
             )
         }

@@ -150,4 +150,16 @@
     <string name="filter_dialog_title">Filtri</string>
     <string name="filter_dialog_btn_apply">Applica filtri</string>
     <string name="filter_more">Altri filtri</string>
+
+    <!-- POI Detail Screen -->
+    <string name="poi_detail_discover">Scopri di più</string>
+    <string name="poi_detail_opening_hours">Orari di apertura</string>
+    <string name="poi_detail_cost">Costo</string>
+    <string name="poi_detail_website">Sito web</string>
+    <string name="poi_detail_phone">Telefono</string>
+    <string name="poi_detail_description">Descrizione</string>
+    <string name="poi_detail_info_not_available">Informazione non disponibile</string>
+    <string name="poi_detail_free">Gratuito</string>
+    <string name="poi_detail_back">Indietro</string>
+    <string name="poi_detail_paid">A pagamento</string>
 </resources>

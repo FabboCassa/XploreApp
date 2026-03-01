@@ -13,6 +13,10 @@ data class MapPin(
     val description: String? = null,
     val category: String? = null,
     val imageUrl: String? = null,
+    val openingHours: String? = null,
+    val fee: String? = null,
+    val phone: String? = null,
+    val website: String? = null,
 )
 
 /**

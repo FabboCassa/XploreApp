@@ -1,14 +1,18 @@
 -- Table for caching Points of Interest locally
 CREATE TABLE MapPinCache (
-    id          TEXT NOT NULL PRIMARY KEY,
-    label       TEXT NOT NULL,
-    latitude    REAL NOT NULL,
-    longitude   REAL NOT NULL,
-    type        TEXT NOT NULL,
-    description TEXT,
-    category    TEXT,
-    imageUrl    TEXT,
-    cachedAt    INTEGER NOT NULL  -- epoch millis
+    id            TEXT NOT NULL PRIMARY KEY,
+    label         TEXT NOT NULL,
+    latitude      REAL NOT NULL,
+    longitude     REAL NOT NULL,
+    type          TEXT NOT NULL,
+    description   TEXT,
+    category      TEXT,
+    imageUrl      TEXT,
+    openingHours  TEXT,
+    fee           TEXT,
+    phone         TEXT,
+    website       TEXT,
+    cachedAt      INTEGER NOT NULL  -- epoch millis
 );
 
 -- Fetch all cached pins
@@ -23,8 +27,8 @@ WHERE latitude BETWEEN ? AND ?
 
 -- Insert or replace a pin
 insertPin:
-INSERT OR REPLACE INTO MapPinCache(id, label, latitude, longitude, type, description, category, imageUrl, cachedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO MapPinCache(id, label, latitude, longitude, type, description, category, imageUrl, openingHours, fee, phone, website, cachedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Delete entries older than a given epoch
 deleteExpired:

@@ -18,6 +18,10 @@ data class MapPinDto(
     val description: String? = null,
     val category: String? = null,
     val imageUrl: String? = null,
+    val openingHours: String? = null,
+    val fee: String? = null,
+    val phone: String? = null,
+    val website: String? = null,
 ) {
     fun toDomain(): MapPin = MapPin(
         id = id,
@@ -28,5 +32,9 @@ data class MapPinDto(
         description = description,
         category = category,
         imageUrl = imageUrl,
+        openingHours = openingHours,
+        fee = fee,
+        phone = phone,
+        website = website,
     )
 }

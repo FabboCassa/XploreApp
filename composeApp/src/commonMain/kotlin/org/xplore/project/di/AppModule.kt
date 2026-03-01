@@ -23,6 +23,7 @@ import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.auth.AuthViewModel
 import org.xplore.project.ui.home.HomeViewModel
+import org.xplore.project.ui.poi.PoiDetailViewModel
 import org.xplore.project.ui.profile.ProfileViewModel
 
 /**
@@ -101,4 +102,5 @@ val appModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
     viewModelOf(::ProfileViewModel)
+    viewModelOf(::PoiDetailViewModel)
 }

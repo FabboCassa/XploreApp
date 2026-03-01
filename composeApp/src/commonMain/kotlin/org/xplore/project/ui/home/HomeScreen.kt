@@ -29,6 +29,7 @@ import org.xplore.project.ui.profile.ProfileScreen
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
+    onNavigateToPoiDetail: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,7 +73,11 @@ fun HomeScreen(
                 .padding(innerPadding),
         ) {
             when (uiState.selectedNavIndex) {
-                0 -> MapContent(uiState = uiState, viewModel = viewModel)
+                0 -> MapContent(
+                    uiState = uiState,
+                    viewModel = viewModel,
+                    onDetailClick = onNavigateToPoiDetail,
+                )
                 1 -> ChatScreen()
                 2 -> ProfileScreen(
                     onLogout = {
