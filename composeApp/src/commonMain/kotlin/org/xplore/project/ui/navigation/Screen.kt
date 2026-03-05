@@ -31,7 +31,7 @@ data object MainRoute          // Container with Bottom Nav
 data object MapRoute           // Tab 0: Map / Home
 
 @Serializable
-data object ChatRoute          // Tab 1: AI Chat
+data object CommunityRoute     // Tab 1: Community
 
 @Serializable
 data object ProfileRoute       // Tab 2: User Profile

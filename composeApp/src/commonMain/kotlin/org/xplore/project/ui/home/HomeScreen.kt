@@ -18,7 +18,7 @@ import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
 import dev.icerock.moko.geo.compose.rememberLocationTrackerFactory
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.compose.viewmodel.koinViewModel
-import org.xplore.project.ui.chat.ChatScreen
+import org.xplore.project.ui.community.CommunityScreen
 import org.xplore.project.ui.components.XploreBottomNavBar
 import org.xplore.project.ui.profile.ProfileScreen
 
@@ -78,7 +78,7 @@ fun HomeScreen(
                     viewModel = viewModel,
                     onDetailClick = onNavigateToPoiDetail,
                 )
-                1 -> ChatScreen()
+                1 -> CommunityScreen()
                 2 -> ProfileScreen(
                     onLogout = {
                         viewModel.logout()

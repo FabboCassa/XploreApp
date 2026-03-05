@@ -1,0 +1,136 @@
+package org.xplore.project.ui.community
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.xplore.project.data.local.TokenManager
+import org.xplore.project.domain.repository.CommunityRepository
+
+/**
+ * ViewModel for the Community screen.
+ *
+ * Manages groups, join/leave actions, search, and the explorer leaderboard.
+ */
+class CommunityViewModel(
+    private val communityRepository: CommunityRepository,
+    private val tokenManager: TokenManager,
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(CommunityUiState(isGuest = tokenManager.isGuest))
+    val uiState: StateFlow<CommunityUiState> = _uiState.asStateFlow()
+    private var searchJob: Job? = null
+
+    init {
+        loadData()
+    }
+
+    /** Loads all groups, user's groups, and leaderboard. */
+    fun loadData() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                val allGroups = communityRepository.getAllGroups()
+                val leaderboard = communityRepository.getLeaderboard()
+                val myGroups = if (!tokenManager.isGuest && tokenManager.isLoggedIn) {
+                    communityRepository.getMyGroups()
+                } else {
+                    emptyList()
+                }
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        allGroups = allGroups,
+                        myGroups = myGroups,
+                        leaderboard = leaderboard,
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
+    // ── Dialogs ──
+
+    fun openCreateDialog() {
+        _uiState.update { it.copy(isCreateDialogOpen = true) }
+    }
+
+    fun closeCreateDialog() {
+        _uiState.update { it.copy(isCreateDialogOpen = false) }
+    }
+
+    fun openJoinDialog() {
+        _uiState.update { it.copy(isJoinDialogOpen = true, searchQuery = "", searchResults = emptyList()) }
+    }
+
+    fun closeJoinDialog() {
+        _uiState.update { it.copy(isJoinDialogOpen = false, searchQuery = "", searchResults = emptyList()) }
+    }
+
+    // ── Search ──
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+        searchJob?.cancel()
+
+        if (query.length < 2) {
+            _uiState.update { it.copy(searchResults = emptyList()) }
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            delay(300) // debounce
+            try {
+                val results = communityRepository.searchGroups(query)
+                _uiState.update { it.copy(searchResults = results) }
+            } catch (_: Exception) {
+                // Silently ignore search errors
+            }
+        }
+    }
+
+    // ── Group Actions ──
+
+    fun createGroup(name: String, description: String?, accessType: Int, password: String?) {
+        viewModelScope.launch {
+            try {
+                communityRepository.createGroup(name, description, null, accessType, password)
+                closeCreateDialog()
+                loadData()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message) }
+            }
+        }
+    }
+
+    fun joinGroup(groupId: String, password: String? = null) {
+        viewModelScope.launch {
+            try {
+                communityRepository.joinGroup(groupId, password)
+                closeJoinDialog()
+                loadData()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message) }
+            }
+        }
+    }
+
+    fun leaveGroup(groupId: String) {
+        viewModelScope.launch {
+            try {
+                communityRepository.leaveGroup(groupId)
+                loadData()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message) }
+            }
+        }
+    }
+}

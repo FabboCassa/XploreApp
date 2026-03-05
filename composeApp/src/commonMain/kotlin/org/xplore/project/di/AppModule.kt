@@ -14,14 +14,18 @@ import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.local.db.DatabaseDriverFactory
 import org.xplore.project.data.local.db.XploreDatabase
 import org.xplore.project.data.remote.AuthApiService
+import org.xplore.project.data.remote.CommunityRemoteDataSource
 import org.xplore.project.data.remote.MapPinRemoteDataSource
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.repository.AuthRepositoryImpl
+import org.xplore.project.data.repository.CommunityRepositoryImpl
 import org.xplore.project.data.repository.MuseumRepositoryImpl
 import org.xplore.project.domain.repository.AuthRepository
+import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.auth.AuthViewModel
+import org.xplore.project.ui.community.CommunityViewModel
 import org.xplore.project.ui.home.HomeViewModel
 import org.xplore.project.ui.poi.PoiDetailViewModel
 import org.xplore.project.ui.profile.ProfileViewModel
@@ -97,10 +101,20 @@ val appModule = module {
     // ── Data layer ───────────────────────────────────────────
     singleOf(::MuseumRepositoryImpl) bind MuseumRepository::class
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
+    singleOf(::CommunityRepositoryImpl) bind CommunityRepository::class
+
+    // ── Community Data Source ─────────────────────────────────
+    single {
+        CommunityRemoteDataSource(
+            httpClient = get(),
+            baseUrl = "https://10.0.2.2:7109",
+        )
+    }
 
     // ── Presentation layer ───────────────────────────────────
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
     viewModelOf(::ProfileViewModel)
     viewModelOf(::PoiDetailViewModel)
+    viewModelOf(::CommunityViewModel)
 }

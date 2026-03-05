@@ -13,7 +13,7 @@
 
     <!-- Bottom Navigation -->
     <string name="nav_map">Mappa</string>
-    <string name="nav_scan">Scan</string>
+    <string name="nav_community">Community</string>
     <string name="nav_profile">Profilo</string>
 
     <!-- Map -->
@@ -98,8 +98,34 @@
     <string name="search_searching">Ricerca in corso…</string>
     <string name="search_no_results">Nessun risultato trovato</string>
 
-    <!-- Chat Screen -->
-    <string name="chat_coming_soon">Chat AI — Prossimamente</string>
+    <!-- Community Screen -->
+    <string name="community_title">Community</string>
+    <string name="community_create_group">Crea gruppo</string>
+    <string name="community_join_group">Partecipa</string>
+    <string name="community_my_groups">I miei gruppi</string>
+    <string name="community_all_groups">Esplora gruppi</string>
+    <string name="community_no_groups">Nessun gruppo trovato</string>
+    <string name="community_login_prompt">Effettua il login per creare e partecipare ai gruppi</string>
+    <string name="community_join">Partecipa</string>
+    <string name="community_leave">Esci</string>
+    <string name="community_members_count">%1$d membri</string>
+    <string name="community_group_name">Nome del gruppo</string>
+    <string name="community_group_description">Descrizione (opzionale)</string>
+    <string name="community_btn_create">Crea</string>
+    <string name="community_btn_cancel">Annulla</string>
+    <string name="community_create_tooltip">Crea gruppo</string>
+    <string name="community_join_tooltip">Partecipa a un gruppo</string>
+    <string name="community_search_groups">Cerca gruppi…</string>
+    <string name="community_access_label">Tipo di accesso</string>
+    <string name="community_access_public">Pubblico</string>
+    <string name="community_access_password">Protetto da password</string>
+    <string name="community_access_invite">Solo su invito</string>
+    <string name="community_password_label">Password</string>
+    <string name="community_password_required">Password richiesta</string>
+    <string name="community_leaderboard_title">Classifica Esploratori</string>
+    <string name="community_leaderboard_score">%1$d pts</string>
+    <string name="community_leaderboard_rank">#%1$d</string>
+    <string name="community_leaderboard_anonymous">Anonimo</string>
 
     <!-- Settings Dialog -->
     <string name="settings_title">Impostazioni</string>

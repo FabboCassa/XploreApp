@@ -15,22 +15,22 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import xploreapp.composeapp.generated.resources.Res
-import xploreapp.composeapp.generated.resources.ic_chat
+import xploreapp.composeapp.generated.resources.ic_community
 import xploreapp.composeapp.generated.resources.ic_map
 import xploreapp.composeapp.generated.resources.ic_person
 import xploreapp.composeapp.generated.resources.nav_map
 import xploreapp.composeapp.generated.resources.nav_profile
-import xploreapp.composeapp.generated.resources.nav_scan
+import xploreapp.composeapp.generated.resources.nav_community
 
 /**
  * Primary navigation component.
  *
  * ## Navigation Structure
  * - **Map** (Index 0): The main homepage.
- * - **Scan/Chat** (Index 1): For QR scanning or AI chat.
+ * - **Community** (Index 1): Groups and Leaderboard.
  * - **Profile** (Index 2): User settings and account.
  *
- * Uses [painterResource] for cross-platform icon support (avoiding Material Icons dependency).
+ * Uses [painterResource] for cross-platform icon support.
  */
 @Composable
 fun XploreBottomNavBar(
@@ -42,7 +42,7 @@ fun XploreBottomNavBar(
 
     val items = listOf(
         NavItem(Res.string.nav_map, Res.drawable.ic_map),
-        NavItem(Res.string.nav_scan, Res.drawable.ic_chat),
+        NavItem(Res.string.nav_community, Res.drawable.ic_community),
         NavItem(Res.string.nav_profile, Res.drawable.ic_person),
     )
 
