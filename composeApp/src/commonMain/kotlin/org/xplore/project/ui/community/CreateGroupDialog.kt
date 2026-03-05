@@ -1,26 +1,19 @@
 package org.xplore.project.ui.community
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,26 +23,27 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import xploreapp.composeapp.generated.resources.Res
-import xploreapp.composeapp.generated.resources.community_create_group
-import xploreapp.composeapp.generated.resources.community_group_name
-import xploreapp.composeapp.generated.resources.community_group_description
-import xploreapp.composeapp.generated.resources.community_btn_create
-import xploreapp.composeapp.generated.resources.community_btn_cancel
-import xploreapp.composeapp.generated.resources.community_access_public
-import xploreapp.composeapp.generated.resources.community_access_password
 import xploreapp.composeapp.generated.resources.community_access_invite
-import xploreapp.composeapp.generated.resources.community_password_label
 import xploreapp.composeapp.generated.resources.community_access_label
+import xploreapp.composeapp.generated.resources.community_access_password
+import xploreapp.composeapp.generated.resources.community_access_public
+import xploreapp.composeapp.generated.resources.community_btn_cancel
+import xploreapp.composeapp.generated.resources.community_btn_create
+import xploreapp.composeapp.generated.resources.community_create_group
+import xploreapp.composeapp.generated.resources.community_group_description
+import xploreapp.composeapp.generated.resources.community_group_name
+import xploreapp.composeapp.generated.resources.community_password_label
 
 /**
  * Dialog for creating a new community group.
- * Access type uses a dropdown rectangle with expand/collapse indicator.
+ * The access-type selector uses [ExposedDropdownMenuBox] so the dropdown
+ * renders as a floating Popup — the dialog size never changes.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGroupDialog(
     onDismiss: () -> Unit,
@@ -101,17 +95,45 @@ fun CreateGroupDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                // ── Access Type Dropdown ──
-                AccessTypeDropdown(
-                    selectedLabel = selectedLabel,
+                // ── Access Type Dropdown (floating popup, dialog size unaffected) ──
+                ExposedDropdownMenuBox(
                     expanded = dropdownExpanded,
-                    options = accessOptions,
-                    onToggle = { dropdownExpanded = !dropdownExpanded },
-                    onSelect = { value ->
-                        accessType = value
-                        dropdownExpanded = false
-                    },
-                )
+                    onExpandedChange = { dropdownExpanded = it },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    OutlinedTextField(
+                        value = selectedLabel,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(Res.string.community_access_label)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                            .fillMaxWidth(),
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false },
+                    ) {
+                        accessOptions.forEach { (value, label) ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                },
+                                onClick = {
+                                    accessType = value
+                                    dropdownExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
 
                 // Password field (only for Password type)
                 if (accessType == 1) {
@@ -146,87 +168,4 @@ fun CreateGroupDialog(
             }
         },
     )
-}
-
-/**
- * Custom dropdown selector: a rectangle showing the selected value
- * with a triangle toggle. Expands to show the option list below.
- */
-@Composable
-private fun AccessTypeDropdown(
-    selectedLabel: String,
-    expanded: Boolean,
-    options: List<Pair<Int, String>>,
-    onToggle: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
-    Column {
-        // Selected value rectangle
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onToggle),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-            ),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.community_access_label),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = selectedLabel,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded)
-                        Icons.Filled.KeyboardArrowUp
-                    else
-                        Icons.Filled.KeyboardArrowDown,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        // Expandable option list
-        AnimatedVisibility(visible = expanded) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                ),
-            ) {
-                Column {
-                    options.forEach { (value, label) ->
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelect(value) }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
 }

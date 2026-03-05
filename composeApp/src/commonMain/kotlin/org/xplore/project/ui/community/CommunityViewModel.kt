@@ -34,25 +34,35 @@ class CommunityViewModel(
     fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            try {
-                val allGroups = communityRepository.getAllGroups()
-                val leaderboard = communityRepository.getLeaderboard()
-                val myGroups = if (!tokenManager.isGuest && tokenManager.isLoggedIn) {
-                    communityRepository.getMyGroups()
-                } else {
-                    emptyList()
-                }
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        allGroups = allGroups,
-                        myGroups = myGroups,
-                        leaderboard = leaderboard,
-                    )
+            // Load groups (may fail independently)
+            var allGroups = emptyList<org.xplore.project.domain.model.Group>()
+            var myGroups = emptyList<org.xplore.project.domain.model.Group>()
+            try {
+                allGroups = communityRepository.getAllGroups()
+                if (!tokenManager.isGuest && tokenManager.isLoggedIn) {
+                    myGroups = communityRepository.getMyGroups()
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                println("CommunityVM: Failed to load groups: ${e.message}")
+            }
+
+            // Load leaderboard independently so it works even when groups fail
+            var leaderboard = emptyList<org.xplore.project.domain.model.LeaderboardEntry>()
+            try {
+                leaderboard = communityRepository.getLeaderboard()
+                println("CommunityVM: Leaderboard loaded with ${leaderboard.size} entries")
+            } catch (e: Exception) {
+                println("CommunityVM: Failed to load leaderboard: ${e.message}")
+            }
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    allGroups = allGroups,
+                    myGroups = myGroups,
+                    leaderboard = leaderboard,
+                )
             }
         }
     }

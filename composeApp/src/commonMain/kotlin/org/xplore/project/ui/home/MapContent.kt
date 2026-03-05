@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -56,8 +56,8 @@ fun MapContent(
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(top = 4.dp),
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(top = 8.dp),
         ) {
             XploreSearchBar(
                 query = uiState.searchQuery,

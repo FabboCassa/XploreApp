@@ -1,5 +1,6 @@
 package org.xplore.project.ui.community
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import xploreapp.composeapp.generated.resources.community_leaderboard_title
 import xploreapp.composeapp.generated.resources.community_leaderboard_score
 import xploreapp.composeapp.generated.resources.community_leaderboard_rank
 import xploreapp.composeapp.generated.resources.community_leaderboard_anonymous
+import xploreapp.composeapp.generated.resources.community_leaderboard_empty
 
 /**
  * Section displaying the global explorer leaderboard in an elevated card.
@@ -31,7 +33,8 @@ fun LeaderboardSection(entries: List<LeaderboardEntry>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
         ),
@@ -46,8 +49,16 @@ fun LeaderboardSection(entries: List<LeaderboardEntry>) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
-            entries.forEach { entry ->
-                LeaderboardRow(entry = entry)
+            if (entries.isEmpty()) {
+                Text(
+                    text = stringResource(Res.string.community_leaderboard_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                entries.forEach { entry ->
+                    LeaderboardRow(entry = entry)
+                }
             }
         }
     }
@@ -61,11 +72,9 @@ private fun LeaderboardRow(entry: LeaderboardEntry) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (entry.rank <= 3)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
     ) {
         Row(

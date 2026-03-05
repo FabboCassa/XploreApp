@@ -126,6 +126,7 @@
     <string name="community_leaderboard_score">%1$d pts</string>
     <string name="community_leaderboard_rank">#%1$d</string>
     <string name="community_leaderboard_anonymous">Anonimo</string>
+    <string name="community_leaderboard_empty">Nessun esploratore in classifica</string>
 
     <!-- Settings Dialog -->
     <string name="settings_title">Impostazioni</string>
