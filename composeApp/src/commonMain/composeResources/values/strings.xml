@@ -140,6 +140,8 @@
     <string name="close">Chiudi</string>
     <string name="error_unknown">Errore sconosciuto</string>
     <string name="error_search_failed">Ricerca fallita</string>
+    <string name="error_login_required">Devi effettuare l\'accesso per poter votare.</string>
+    <string name="error_already_rated">Hai già votato questa tappa.</string>
     
     <!-- 2FA Setup & Login -->
     <string name="two_factor_title">Verifica due fattori (2FA)</string>
@@ -198,4 +200,24 @@
     <string name="poi_rating_count_format_single">(1 voto)</string>
     <string name="poi_no_rating">Voto: n.d.</string>
     <string name="poi_rating_login_prompt">Effettua il login per votare</string>
+
+    <!-- Group Detail Screen -->
+    <string name="group_detail_title_fallback">Dettagli del Gruppo</string>
+    <string name="group_detail_change_visibility">Cambia Visibilità</string>
+    <string name="group_detail_delete_group">Elimina Gruppo</string>
+    <string name="group_detail_admin">Admin</string>
+    <string name="group_detail_exit_group">Esci dal Gruppo</string>
+    <string name="group_detail_delete_confirm">Sei sicuro di voler eliminare questo gruppo? Questa azione non può essere annullata.</string>
+    <string name="group_detail_btn_delete">Elimina</string>
+    <string name="group_detail_btn_cancel">Annulla</string>
+    <string name="group_detail_access_type">Tipo di accesso</string>
+    <string name="group_detail_new_password">Nuova Password</string>
+    <string name="group_detail_btn_save">Salva</string>
+
+    <!-- POI Rating Extension -->
+    <string name="poi_rating_title">Valuta</string>
+    <string name="poi_rating_success">Voto salvato con successo!</string>
+    <string name="poi_rating_close">Chiudi</string>
+    <string name="poi_rating_cancel">Annulla</string>
+    <string name="poi_rating_send">Invia</string>
 </resources>

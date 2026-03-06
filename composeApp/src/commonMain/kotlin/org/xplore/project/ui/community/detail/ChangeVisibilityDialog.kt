@@ -22,16 +22,16 @@ fun ChangeVisibilityDialog(
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     val accessOptions = listOf(
-        0 to "Public", // Defaults if string translation missing
-        1 to "Password",
-        2 to "Invite Only",
+        0 to stringResource(Res.string.community_access_public),
+        1 to stringResource(Res.string.community_access_password),
+        2 to stringResource(Res.string.community_access_invite),
     )
 
     val selectedLabel = accessOptions.first { it.first == accessType }.second
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change Visibility", style = MaterialTheme.typography.titleLarge) },
+        title = { Text(stringResource(Res.string.group_detail_change_visibility), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -46,7 +46,7 @@ fun ChangeVisibilityDialog(
                         value = selectedLabel,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Access Type") },
+                        label = { Text(stringResource(Res.string.group_detail_access_type)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier
@@ -74,7 +74,7 @@ fun ChangeVisibilityDialog(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("New Password") },
+                        label = { Text(stringResource(Res.string.group_detail_new_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -86,12 +86,12 @@ fun ChangeVisibilityDialog(
                 onClick = { onSave(accessType, if (accessType == 1) password.ifBlank { null } else null) },
                 enabled = accessType != 1 || password.isNotBlank(),
             ) {
-                Text("Save")
+                Text(stringResource(Res.string.group_detail_btn_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(Res.string.group_detail_btn_cancel))
             }
         },
     )

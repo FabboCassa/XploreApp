@@ -18,8 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.xplore.project.domain.model.GroupRole
+import xploreapp.composeapp.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +42,7 @@ fun GroupDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(detail?.name ?: "Group Details") },
+                title = { Text(detail?.name ?: stringResource(Res.string.group_detail_title_fallback)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -57,14 +59,14 @@ fun GroupDetailScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Change Visibility") },
+                                text = { Text(stringResource(Res.string.group_detail_change_visibility)) },
                                 onClick = {
                                     menuExpanded = false
                                     viewModel.openChangeVisibilityDialog()
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Delete Group", color = MaterialTheme.colorScheme.error) },
+                                text = { Text(stringResource(Res.string.group_detail_delete_group), color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     menuExpanded = false
                                     viewModel.openDeleteConfirmation()
@@ -104,7 +106,7 @@ fun GroupDetailScreen(
                     }
 
                     Text(
-                        text = "Members (${detail.memberCount})",
+                        text = stringResource(Res.string.community_members_count, detail.memberCount),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -141,7 +143,7 @@ fun GroupDetailScreen(
                                 trailingContent = {
                                     if (member.role == GroupRole.Admin) {
                                         Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                                            Text("Admin")
+                                            Text(stringResource(Res.string.group_detail_admin))
                                         }
                                     }
                                 }
@@ -154,7 +156,7 @@ fun GroupDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Exit Group")
+                        Text(stringResource(Res.string.group_detail_exit_group))
                     }
                 }
             }
@@ -175,8 +177,8 @@ fun GroupDetailScreen(
     if (uiState.isDeleteConfirmationOpen) {
         AlertDialog(
             onDismissRequest = viewModel::closeDeleteConfirmation,
-            title = { Text("Delete Group") },
-            text = { Text("Are you sure you want to delete this group? This action cannot be undone.") },
+            title = { Text(stringResource(Res.string.group_detail_delete_group)) },
+            text = { Text(stringResource(Res.string.group_detail_delete_confirm)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -184,12 +186,12 @@ fun GroupDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.group_detail_btn_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::closeDeleteConfirmation) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.group_detail_btn_cancel))
                 }
             }
         )

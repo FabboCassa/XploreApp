@@ -10,6 +10,8 @@ import org.xplore.project.data.remote.MapPinRemoteDataSource
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.domain.model.MapPin
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import xploreapp.composeapp.generated.resources.*
 
 /**
  * ViewModel for the POI Detail screen.
@@ -48,7 +50,9 @@ class PoiDetailViewModel(
     fun submitRating(poiId: String, score: Int) {
         val token = tokenManager.accessToken
         if (token == null) {
-            _ratingStatus.value = RatingStatus.Error("Devi effettuare l'accesso per poter votare.")
+            viewModelScope.launch {
+                _ratingStatus.value = RatingStatus.Error(getString(Res.string.error_login_required))
+            }
             return
         }
 
@@ -77,9 +81,9 @@ class PoiDetailViewModel(
                 
                 _ratingStatus.value = RatingStatus.Success
             } catch (e: Exception) {
-                val errorMsg = e.message ?: "Errore sconosciuto"
+                val errorMsg = e.message ?: getString(Res.string.error_unknown)
                 if (errorMsg.contains("400")) {
-                    _ratingStatus.value = RatingStatus.Error("Hai già votato questa tappa.")
+                    _ratingStatus.value = RatingStatus.Error(getString(Res.string.error_already_rated))
                 } else {
                     _ratingStatus.value = RatingStatus.Error(errorMsg)
                 }

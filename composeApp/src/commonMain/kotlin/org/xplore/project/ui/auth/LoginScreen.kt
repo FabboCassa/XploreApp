@@ -221,173 +221,27 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── Divider ──
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = colorScheme.outline.copy(alpha = 0.5f),
-                )
-                Text(
-                    text = stringResource(Res.string.login_or),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorScheme.onBackground.copy(alpha = 0.5f),
-                )
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = colorScheme.outline.copy(alpha = 0.5f),
-                )
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // ── Google Sign-In ──
-            OutlinedButton(
-                onClick = {
-                    viewModel.onGoogleSignIn() // Show loading state early
-                    coroutineScope.launch {
-                        when (val result = googleAuthClient.signIn()) {
-                            is GoogleSignInResult.Success -> {
-                                viewModel.onExternalLoginSuccess("Google", result.idToken)
-                            }
-                            is GoogleSignInResult.Error -> {
-                                viewModel.onExternalLoginError("Google", result.message)
-                            }
-                            GoogleSignInResult.Cancelled -> {
-                                viewModel.clearError() // o fai qualcos'altro per chiudere il loading state
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text(stringResource(Res.string.login_google_btn), style = MaterialTheme.typography.labelLarge)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // ── Apple Sign-In ──
-            OutlinedButton(
-                onClick = {
-                    viewModel.onAppleSignIn() // Show loading state early
-                    coroutineScope.launch {
-                        when (val result = appleAuthClient.signIn()) {
-                            is AppleSignInResult.Success -> {
-                                viewModel.onExternalLoginSuccess("Apple", result.identityToken)
-                            }
-                            is AppleSignInResult.Error -> {
-                                viewModel.onExternalLoginError("Apple", result.message)
-                            }
-                            AppleSignInResult.Cancelled -> {
-                                viewModel.clearError()
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text(stringResource(Res.string.login_apple_btn), style = MaterialTheme.typography.labelLarge)
-            }
+            // ── Social Sign-In ──
+            SocialLoginSection(
+                viewModel = viewModel,
+                coroutineScope = coroutineScope,
+                googleAuthClient = googleAuthClient,
+                appleAuthClient = appleAuthClient
+            )
 
             Spacer(Modifier.height(32.dp))
 
             // ── Register Link ──
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = stringResource(Res.string.login_no_account),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorScheme.onBackground.copy(alpha = 0.6f),
-                )
-                Text(
-                    text = stringResource(Res.string.login_register_link),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorScheme.primary,
-                    modifier = Modifier.clickable { onNavigateToRegister() },
-                )
-            }
+            RegisterLink(onNavigateToRegister)
         }
     }
 
     // ── 2FA Dialog ──
     if (uiState.requiresTwoFactorUserId != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.clearError() }, // Also clears 2FA state if needed, or maybe add a specific dismiss method
-            title = { Text(text = stringResource(Res.string.two_factor_title)) },
-            text = {
-                Column {
-                    Text(text = stringResource(Res.string.two_factor_desc))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = uiState.twoFactorCode,
-                        onValueChange = viewModel::onTwoFactorCodeChanged,
-                        label = { Text(stringResource(Res.string.two_factor_code_label)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done,
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                focusManager.clearFocus()
-                                viewModel.onVerifyTwoFactorClicked()
-                            }
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    TextButton(
-                        onClick = viewModel::onSendEmail2FaClicked,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(Res.string.two_factor_btn_send_email))
-                    }
-                    uiState.emailSentMessage?.let { msg ->
-                        Text(
-                            text = stringResource(msg),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.primary,
-                            modifier = Modifier.padding(top = 4.dp).align(Alignment.CenterHorizontally)
-                        )
-                    }
-                    uiState.errorMessage?.let { error ->
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(error),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.error
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = viewModel::onVerifyTwoFactorClicked,
-                    enabled = uiState.twoFactorCode.isNotBlank() && !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = colorScheme.onPrimary, strokeWidth = 2.dp)
-                    } else {
-                        Text(stringResource(Res.string.two_factor_btn_verify))
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::clearError) {
-                    Text(stringResource(Res.string.two_factor_btn_cancel))
-                }
-            }
+        TwoFactorDialog(
+            uiState = uiState,
+            viewModel = viewModel,
+            focusManager = focusManager
         )
     }
 }

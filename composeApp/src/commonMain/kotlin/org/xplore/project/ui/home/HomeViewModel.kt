@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import org.jetbrains.compose.resources.getString
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
 import org.xplore.project.domain.repository.AuthRepository
@@ -31,6 +32,7 @@ import xploreapp.composeapp.generated.resources.*
  * @param museumRepository Injected via Koin. Used to fetch and cache POIs.
  * @param authRepository Injected via Koin. Used for logout.
  */
+@OptIn(kotlin.time.ExperimentalTime::class)
 class HomeViewModel(
     private val museumRepository: MuseumRepository,
     private val authRepository: AuthRepository,
@@ -203,7 +205,7 @@ class HomeViewModel(
         // Prune SQLDelight cache if we've been at the same/smaller radius for > 30 mins
         val now = Clock.System.now().toEpochMilliseconds()
         val setAt = tokenManager.radiusSetAtMs
-        if (setAt > 0 && (now - setAt) > 30 * 60 * 1000) {
+        if (setAt > 0L && (now - setAt) > 30L * 60 * 1000) {
             viewModelScope.launch {
                 museumRepository.pruneCacheOutsideRadius(
                     lat = latitude,
@@ -246,7 +248,7 @@ class HomeViewModel(
                 // Build loading text with estimated time if available
                 val avgMs = it.radiusAverages[radiusKm]
                 val loadingText = if (avgMs != null) {
-                    val sec = "%.1f".format(avgMs / 1000.0)
+                    val sec = (kotlin.math.round(avgMs / 100.0) / 10.0).toString()
                     org.xplore.project.ui.util.UiText.Resource(
                         Res.string.loading_poi_search_estimated, sec
                     )
@@ -289,11 +291,12 @@ class HomeViewModel(
                     it.copy(isLoading = false, loadingStatusText = null)
                 }
             } catch (e: Exception) {
+                val fallbackMsg = getString(Res.string.error_unknown)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         loadingStatusText = null,
-                        errorMessage = e.message ?: "Errore sconosciuto",
+                        errorMessage = e.message ?: fallbackMsg,
                     )
                 }
             }
@@ -356,10 +359,11 @@ class HomeViewModel(
                     )
                 }
             } catch (e: Exception) {
+                val fallbackMsg = getString(Res.string.error_search_failed)
                 _uiState.update {
                     it.copy(
                         isSearching = false,
-                        errorMessage = e.message ?: "Ricerca fallita",
+                        errorMessage = e.message ?: fallbackMsg,
                     )
                 }
             }

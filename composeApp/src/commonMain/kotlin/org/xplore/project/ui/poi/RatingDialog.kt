@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
+import xploreapp.composeapp.generated.resources.*
 
 @Composable
 fun RatingDialog(
@@ -65,7 +67,7 @@ fun RatingDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Valuta",
+                    text = stringResource(Res.string.poi_rating_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A2E)
@@ -90,7 +92,7 @@ fun RatingDialog(
                     )
                 } else if (status is RatingStatus.Success) {
                     Text(
-                        text = "Voto salvato con successo!",
+                        text = stringResource(Res.string.poi_rating_success),
                         color = Color(0xFF388E3C),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -102,7 +104,7 @@ fun RatingDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A90D9))
                     ) {
-                        Text("Chiudi", color = Color.White)
+                        Text(stringResource(Res.string.poi_rating_close), color = Color.White)
                     }
                     return@Column
                 }
@@ -140,7 +142,7 @@ fun RatingDialog(
                         onClick = onDismiss,
                         enabled = status !is RatingStatus.Submitting
                     ) {
-                        Text("Annulla", color = Color(0xFF888888))
+                        Text(stringResource(Res.string.poi_rating_cancel), color = Color(0xFF888888))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -155,7 +157,7 @@ fun RatingDialog(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Invia", color = Color.White)
+                            Text(stringResource(Res.string.poi_rating_send), color = Color.White)
                         }
                     }
                 }
