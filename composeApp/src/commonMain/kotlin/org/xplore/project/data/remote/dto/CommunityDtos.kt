@@ -51,3 +51,40 @@ data class LeaderboardEntryDto(
     val totalScore: Int,
     val rank: Int,
 )
+
+/**
+ * DTO for a single member of a group.
+ */
+@Serializable
+data class GroupMemberDto(
+    val userId: String,
+    val displayName: String,
+    val role: Int,
+    val joinedAt: String,
+)
+
+/**
+ * DTO for a group detail including members.
+ */
+@Serializable
+data class GroupDetailDto(
+    val id: String,
+    val name: String,
+    val description: String? = null,
+    val imageUrl: String? = null,
+    val createdById: String,
+    val createdAt: String,
+    val memberCount: Int,
+    val accessType: Int,
+    val isPasswordProtected: Boolean,
+    val members: List<GroupMemberDto>,
+)
+
+/**
+ * Request body to change group visibility.
+ */
+@Serializable
+data class ChangeGroupVisibilityRequest(
+    val accessType: Int,
+    val password: String? = null,
+)

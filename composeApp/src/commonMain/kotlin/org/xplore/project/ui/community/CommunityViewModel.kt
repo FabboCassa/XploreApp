@@ -116,6 +116,8 @@ class CommunityViewModel(
                 closeCreateDialog()
                 loadData()
             } catch (e: Exception) {
+                println("CommunityVM Create Error: ${e.message}")
+                e.printStackTrace()
                 _uiState.update { it.copy(errorMessage = e.message) }
             }
         }
@@ -128,6 +130,8 @@ class CommunityViewModel(
                 closeJoinDialog()
                 loadData()
             } catch (e: Exception) {
+                println("CommunityVM Join Error: ${e.message}")
+                e.printStackTrace()
                 _uiState.update { it.copy(errorMessage = e.message) }
             }
         }
@@ -139,6 +143,8 @@ class CommunityViewModel(
                 communityRepository.leaveGroup(groupId)
                 loadData()
             } catch (e: Exception) {
+                println("CommunityVM Leave Error: ${e.message}")
+                e.printStackTrace()
                 _uiState.update { it.copy(errorMessage = e.message) }
             }
         }

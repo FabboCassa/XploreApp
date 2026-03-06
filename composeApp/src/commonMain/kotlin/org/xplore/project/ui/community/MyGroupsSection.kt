@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -47,6 +48,7 @@ fun MyGroupsSection(
     onCreateGroup: () -> Unit,
     onJoinGroup: () -> Unit,
     onLeaveGroup: (String) -> Unit,
+    onGroupClick: (String) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -123,6 +125,7 @@ fun MyGroupsSection(
                         group = group,
                         actionLabel = stringResource(Res.string.community_leave),
                         onAction = { onLeaveGroup(group.id) },
+                        onClick = { onGroupClick(group.id) }
                     )
                 }
             }
@@ -133,14 +136,17 @@ fun MyGroupsSection(
 /**
  * Reusable card for a single group.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupCard(
     group: Group,
     actionLabel: String,
     onAction: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

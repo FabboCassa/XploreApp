@@ -19,5 +19,8 @@ interface CommunityRepository {
     ): Group
     suspend fun joinGroup(groupId: String, password: String? = null)
     suspend fun leaveGroup(groupId: String)
+    suspend fun getGroupDetail(groupId: String): org.xplore.project.domain.model.GroupDetail
+    suspend fun deleteGroup(groupId: String)
+    suspend fun changeGroupVisibility(groupId: String, accessType: Int, password: String?)
     suspend fun getLeaderboard(top: Int = 50): List<LeaderboardEntry>
 }

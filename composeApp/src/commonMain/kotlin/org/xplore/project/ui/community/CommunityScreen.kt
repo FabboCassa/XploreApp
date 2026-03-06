@@ -28,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun CommunityScreen(
     viewModel: CommunityViewModel = koinViewModel(),
+    onNavigateToGroupDetail: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -58,6 +59,7 @@ fun CommunityScreen(
             onCreateGroup = viewModel::openCreateDialog,
             onJoinGroup = viewModel::openJoinDialog,
             onLeaveGroup = viewModel::leaveGroup,
+            onGroupClick = onNavigateToGroupDetail,
         )
 
         // ── Leaderboard ──

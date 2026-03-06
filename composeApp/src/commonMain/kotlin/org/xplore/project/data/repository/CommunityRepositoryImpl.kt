@@ -3,9 +3,13 @@ package org.xplore.project.data.repository
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.remote.CommunityRemoteDataSource
 import org.xplore.project.data.remote.dto.CreateGroupRequest
+import org.xplore.project.data.remote.dto.GroupDetailDto
 import org.xplore.project.data.remote.dto.GroupDto
 import org.xplore.project.domain.model.Group
 import org.xplore.project.domain.model.GroupAccessType
+import org.xplore.project.domain.model.GroupDetail
+import org.xplore.project.domain.model.GroupMember
+import org.xplore.project.domain.model.GroupRole
 import org.xplore.project.domain.model.LeaderboardEntry
 import org.xplore.project.domain.repository.CommunityRepository
 
@@ -65,6 +69,21 @@ class CommunityRepositoryImpl(
             )
         }
 
+    override suspend fun getGroupDetail(groupId: String): GroupDetail {
+        val token = requireToken()
+        return remoteDataSource.getGroupDetail(groupId, token).toDomain()
+    }
+
+    override suspend fun deleteGroup(groupId: String) {
+        val token = requireToken()
+        remoteDataSource.deleteGroup(groupId, token)
+    }
+
+    override suspend fun changeGroupVisibility(groupId: String, accessType: Int, password: String?) {
+        val token = requireToken()
+        remoteDataSource.changeGroupVisibility(groupId, accessType, password, token)
+    }
+
     private fun requireToken(): String =
         tokenManager.accessToken ?: throw IllegalStateException("Not authenticated")
 
@@ -78,5 +97,25 @@ class CommunityRepositoryImpl(
         memberCount = memberCount,
         accessType = GroupAccessType.fromValue(accessType),
         isPasswordProtected = isPasswordProtected,
+    )
+
+    private fun GroupDetailDto.toDomain() = GroupDetail(
+        id = id,
+        name = name,
+        description = description,
+        imageUrl = imageUrl,
+        createdById = createdById,
+        createdAt = createdAt,
+        memberCount = memberCount,
+        accessType = GroupAccessType.fromValue(accessType),
+        isPasswordProtected = isPasswordProtected,
+        members = members.map { m ->
+            GroupMember(
+                userId = m.userId,
+                displayName = m.displayName,
+                role = GroupRole.fromValue(m.role),
+                joinedAt = m.joinedAt
+            )
+        }
     )
 }

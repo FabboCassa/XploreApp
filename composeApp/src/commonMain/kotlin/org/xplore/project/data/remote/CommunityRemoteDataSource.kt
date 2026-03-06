@@ -2,16 +2,20 @@ package org.xplore.project.data.remote
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import org.xplore.project.data.remote.dto.ChangeGroupVisibilityRequest
 import org.xplore.project.data.remote.dto.CreateGroupRequest
+import org.xplore.project.data.remote.dto.GroupDetailDto
 import org.xplore.project.data.remote.dto.GroupDto
 import org.xplore.project.data.remote.dto.JoinGroupRequest
 import org.xplore.project.data.remote.dto.LeaderboardEntryDto
@@ -102,5 +106,38 @@ class CommunityRemoteDataSource(
             throw Exception("HTTP Error ${response.status.value}")
         }
         return response.body()
+    }
+
+    /** Fetch complete details of a specific group by ID. */
+    suspend fun getGroupDetail(groupId: String, token: String): GroupDetailDto {
+        val response = httpClient.get("$baseUrl/api/community/groups/$groupId/detail") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
+    }
+
+    /** Delete a group (Only Admin). */
+    suspend fun deleteGroup(groupId: String, token: String) {
+        val response = httpClient.delete("$baseUrl/api/community/groups/$groupId") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+    }
+
+    /** Change group visibility (Only Admin). */
+    suspend fun changeGroupVisibility(groupId: String, accessType: Int, password: String?, token: String) {
+        val response = httpClient.put("$baseUrl/api/community/groups/$groupId/visibility") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(ChangeGroupVisibilityRequest(accessType, password))
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
     }
 }

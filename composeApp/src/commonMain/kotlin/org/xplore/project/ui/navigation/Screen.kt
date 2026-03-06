@@ -40,3 +40,6 @@ data object ProfileRoute       // Tab 2: User Profile
 
 @Serializable
 data class PoiDetailRoute(val poiId: String)  // POI Detail Screen
+
+@Serializable
+data class GroupDetailRoute(val groupId: String) // Group Detail Screen

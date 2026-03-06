@@ -13,6 +13,7 @@ import org.xplore.project.ui.auth.RegisterScreen
 import org.xplore.project.ui.auth.WelcomeScreen
 import org.xplore.project.ui.home.HomeScreen
 import org.xplore.project.ui.poi.PoiDetailScreen
+import org.xplore.project.ui.community.detail.GroupDetailScreen
 
 /**
  * Root navigation host for the Xplore application.
@@ -94,6 +95,9 @@ fun XploreNavHost(
                 onNavigateToPoiDetail = { poiId ->
                     navController.navigate(PoiDetailRoute(poiId))
                 },
+                onNavigateToGroupDetail = { groupId ->
+                    navController.navigate(GroupDetailRoute(groupId))
+                },
             )
         }
 
@@ -104,6 +108,15 @@ fun XploreNavHost(
                 poiId = route.poiId,
                 onBack = { navController.popBackStack() },
                 onNavigateToLogin = { navController.navigate(LoginRoute) }
+            )
+        }
+
+        // ── Group Detail ──────────────────────────────────────
+        composable<GroupDetailRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<GroupDetailRoute>()
+            GroupDetailScreen(
+                groupId = route.groupId,
+                onBack = { navController.popBackStack() }
             )
         }
     }

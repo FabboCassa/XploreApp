@@ -30,6 +30,7 @@ import org.xplore.project.ui.profile.ProfileScreen
 fun HomeScreen(
     onLogout: () -> Unit,
     onNavigateToPoiDetail: (String) -> Unit = {},
+    onNavigateToGroupDetail: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -78,7 +79,9 @@ fun HomeScreen(
                     viewModel = viewModel,
                     onDetailClick = onNavigateToPoiDetail,
                 )
-                1 -> CommunityScreen()
+                1 -> CommunityScreen(
+                    onNavigateToGroupDetail = onNavigateToGroupDetail,
+                )
                 2 -> ProfileScreen(
                     onLogout = {
                         viewModel.logout()
