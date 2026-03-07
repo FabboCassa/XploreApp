@@ -23,4 +23,26 @@ interface CommunityRepository {
     suspend fun deleteGroup(groupId: String)
     suspend fun changeGroupVisibility(groupId: String, accessType: Int, password: String?)
     suspend fun getLeaderboard(top: Int = 50): List<LeaderboardEntry>
+    
+    // Competitions & Visits
+    suspend fun visitPlace(placeId: String)
+    suspend fun createCompetition(
+        groupId: String,
+        name: String,
+        type: Int,
+        startDate: String?,
+        endDate: String?,
+        rules: List<org.xplore.project.data.remote.dto.CompetitionRuleRequest>
+    ): org.xplore.project.domain.model.Competition
+    suspend fun updateCompetition(
+        groupId: String,
+        compId: String,
+        name: String,
+        type: Int,
+        startDate: String?,
+        endDate: String?,
+        rules: List<org.xplore.project.data.remote.dto.CompetitionRuleRequest>
+    )
+    suspend fun getCompetitions(groupId: String): List<org.xplore.project.domain.model.Competition>
+    suspend fun getCompetitionLeaderboard(groupId: String, compId: String): List<org.xplore.project.domain.model.CompetitionLeaderboardEntry>
 }

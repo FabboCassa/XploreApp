@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.xplore.project.data.remote.dto.CompetitionRuleRequest
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.CommunityRepository
 
@@ -33,13 +34,22 @@ class GroupDetailViewModel(
 
             try {
                 val detail = communityRepository.getGroupDetail(groupId)
+                val competitions = communityRepository.getCompetitions(groupId)
+                
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
                         groupDetail = detail,
-                        currentUserId = userId
+                        currentUserId = userId,
+                        competitions = competitions
                     )
                 }
+                
+                // If there's an active competition, auto-select the first one
+                competitions.firstOrNull { it.isActive }?.id?.let { activeId ->
+                    selectCompetition(activeId)
+                }
+                
             } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
@@ -49,6 +59,51 @@ class GroupDetailViewModel(
                 }
             }
         }
+    }
+
+    fun selectCompetition(compId: String) {
+        val groupId = currentGroupId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(selectedCompetitionId = compId, activeCompetitionLeaderboard = null) }
+            try {
+                val leaderboard = communityRepository.getCompetitionLeaderboard(groupId, compId)
+                _uiState.update { it.copy(activeCompetitionLeaderboard = leaderboard) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message) }
+            }
+        }
+    }
+
+    fun createCompetition(
+        name: String,
+        type: Int,
+        startDate: String?,
+        endDate: String?,
+        rules: List<CompetitionRuleRequest>,
+        onSuccess: () -> Unit
+    ) {
+        val groupId = currentGroupId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                communityRepository.createCompetition(groupId, name, type, startDate, endDate, rules)
+                closeCreateCompetitionDialog()
+                loadGroup(groupId) // Reload to get new competitions
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.update { 
+                    it.copy(isLoading = false, errorMessage = e.message) 
+                }
+            }
+        }
+    }
+
+    fun openCreateCompetitionDialog() {
+        _uiState.update { it.copy(isCreateCompetitionDialogOpen = true) }
+    }
+
+    fun closeCreateCompetitionDialog() {
+        _uiState.update { it.copy(isCreateCompetitionDialogOpen = false) }
     }
 
     fun leaveGroup(onSuccess: () -> Unit) {

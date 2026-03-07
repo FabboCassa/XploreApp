@@ -18,7 +18,11 @@ import org.xplore.project.data.remote.dto.CreateGroupRequest
 import org.xplore.project.data.remote.dto.GroupDetailDto
 import org.xplore.project.data.remote.dto.GroupDto
 import org.xplore.project.data.remote.dto.JoinGroupRequest
+import org.xplore.project.data.remote.dto.CompetitionDto
+import org.xplore.project.data.remote.dto.CompetitionLeaderboardEntryDto
+import org.xplore.project.data.remote.dto.CreateCompetitionRequest
 import org.xplore.project.data.remote.dto.LeaderboardEntryDto
+import org.xplore.project.data.remote.dto.VisitPlaceRequest
 
 /**
  * Remote data source for the Community API endpoints.
@@ -139,5 +143,64 @@ class CommunityRemoteDataSource(
         if (!response.status.isSuccess()) {
             throw Exception("HTTP Error ${response.status.value}")
         }
+    }
+
+    /** Record a place as visited. */
+    suspend fun visitPlace(placeId: String, token: String) {
+        val response = httpClient.post("$baseUrl/api/community/visits") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(VisitPlaceRequest(placeId))
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+    }
+
+    /** Create a competition in a group. */
+    suspend fun createCompetition(groupId: String, request: CreateCompetitionRequest, token: String): CompetitionDto {
+        val response = httpClient.post("$baseUrl/api/community/groups/$groupId/competitions") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
+    }
+
+    /** Update an existing competition. */
+    suspend fun updateCompetition(groupId: String, compId: String, request: CreateCompetitionRequest, token: String) {
+        val response = httpClient.put("$baseUrl/api/community/groups/$groupId/competitions/$compId") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+    }
+
+    /** Fetch all competitions for a group. */
+    suspend fun getCompetitions(groupId: String, token: String): List<CompetitionDto> {
+        val response = httpClient.get("$baseUrl/api/community/groups/$groupId/competitions") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
+    }
+
+    /** Fetch leaderboard for a specific competition. */
+    suspend fun getCompetitionLeaderboard(groupId: String, compId: String, token: String): List<CompetitionLeaderboardEntryDto> {
+        val response = httpClient.get("$baseUrl/api/community/groups/$groupId/competitions/$compId/leaderboard") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
     }
 }

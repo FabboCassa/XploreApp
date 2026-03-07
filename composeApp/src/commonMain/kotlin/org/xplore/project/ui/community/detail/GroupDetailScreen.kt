@@ -105,13 +105,24 @@ fun GroupDetailScreen(
                         )
                     }
 
-                    Text(
-                        text = stringResource(Res.string.community_members_count, detail.memberCount),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                    var selectedTabIndex by remember { mutableStateOf(0) }
+                    val tabs = listOf(
+                        stringResource(Res.string.competition_tab_members) to detail.memberCount.toString(),
+                        stringResource(Res.string.competition_tab_competitions) to uiState.competitions.size.toString()
                     )
 
-                    LazyColumn(
+                    TabRow(selectedTabIndex = selectedTabIndex) {
+                        tabs.forEachIndexed { index, (title, subtitle) ->
+                            Tab(
+                                selected = selectedTabIndex == index,
+                                onClick = { selectedTabIndex = index },
+                                text = { Text("$title ($subtitle)") }
+                            )
+                        }
+                    }
+
+                    if (selectedTabIndex == 0) {
+                        LazyColumn(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
@@ -150,6 +161,101 @@ fun GroupDetailScreen(
                             )
                         }
                     }
+                    } else {
+                        // Competitions Tab
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            if (isAdmin) {
+                                Button(
+                                    onClick = viewModel::openCreateCompetitionDialog,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(Res.string.competition_btn_create))
+                                }
+                            }
+
+                            if (uiState.competitions.isEmpty()) {
+                                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                                    Text(stringResource(Res.string.competition_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            } else {
+                                // Competitions List & Leaderboard
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxWidth().weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    item {
+                                        Text(stringResource(Res.string.competition_tab_competitions), style = MaterialTheme.typography.titleMedium)
+                                    }
+                                    
+                                    items(uiState.competitions) { comp ->
+                                        val isSelected = comp.id == uiState.selectedCompetitionId
+                                        Card(
+                                            onClick = { viewModel.selectCompetition(comp.id) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                            )
+                                        ) {
+                                            Column(modifier = Modifier.padding(16.dp)) {
+                                                Text(comp.name, fontWeight = FontWeight.Bold)
+                                                if (!comp.startDate.isNullOrBlank()) {
+                                                    Text("Inizio: ${comp.startDate}", style = MaterialTheme.typography.bodySmall)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    item {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Text(stringResource(Res.string.competition_leaderboard_title), style = MaterialTheme.typography.titleMedium)
+                                    }
+
+                                    if (uiState.selectedCompetitionId == null) {
+                                        item {
+                                            Text(stringResource(Res.string.competition_no_leaderboard), style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                    } else {
+                                        val leaderboard = uiState.activeCompetitionLeaderboard
+                                        if (leaderboard.isNullOrEmpty()) {
+                                            item {
+                                                Text("La classifica è vuota.", style = MaterialTheme.typography.bodyMedium)
+                                            }
+                                        } else {
+                                            items(leaderboard) { entry ->
+                                                ListItem(
+                                                    colors = ListItemDefaults.colors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                                    ),
+                                                    modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+                                                    leadingContent = {
+                                                        Text(
+                                                            text = "#${entry.rank}",
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = MaterialTheme.colorScheme.primary
+                                                        )
+                                                    },
+                                                    headlineContent = {
+                                                        Text(
+                                                            text = entry.displayName ?: "Anonimo",
+                                                            fontWeight = if (entry.userId == uiState.currentUserId) FontWeight.Bold else FontWeight.Normal
+                                                        )
+                                                    },
+                                                    trailingContent = {
+                                                        Text("${entry.points} pts", fontWeight = FontWeight.Bold)
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 
                     Button(
                         onClick = { viewModel.leaveGroup(onSuccess = onBack) },
@@ -161,6 +267,15 @@ fun GroupDetailScreen(
                 }
             }
         }
+    }
+
+    if (uiState.isCreateCompetitionDialogOpen) {
+        CreateCompetitionDialog(
+            onDismiss = viewModel::closeCreateCompetitionDialog,
+            onSave = { name, type, start, end, rules ->
+                viewModel.createCompetition(name, type, start, end, rules, onSuccess = {})
+            }
+        )
     }
 
     // Dialogs

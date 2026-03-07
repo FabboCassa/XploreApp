@@ -171,6 +171,18 @@ class AuthViewModel(
         _uiState.update { it.copy(isLoading = false, errorMessage = null) }
     }
 
+    fun onCancelTwoFactor() {
+        _uiState.update { 
+            it.copy(
+                requiresTwoFactorUserId = null,
+                twoFactorCode = "",
+                errorMessage = null,
+                emailSentMessage = null,
+                isLoading = false
+            )
+        }
+    }
+
     fun resetLoginSuccess() {
         _uiState.update { it.copy(loginSuccess = false) }
     }

@@ -11,6 +11,7 @@ import org.xplore.project.data.local.TokenManager
 import org.xplore.project.domain.model.MapPin
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import org.xplore.project.domain.repository.CommunityRepository
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -21,6 +22,7 @@ import xploreapp.composeapp.generated.resources.*
 class PoiDetailViewModel(
     private val localDataSource: MapPinLocalDataSource,
     private val remoteDataSource: MapPinRemoteDataSource,
+    private val communityRepository: CommunityRepository,
     private val tokenManager: TokenManager,
 ) : ViewModel() {
 
@@ -29,6 +31,9 @@ class PoiDetailViewModel(
 
     private val _ratingStatus = MutableStateFlow<RatingStatus>(RatingStatus.Idle)
     val ratingStatus: StateFlow<RatingStatus> = _ratingStatus.asStateFlow()
+
+    private val _visitStatus = MutableStateFlow<VisitStatus>(VisitStatus.Idle)
+    val visitStatus: StateFlow<VisitStatus> = _visitStatus.asStateFlow()
 
     val isGuest: Boolean
         get() = tokenManager.isGuest
@@ -94,6 +99,37 @@ class PoiDetailViewModel(
     fun resetRatingStatus() {
         _ratingStatus.value = RatingStatus.Idle
     }
+
+    fun markAsVisited(poiId: String) {
+        val token = tokenManager.accessToken
+        if (token == null) {
+            viewModelScope.launch {
+                _visitStatus.value = VisitStatus.Error(getString(Res.string.error_login_required))
+            }
+            return
+        }
+
+        _visitStatus.value = VisitStatus.Loading
+        viewModelScope.launch {
+            try {
+                communityRepository.visitPlace(poiId)
+                _visitStatus.value = VisitStatus.Success
+            } catch (e: Exception) {
+                _visitStatus.value = VisitStatus.Error(e.message ?: getString(Res.string.error_unknown))
+            }
+        }
+    }
+
+    fun resetVisitStatus() {
+        _visitStatus.value = VisitStatus.Idle
+    }
+}
+
+sealed class VisitStatus {
+    object Idle : VisitStatus()
+    object Loading : VisitStatus()
+    object Success : VisitStatus()
+    data class Error(val message: String) : VisitStatus()
 }
 
 sealed class RatingStatus {

@@ -220,4 +220,23 @@
     <string name="poi_rating_close">Chiudi</string>
     <string name="poi_rating_cancel">Annulla</string>
     <string name="poi_rating_send">Invia</string>
+
+    <!-- Competitions -->
+    <string name="competition_tab_members">Membri</string>
+    <string name="competition_tab_competitions">Competizioni</string>
+    <string name="competition_empty">Nessuna competizione attiva</string>
+    <string name="competition_btn_create">Crea Competizione</string>
+    <string name="competition_create_title">Nuova Competizione</string>
+    <string name="competition_name_label">Nome Competizione</string>
+    <string name="competition_type_label">Tipo di Competizione</string>
+    <string name="competition_type_most_places">Chi visita più luoghi</string>
+    <string name="competition_type_fastest">Chi finisce prima (Lista)</string>
+    <string name="competition_type_scavenger">Caccia al tesoro</string>
+    <string name="competition_start_date">Data d\'inizio (Opzionale, es. 2025-01-01)</string>
+    <string name="competition_end_date">Data di fine (Opzionale, es. 2025-12-31)</string>
+    <string name="competition_points_per_place">Punti per luogo visitato</string>
+    <string name="competition_leaderboard_title">Classifica Competizione</string>
+    <string name="competition_no_leaderboard">Seleziona una competizione per vedere la classifica</string>
+    <string name="competition_mark_visited">Segna come visitato</string>
+    <string name="competition_visit_success">Luogo visitato con successo!</string>
 </resources>

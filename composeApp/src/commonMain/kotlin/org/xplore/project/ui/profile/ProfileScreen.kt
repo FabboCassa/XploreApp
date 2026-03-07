@@ -137,7 +137,7 @@ fun ProfileScreen(
     // ── 2FA Setup Dialog (Authenticator or Email) ──
     if (uiState.setupTwoFactorKey != null) {
         AlertDialog(
-            onDismissRequest = viewModel::clearError,
+            onDismissRequest = viewModel::onCancelTwoFactorSetup,
             title = { Text(stringResource(Res.string.profile_2fa_setup_title)) },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {

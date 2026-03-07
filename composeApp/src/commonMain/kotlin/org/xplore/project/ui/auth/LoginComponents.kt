@@ -152,7 +152,7 @@ fun TwoFactorDialog(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     AlertDialog(
-        onDismissRequest = { viewModel.clearError() }, // Also clears 2FA state if needed
+        onDismissRequest = viewModel::onCancelTwoFactor,
         title = { Text(text = stringResource(Res.string.two_factor_title)) },
         text = {
             Column {
@@ -214,7 +214,7 @@ fun TwoFactorDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = viewModel::clearError) {
+            TextButton(onClick = viewModel::onCancelTwoFactor) {
                 Text(stringResource(Res.string.two_factor_btn_cancel))
             }
         }

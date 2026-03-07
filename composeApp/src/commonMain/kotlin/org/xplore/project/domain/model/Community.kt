@@ -80,3 +80,66 @@ data class GroupDetail(
     val isPasswordProtected: Boolean,
     val members: List<GroupMember>,
 )
+
+/**
+ * Types of competitions available within a group.
+ */
+enum class CompetitionType(val value: Int) {
+    MostPlaces(0),
+    FastestToPreset(1),
+    ScavengerHunt(2);
+
+    companion object {
+        fun fromValue(value: Int): CompetitionType =
+            entries.firstOrNull { it.value == value } ?: MostPlaces
+    }
+}
+
+/**
+ * Actions that award points in a competition.
+ */
+enum class CompetitionActionType(val value: Int) {
+    VisitPlace(0),
+    AnswerQuestion(1),
+    FinishFirst(2);
+
+    companion object {
+        fun fromValue(value: Int): CompetitionActionType =
+            entries.firstOrNull { it.value == value } ?: VisitPlace
+    }
+}
+
+/**
+ * Domain model for a competition rule.
+ */
+data class CompetitionRule(
+    val id: String,
+    val actionType: CompetitionActionType,
+    val pointsAwarded: Int,
+    val targetPlaceId: String? = null,
+)
+
+/**
+ * Domain model for a competition.
+ */
+data class Competition(
+    val id: String,
+    val groupId: String,
+    val name: String,
+    val type: CompetitionType,
+    val startDate: String?,
+    val endDate: String?,
+    val isActive: Boolean,
+    val createdAt: String,
+    val rules: List<CompetitionRule>
+)
+
+/**
+ * Domain model for a single entry in a competition leaderboard.
+ */
+data class CompetitionLeaderboardEntry(
+    val userId: String,
+    val displayName: String?,
+    val points: Int,
+    val rank: Int,
+)

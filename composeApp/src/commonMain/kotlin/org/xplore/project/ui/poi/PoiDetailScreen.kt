@@ -61,8 +61,9 @@ import xploreapp.composeapp.generated.resources.poi_rating_count_format
 import xploreapp.composeapp.generated.resources.poi_rating_count_format_single
 import xploreapp.composeapp.generated.resources.poi_no_rating
 import xploreapp.composeapp.generated.resources.poi_add_stop
-import xploreapp.composeapp.generated.resources.poi_rating_login_prompt
+import xploreapp.composeapp.generated.resources.competition_mark_visited
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +75,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import xploreapp.composeapp.generated.resources.poi_rating_login_prompt
 
 /**
  * Full-screen POI detail page.
@@ -139,6 +141,8 @@ fun PoiDetailScreen(
             var showRatingDialog by remember { mutableStateOf(false) }
             val ratingStatus by viewModel.ratingStatus.collectAsState()
 
+            val visitStatus by viewModel.visitStatus.collectAsState()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -158,6 +162,14 @@ fun PoiDetailScreen(
                             showRatingDialog = true 
                         }
                     },
+                    onMarkVisitedClick = {
+                        if (viewModel.isGuest) {
+                            onNavigateToLogin()
+                        } else {
+                            viewModel.markAsVisited(currentPin.id)
+                        }
+                    },
+                    visitStatus = visitStatus,
                     isGuest = viewModel.isGuest,
                 )
             }
@@ -195,6 +207,8 @@ private fun PoiDetailBody(
     notAvailable: String,
     uriHandler: androidx.compose.ui.platform.UriHandler,
     onRateClick: () -> Unit,
+    onMarkVisitedClick: () -> Unit,
+    visitStatus: VisitStatus,
     isGuest: Boolean,
 ) {
     Column(modifier = Modifier.padding(20.dp)) {
@@ -284,10 +298,11 @@ private fun PoiDetailBody(
                 }
             }
 
-            // Add Stop Button
+            // Mark as Visited Button
             Button(
-                onClick = { /* TODO: Implement add stop */ },
+                onClick = onMarkVisitedClick,
                 shape = RoundedCornerShape(8.dp),
+                enabled = visitStatus !is VisitStatus.Loading && visitStatus !is VisitStatus.Success,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4A90D9),
                     contentColor = Color.White
@@ -295,17 +310,31 @@ private fun PoiDetailBody(
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
                 modifier = Modifier.height(36.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = stringResource(Res.string.poi_add_stop),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                if (visitStatus is VisitStatus.Loading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp), 
+                        color = Color.White, 
+                        strokeWidth = 2.dp
+                    )
+                } else if (visitStatus is VisitStatus.Success) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Visitato",
+                        modifier = Modifier.size(16.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.competition_mark_visited),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
 

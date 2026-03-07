@@ -88,3 +88,71 @@ data class ChangeGroupVisibilityRequest(
     val accessType: Int,
     val password: String? = null,
 )
+
+/**
+ * Request body to record a visited place.
+ */
+@Serializable
+data class VisitPlaceRequest(
+    val placeId: String,
+)
+
+/**
+ * Request body to create a new competition.
+ */
+@Serializable
+data class CreateCompetitionRequest(
+    val name: String,
+    val type: Int,
+    val startDate: String? = null,
+    val endDate: String? = null,
+    val rules: List<CompetitionRuleRequest>
+)
+
+/**
+ * Request body to create a new competition rule.
+ */
+@Serializable
+data class CompetitionRuleRequest(
+    val actionType: Int,
+    val pointsAwarded: Int = 1,
+    val targetPlaceId: String? = null,
+)
+
+/**
+ * DTO for a competition returned by the backend.
+ */
+@Serializable
+data class CompetitionDto(
+    val id: String,
+    val groupId: String,
+    val name: String,
+    val type: Int,
+    val startDate: String? = null,
+    val endDate: String? = null,
+    val isActive: Boolean,
+    val createdAt: String,
+    val rules: List<CompetitionRuleDto>
+)
+
+/**
+ * DTO for a competition rule returned by the backend.
+ */
+@Serializable
+data class CompetitionRuleDto(
+    val id: String,
+    val actionType: Int,
+    val pointsAwarded: Int,
+    val targetPlaceId: String? = null,
+)
+
+/**
+ * DTO for a single entry in a competition leaderboard.
+ */
+@Serializable
+data class CompetitionLeaderboardEntryDto(
+    val userId: String,
+    val displayName: String? = null,
+    val points: Int,
+    val rank: Int,
+)
