@@ -106,7 +106,7 @@ fun PoiSelectionMapScreen(
                         .padding(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = "${uiState.selectedPoiIds.size} luoghi selezionati",
+                        text = stringResource(Res.string.competition_selected_places_count, uiState.selectedPoiIds.size),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
                     )

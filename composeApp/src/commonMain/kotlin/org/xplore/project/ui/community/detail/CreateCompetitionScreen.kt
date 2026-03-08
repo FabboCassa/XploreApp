@@ -138,7 +138,7 @@ fun CreateCompetitionScreen(
                 
                 if (uiState.selectedPoiIds.isNotEmpty()) {
                     Text(
-                        text = "Luoghi selezionati: ${uiState.selectedPoiIds.size}",
+                        text = stringResource(Res.string.competition_create_selected_places, uiState.selectedPoiIds.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

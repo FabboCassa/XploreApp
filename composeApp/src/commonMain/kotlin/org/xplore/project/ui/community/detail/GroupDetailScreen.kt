@@ -124,156 +124,23 @@ fun GroupDetailScreen(
                     }
 
                     if (selectedTabIndex == 0) {
-                        LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(detail.members) { member ->
-                            ListItem(
-                                colors = ListItemDefaults.colors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                ),
-                                modifier = Modifier.clip(RoundedCornerShape(8.dp)),
-                                leadingContent = {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    }
-                                },
-                                headlineContent = {
-                                    Text(
-                                        text = member.displayName,
-                                        fontWeight = if (member.userId == uiState.currentUserId) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                },
-                                trailingContent = {
-                                    if (member.role == GroupRole.Admin) {
-                                        Badge(containerColor = MaterialTheme.colorScheme.tertiary) {
-                                            Text(stringResource(Res.string.group_detail_admin))
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
+                        MembersTabContent(
+                            members = detail.members,
+                            currentUserId = uiState.currentUserId,
+                            modifier = Modifier.weight(1f)
+                        )
                     } else {
-                        // Competitions Tab
-                        Column(
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            if (isAdmin) {
-                                Button(
-                                    onClick = { onNavigateToCreateCompetition(groupId) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(stringResource(Res.string.competition_btn_create))
-                                }
-                            }
-
-                            if (uiState.competitions.isEmpty()) {
-                                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                                    Text(stringResource(Res.string.competition_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            } else {
-                                // Competitions List & Leaderboard
-                                LazyColumn(
-                                    modifier = Modifier.fillMaxWidth().weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    item {
-                                        Text(stringResource(Res.string.competition_tab_competitions), style = MaterialTheme.typography.titleMedium)
-                                    }
-                                    
-                                    items(uiState.competitions) { comp ->
-                                        val isSelected = comp.id == uiState.selectedCompetitionId
-                                        Card(
-                                            onClick = { viewModel.selectCompetition(comp.id) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                            )
-                                        ) {
-                                            Column(modifier = Modifier.padding(16.dp)) {
-                                                Text(comp.name, fontWeight = FontWeight.Bold)
-                                                if (!comp.startDate.isNullOrBlank()) {
-                                                    Text("Inizio: ${comp.startDate}", style = MaterialTheme.typography.bodySmall)
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    item {
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        
-                                        // If a competition is selected, and it's type 1 (list) or 2 (scavenger)
-                                        // we show the "Open Map" button allowing the user to view the POIs
-                                        val selectedComp = uiState.competitions.find { it.id == uiState.selectedCompetitionId }
-                                        if (selectedComp != null && (selectedComp.type.ordinal == 1 || selectedComp.type.ordinal == 2)) {
-                                            Button(
-                                                onClick = { 
-                                                    // Pull out the allowed POI IDs from the rules 
-                                                    val allowedPois = selectedComp.rules.mapNotNull { it.targetPlaceId }
-                                                    onNavigateToCompetitionMap(selectedComp.id, allowedPois)
-                                                },
-                                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                                            ) {
-                                                Text(stringResource(Res.string.competition_map_open))
-                                            }
-                                        }
-
-                                        Text(stringResource(Res.string.competition_leaderboard_title), style = MaterialTheme.typography.titleMedium)
-                                    }
-
-                                    if (uiState.selectedCompetitionId == null) {
-                                        item {
-                                            Text(stringResource(Res.string.competition_no_leaderboard), style = MaterialTheme.typography.bodyMedium)
-                                        }
-                                    } else {
-                                        val leaderboard = uiState.activeCompetitionLeaderboard
-                                        if (leaderboard.isNullOrEmpty()) {
-                                            item {
-                                                Text("La classifica è vuota.", style = MaterialTheme.typography.bodyMedium)
-                                            }
-                                        } else {
-                                            items(leaderboard) { entry ->
-                                                ListItem(
-                                                    colors = ListItemDefaults.colors(
-                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                                    ),
-                                                    modifier = Modifier.clip(RoundedCornerShape(8.dp)),
-                                                    leadingContent = {
-                                                        Text(
-                                                            text = "#${entry.rank}",
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.primary
-                                                        )
-                                                    },
-                                                    headlineContent = {
-                                                        Text(
-                                                            text = entry.displayName ?: "Anonimo",
-                                                            fontWeight = if (entry.userId == uiState.currentUserId) FontWeight.Bold else FontWeight.Normal
-                                                        )
-                                                    },
-                                                    trailingContent = {
-                                                        Text("${entry.points} pts", fontWeight = FontWeight.Bold)
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        CompetitionsTabContent(
+                            competitions = uiState.competitions,
+                            isAdmin = isAdmin,
+                            selectedCompetitionId = uiState.selectedCompetitionId,
+                            activeLeaderboard = uiState.activeCompetitionLeaderboard,
+                            currentUserId = uiState.currentUserId,
+                            onNavigateToCreateCompetition = { onNavigateToCreateCompetition(groupId) },
+                            onSelectCompetition = viewModel::selectCompetition,
+                            onNavigateToCompetitionMap = onNavigateToCompetitionMap,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
 
 
