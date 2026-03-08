@@ -57,11 +57,25 @@ fun XploreMap(
     userLatitude: Double? = null,
     userLongitude: Double? = null,
     selectedPin: MapPin? = null,
+    selectedPinIds: Set<String> = emptySet(),
+    initialCameraPosition: CameraPosition? = null,
     onDismissCallout: () -> Unit = {},
     onDetailClick: (String) -> Unit = {},
+    onCameraMove: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
 ) {
     val styleUrl = "https://tiles.openfreemap.org/styles/liberty"
     val cameraState = rememberCameraState()
+    
+    var hasInitializedCamera by remember { mutableStateOf(false) }
+
+    // ── Set initial camera position if provided ──
+    LaunchedEffect(initialCameraPosition) {
+        if (initialCameraPosition != null && !hasInitializedCamera) {
+            cameraState.position = initialCameraPosition
+            hasInitializedCamera = true
+        }
+    }
+
     var hasCenteredOnUser by remember { mutableStateOf(false) }
 
     // ── Animate camera to user location on first fix ──
@@ -84,6 +98,15 @@ fun XploreMap(
                 .drop(1)
                 .collect { onDismissCallout() }
         }
+    }
+
+    // ── Track camera movement to save last position ──
+    LaunchedEffect(cameraState) {
+        snapshotFlow { cameraState.position }
+            .drop(1)
+            .collect { position ->
+                onCameraMove(position.target.latitude, position.target.longitude)
+            }
     }
 
     // ── ID-based click resolution ──
@@ -138,6 +161,22 @@ fun XploreMap(
                 strokeWidth = const(2.5.dp),
                 visible = userLatitude != null && userLongitude != null,
             )
+
+            // ── Selected pins highlight ──
+            if (selectedPinIds.isNotEmpty()) {
+                val selectedPinsList = remember(pins, selectedPinIds) { pins.filter { it.id in selectedPinIds } }
+                val selectedJson = remember(selectedPinsList) { pinsToGeoJsonString(selectedPinsList) }
+                val selectedSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(selectedJson))
+                
+                CircleLayer(
+                    id = "poi-selected-highlight",
+                    source = selectedSource,
+                    radius = const(14.dp),
+                    color = const(Color(0xFFFFEB3B)), // Yellow highlight
+                    strokeColor = const(Color.Black),
+                    strokeWidth = const(2.dp)
+                )
+            }
 
             // ── Per-type POI layers ──
             for ((type, json) in jsonByType) {

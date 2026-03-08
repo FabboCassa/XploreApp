@@ -28,6 +28,8 @@ import xploreapp.composeapp.generated.resources.*
 fun GroupDetailScreen(
     groupId: String,
     onBack: () -> Unit,
+    onNavigateToCreateCompetition: (String) -> Unit = {},
+    onNavigateToCompetitionMap: (String, List<String>) -> Unit = { _, _ -> },
     viewModel: GroupDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -169,7 +171,7 @@ fun GroupDetailScreen(
                         ) {
                             if (isAdmin) {
                                 Button(
-                                    onClick = viewModel::openCreateCompetitionDialog,
+                                    onClick = { onNavigateToCreateCompetition(groupId) },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(stringResource(Res.string.competition_btn_create))
@@ -210,6 +212,24 @@ fun GroupDetailScreen(
 
                                     item {
                                         Spacer(modifier = Modifier.height(16.dp))
+                                        
+                                        // If a competition is selected, and it's type 1 (list) or 2 (scavenger)
+                                        // we show the "Open Map" button allowing the user to view the POIs
+                                        val selectedComp = uiState.competitions.find { it.id == uiState.selectedCompetitionId }
+                                        if (selectedComp != null && (selectedComp.type.ordinal == 1 || selectedComp.type.ordinal == 2)) {
+                                            Button(
+                                                onClick = { 
+                                                    // Pull out the allowed POI IDs from the rules 
+                                                    val allowedPois = selectedComp.rules.mapNotNull { it.targetPlaceId }
+                                                    onNavigateToCompetitionMap(selectedComp.id, allowedPois)
+                                                },
+                                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                            ) {
+                                                Text(stringResource(Res.string.competition_map_open))
+                                            }
+                                        }
+
                                         Text(stringResource(Res.string.competition_leaderboard_title), style = MaterialTheme.typography.titleMedium)
                                     }
 

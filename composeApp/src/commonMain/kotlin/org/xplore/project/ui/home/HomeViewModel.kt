@@ -50,15 +50,31 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        // Restore radius from persistent settings
+        // Restore base radius
         val savedRadius = tokenManager.searchRadiusKm
         _uiState.update { it.copy(searchRadiusKm = savedRadius) }
+
+        // Restore last map position if available
+        val lastLat = tokenManager.lastMapLatitude
+        val lastLng = tokenManager.lastMapLongitude
+        if (lastLat != null && lastLng != null) {
+            _uiState.update { it.copy(
+                initialCameraLat = lastLat,
+                initialCameraLng = lastLng
+            ) }
+        }
 
         // Preload radius loading averages from backend
         viewModelScope.launch {
             val averages = metricsDataSource.getLoadingAverages()
             _uiState.update { it.copy(radiusAverages = averages) }
         }
+    }
+
+    // ── Map State ──────────────────────────────────────────────────
+    fun onMapCameraMove(latitude: Double, longitude: Double) {
+        tokenManager.lastMapLatitude = latitude
+        tokenManager.lastMapLongitude = longitude
     }
 
     // ── User Actions ──────────────────────────────────────────────

@@ -43,3 +43,12 @@ data class PoiDetailRoute(val poiId: String)  // POI Detail Screen
 
 @Serializable
 data class GroupDetailRoute(val groupId: String) // Group Detail Screen
+
+@Serializable
+data class CreateCompetitionRoute(val groupId: String) // Create Comp Screen
+
+@Serializable
+data class PoiSelectionMapRoute(val groupId: String) // Select POIs on map
+
+@Serializable
+data class CompetitionMapRoute(val compId: String) // Member specific map

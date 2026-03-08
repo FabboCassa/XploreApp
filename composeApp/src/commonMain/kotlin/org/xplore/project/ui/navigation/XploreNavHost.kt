@@ -10,10 +10,16 @@ import org.koin.compose.koinInject
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.ui.auth.LoginScreen
 import org.xplore.project.ui.auth.RegisterScreen
-import org.xplore.project.ui.auth.WelcomeScreen
 import org.xplore.project.ui.home.HomeScreen
 import org.xplore.project.ui.poi.PoiDetailScreen
+import androidx.compose.runtime.LaunchedEffect
 import org.xplore.project.ui.community.detail.GroupDetailScreen
+import org.xplore.project.ui.auth.WelcomeScreen
+import org.xplore.project.ui.community.detail.CreateCompetitionScreen
+import org.xplore.project.ui.community.detail.PoiSelectionMapScreen
+import org.xplore.project.ui.community.detail.CompetitionMapScreen
+import org.xplore.project.ui.community.detail.CreateCompetitionViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * Root navigation host for the Xplore application.
@@ -116,7 +122,70 @@ fun XploreNavHost(
             val route = backStackEntry.toRoute<GroupDetailRoute>()
             GroupDetailScreen(
                 groupId = route.groupId,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToCreateCompetition = { gId -> navController.navigate(CreateCompetitionRoute(gId)) },
+                onNavigateToCompetitionMap = { compId, allowedPois -> 
+                    // Pass parameters via saved state since Screen.kt might not support list structures directly
+                    navController.currentBackStackEntry?.savedStateHandle?.set("allowed_pois", allowedPois)
+                    navController.navigate(CompetitionMapRoute(compId))
+                }
+            )
+        }
+        
+        // ── Create Competition ────────────────────────────────
+        composable<CreateCompetitionRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<CreateCompetitionRoute>()
+            
+            // Shared ViewModel scoped to this NavBackStackEntry 
+            // so returning from Map Screen preserves form state
+            val viewModel: CreateCompetitionViewModel = koinViewModel()
+            
+            // Listen for result from Map Selection
+            val savedStateHandle = backStackEntry.savedStateHandle
+            val selectedPoisStr = savedStateHandle.get<String>("selected_pois")
+            LaunchedEffect(selectedPoisStr) {
+                if (selectedPoisStr != null) {
+                    val ids = if (selectedPoisStr.isBlank()) emptyList() else selectedPoisStr.split(",")
+                    viewModel.updateSelectedPois(ids)
+                    savedStateHandle.remove<String>("selected_pois")
+                }
+            }
+            
+            CreateCompetitionScreen(
+                groupId = route.groupId,
+                onBack = { navController.popBackStack() },
+                onNavigateToMapSelector = { gId -> 
+                    navController.navigate(PoiSelectionMapRoute(gId)) 
+                },
+                viewModel = viewModel
+            )
+        }
+        
+        // ── POI Selection Map ────────────────────────────────
+        composable<PoiSelectionMapRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<PoiSelectionMapRoute>()
+            PoiSelectionMapScreen(
+                groupId = route.groupId,
+                onBackWithSelection = { selectedIds ->
+                    // Pass selection back to previous screen (CreateCompetition)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_pois", selectedIds.joinToString(","))
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // ── Participant Competition Map ──────────────────────
+        composable<CompetitionMapRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<CompetitionMapRoute>()
+            val allowedPois: List<String> = navController.previousBackStackEntry?.savedStateHandle?.get<List<String>>("allowed_pois") ?: emptyList()
+            
+            CompetitionMapScreen(
+                compId = route.compId,
+                allowedPoiIds = allowedPois,
+                onBack = { navController.popBackStack() },
+                onNavigateToPoiDetail = { poiId -> navController.navigate(PoiDetailRoute(poiId)) }
             )
         }
     }

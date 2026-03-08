@@ -35,16 +35,21 @@ class CommunityViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // Load groups (may fail independently)
             var allGroups = emptyList<org.xplore.project.domain.model.Group>()
             var myGroups = emptyList<org.xplore.project.domain.model.Group>()
+            
             try {
                 allGroups = communityRepository.getAllGroups()
+            } catch (e: Exception) {
+                println("CommunityVM: Failed to load allGroups: ${e.message}")
+            }
+
+            try {
                 if (!tokenManager.isGuest && tokenManager.isLoggedIn) {
                     myGroups = communityRepository.getMyGroups()
                 }
             } catch (e: Exception) {
-                println("CommunityVM: Failed to load groups: ${e.message}")
+                println("CommunityVM: Failed to load myGroups: ${e.message}")
             }
 
             // Load leaderboard independently so it works even when groups fail

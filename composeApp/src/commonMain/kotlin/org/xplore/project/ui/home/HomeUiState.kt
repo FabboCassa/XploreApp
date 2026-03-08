@@ -39,6 +39,8 @@ data class HomeUiState(
     val searchResults: List<MapPin> = emptyList(),
     val searchRadiusKm: Double = 3.0,
     val radiusAverages: Map<Double, Long> = emptyMap(),
+    val initialCameraLat: Double? = null,
+    val initialCameraLng: Double? = null,
 )
 
 /**

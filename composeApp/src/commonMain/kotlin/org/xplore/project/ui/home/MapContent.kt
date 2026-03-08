@@ -24,7 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.runtime.remember
+import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.spatialk.geojson.Position
 import org.xplore.project.ui.components.XploreFilterChips
 import org.xplore.project.ui.components.XploreMap
 import org.xplore.project.ui.components.XploreSearchBar
@@ -39,18 +43,32 @@ import xploreapp.composeapp.generated.resources.search_searching
 fun MapContent(
     uiState: HomeUiState,
     viewModel: HomeViewModel,
-    onDetailClick: (String) -> Unit = {},
+    onDetailClick: (String) -> Unit,
 ) {
+    // ── Build initial camera position if saved ──
+    val initialCamera = remember(uiState.initialCameraLat, uiState.initialCameraLng) {
+        if (uiState.initialCameraLat != null && uiState.initialCameraLng != null) {
+            CameraPosition(
+                target = Position(
+                    longitude = uiState.initialCameraLng,
+                    latitude = uiState.initialCameraLat
+                ),
+                zoom = 14.0
+            )
+        } else null
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         XploreMap(
             pins = uiState.pins,
-            onPinClick = { pin -> viewModel.onPinSelected(pin) },
-            modifier = Modifier.fillMaxSize(),
+            onPinClick = viewModel::onPinSelected,
             userLatitude = uiState.userLatitude,
             userLongitude = uiState.userLongitude,
             selectedPin = uiState.selectedPin,
-            onDismissCallout = { viewModel.onDismissCallout() },
+            initialCameraPosition = initialCamera,
+            onDismissCallout = viewModel::onDismissCallout,
             onDetailClick = onDetailClick,
+            onCameraMove = viewModel::onMapCameraMove,
         )
 
         Column(

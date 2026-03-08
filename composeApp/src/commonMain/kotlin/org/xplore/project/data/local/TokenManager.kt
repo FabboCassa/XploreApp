@@ -60,11 +60,28 @@ class TokenManager {
         get() = settings.getLong(KEY_RADIUS_SET_AT, 0L)
         set(value) = settings.putLong(KEY_RADIUS_SET_AT, value)
 
+    // ── Map State ────────────
+    var lastMapLatitude: Double?
+        get() = if (settings.hasKey(KEY_LAST_MAP_LAT)) settings.getDouble(KEY_LAST_MAP_LAT, 0.0) else null
+        set(value) {
+            if (value != null) settings.putDouble(KEY_LAST_MAP_LAT, value)
+            else settings.remove(KEY_LAST_MAP_LAT)
+        }
+
+    var lastMapLongitude: Double?
+        get() = if (settings.hasKey(KEY_LAST_MAP_LNG)) settings.getDouble(KEY_LAST_MAP_LNG, 0.0) else null
+        set(value) {
+            if (value != null) settings.putDouble(KEY_LAST_MAP_LNG, value)
+            else settings.remove(KEY_LAST_MAP_LNG)
+        }
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "xplore_access_token"
         private const val KEY_REFRESH_TOKEN = "xplore_refresh_token"
         private const val KEY_IS_GUEST = "xplore_is_guest"
         private const val KEY_SEARCH_RADIUS = "xplore_search_radius"
         private const val KEY_RADIUS_SET_AT = "xplore_radius_set_at"
+        private const val KEY_LAST_MAP_LAT = "xplore_last_map_lat"
+        private const val KEY_LAST_MAP_LNG = "xplore_last_map_lng"
     }
 }

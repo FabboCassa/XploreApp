@@ -26,7 +26,10 @@ import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.auth.AuthViewModel
 import org.xplore.project.ui.community.CommunityViewModel
+import org.xplore.project.ui.community.detail.CreateCompetitionViewModel
 import org.xplore.project.ui.community.detail.GroupDetailViewModel
+import org.xplore.project.ui.community.detail.PoiSelectionMapViewModel
+import org.xplore.project.ui.community.detail.CompetitionMapViewModel
 import org.xplore.project.ui.home.HomeViewModel
 import org.xplore.project.ui.poi.PoiDetailViewModel
 import org.xplore.project.ui.profile.ProfileViewModel
@@ -44,9 +47,20 @@ import org.xplore.project.ui.profile.ProfileViewModel
  * at the Composable layer via moko-permissions-compose / moko-geo-compose
  * because they require platform-specific context (applicationContext on Android).
  */
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.client.call.body
+import org.xplore.project.data.remote.dto.TokenResponseDto
+
 val appModule = module {
     // ── Network ──────────────────────────────────────────────
     single {
+        val tm = get<TokenManager>()
         createHttpClient().config {
             install(ContentNegotiation) {
                 json(Json {
@@ -55,6 +69,40 @@ val appModule = module {
                     prettyPrint = false
                     encodeDefaults = true
                 })
+            }
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        BearerTokens(tm.accessToken ?: "", tm.refreshToken ?: "")
+                    }
+                    refreshTokens {
+                        val token = tm.accessToken
+                        val refresh = tm.refreshToken
+                        if (token == null || refresh == null) return@refreshTokens null
+
+                        try {
+                            // Use a separate client to avoid infinite loops
+                            val refreshClient = createHttpClient().config {
+                                install(ContentNegotiation) {
+                                    json(Json { ignoreUnknownKeys = true; isLenient = true; encodeDefaults = true })
+                                }
+                            }
+                            val response = refreshClient.post("https://10.0.2.2:7109/api/auth/refresh") {
+                                contentType(ContentType.Application.Json)
+                                setBody(mapOf("accessToken" to token, "refreshToken" to refresh))
+                            }
+                            if (response.status.isSuccess()) {
+                                val newTokens = response.body<TokenResponseDto>()
+                                tm.saveTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "", tm.isGuest)
+                                BearerTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "")
+                            } else {
+                                null
+                            }
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                }
             }
             install(Logging) {
                 logger = Logger.DEFAULT
@@ -119,4 +167,7 @@ val appModule = module {
     viewModelOf(::PoiDetailViewModel)
     viewModelOf(::CommunityViewModel)
     viewModelOf(::GroupDetailViewModel)
+    viewModelOf(::CreateCompetitionViewModel)
+    viewModelOf(::PoiSelectionMapViewModel)
+    viewModelOf(::CompetitionMapViewModel)
 }

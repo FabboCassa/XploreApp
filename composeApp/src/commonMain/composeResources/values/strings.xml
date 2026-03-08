@@ -229,8 +229,8 @@
     <string name="competition_create_title">Nuova Competizione</string>
     <string name="competition_name_label">Nome Competizione</string>
     <string name="competition_type_label">Tipo di Competizione</string>
-    <string name="competition_type_most_places">Chi visita più luoghi</string>
-    <string name="competition_type_fastest">Chi finisce prima (Lista)</string>
+    <string name="competition_type_most_places">Classica (Chi visita più luoghi)</string>
+    <string name="competition_type_fastest">Lista: finisci prima i luoghi selezionati</string>
     <string name="competition_type_scavenger">Caccia al tesoro</string>
     <string name="competition_start_date">Data d\'inizio (Opzionale, es. 2025-01-01)</string>
     <string name="competition_end_date">Data di fine (Opzionale, es. 2025-12-31)</string>
@@ -239,4 +239,10 @@
     <string name="competition_no_leaderboard">Seleziona una competizione per vedere la classifica</string>
     <string name="competition_mark_visited">Segna come visitato</string>
     <string name="competition_visit_success">Luogo visitato con successo!</string>
+
+    <!-- Competition Map -->
+    <string name="competition_map_select_places">Seleziona Luoghi sulla Mappa</string>
+    <string name="competition_map_save_selection">Salva Selezione (%1$d)</string>
+    <string name="competition_map_search_hint">Cerca luogo da aggiungere...</string>
+    <string name="competition_map_open">Apri Mappa Competizione</string>
 </resources>
