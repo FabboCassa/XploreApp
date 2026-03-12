@@ -62,6 +62,7 @@ data class ProfileUiState(
     val avatarUrl: String? = null,
     val isAvatarDialogOpen: Boolean = false,
     val isAvatarUploading: Boolean = false,
+    val isFullScreenAvatarOpen: Boolean = false,
 
     // Level
     val totalPoints: Int = 0,
@@ -141,6 +142,14 @@ class ProfileViewModel(
 
     fun closeAvatarDialog() {
         _uiState.update { it.copy(isAvatarDialogOpen = false) }
+    }
+
+    fun openFullScreenAvatar() {
+        _uiState.update { it.copy(isFullScreenAvatarOpen = true) }
+    }
+
+    fun closeFullScreenAvatar() {
+        _uiState.update { it.copy(isFullScreenAvatarOpen = false) }
     }
 
     fun uploadAvatar(imageBytes: ByteArray, fileName: String) {

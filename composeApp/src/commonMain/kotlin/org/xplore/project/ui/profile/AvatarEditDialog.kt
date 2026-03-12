@@ -20,9 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import xploreapp.composeapp.generated.resources.*
+import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
 
 @Composable
 fun AvatarEditDialog(
+    avatarUrl: String?,
     hasAvatar: Boolean,
     isUploading: Boolean,
     onPickFromGallery: () -> Unit,
@@ -32,9 +39,13 @@ fun AvatarEditDialog(
 ) {
     AlertDialog(
         onDismissRequest = { if (!isUploading) onDismiss() },
-        title = { Text(stringResource(Res.string.profile_avatar_change)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(Res.string.profile_avatar_change),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
                 if (isUploading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp).padding(vertical = 8.dp),
@@ -43,6 +54,21 @@ fun AvatarEditDialog(
                     Spacer(Modifier.height(8.dp))
                     Text(stringResource(Res.string.profile_avatar_uploading))
                 } else {
+                    // Preview existing avatar if available
+                    if (avatarUrl != null) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = avatarUrl,
+                                contentDescription = "Avatar Preview",
+                                modifier = Modifier.size(80.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
                     // Gallery option
                     OutlinedButton(
                         onClick = onPickFromGallery,

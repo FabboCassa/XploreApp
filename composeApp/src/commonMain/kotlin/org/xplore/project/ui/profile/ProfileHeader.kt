@@ -34,6 +34,7 @@ fun ProfileHeader(
     displayName: String,
     email: String,
     avatarUrl: String?,
+    onAvatarClick: () -> Unit,
     onEditAvatar: () -> Unit,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -50,7 +51,8 @@ fun ProfileHeader(
                                 MaterialTheme.colorScheme.tertiary,
                             )
                         )
-                    ),
+                    )
+                    .clickable(onClick = onAvatarClick),
                 contentAlignment = Alignment.Center,
             ) {
                 if (avatarUrl != null) {

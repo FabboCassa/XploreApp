@@ -7,6 +7,7 @@ import coil3.network.ktor3.KtorNetworkFetcherFactory
 import org.koin.compose.KoinApplication
 import org.xplore.project.di.appModule
 import org.xplore.project.di.platformModule
+import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.navigation.XploreNavHost
 import org.xplore.project.ui.theme.XploreTheme
 
@@ -29,7 +30,7 @@ fun App() {
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .components {
-                add(KtorNetworkFetcherFactory())
+                add(KtorNetworkFetcherFactory(httpClient = createHttpClient()))
             }
             .build()
     }

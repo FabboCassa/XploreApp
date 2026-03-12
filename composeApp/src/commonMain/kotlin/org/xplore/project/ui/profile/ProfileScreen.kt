@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.xplore.project.ui.util.rememberImagePicker
@@ -73,6 +79,13 @@ fun ProfileScreen(
             displayName = if (uiState.isGuest) stringResource(Res.string.profile_guest_label) else uiState.displayName,
             email = if (uiState.isGuest) "" else uiState.email,
             avatarUrl = uiState.avatarUrl,
+            onAvatarClick = {
+                if (uiState.avatarUrl != null) {
+                    viewModel.openFullScreenAvatar()
+                } else {
+                    viewModel.openAvatarDialog()
+                }
+            },
             onEditAvatar = viewModel::openAvatarDialog,
         )
 
@@ -130,6 +143,7 @@ fun ProfileScreen(
     // ── Avatar Edit Dialog ──
     if (uiState.isAvatarDialogOpen) {
         AvatarEditDialog(
+            avatarUrl = uiState.avatarUrl,
             hasAvatar = uiState.avatarUrl != null,
             isUploading = uiState.isAvatarUploading,
             onPickFromGallery = {
@@ -163,5 +177,14 @@ fun ProfileScreen(
     // ── 2FA Setup Dialog ──
     if (uiState.setupTwoFactorKey != null) {
         TwoFactorSetupDialog(uiState, viewModel)
+    }
+
+    // ── Full Screen Avatar Dialog ──
+    val url = uiState.avatarUrl
+    if (uiState.isFullScreenAvatarOpen && url != null) {
+        FullScreenAvatarDialog(
+            avatarUrl = url,
+            onDismiss = viewModel::closeFullScreenAvatar
+        )
     }
 }
