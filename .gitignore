@@ -9,6 +9,10 @@ captures
 local.properties
 build_output.txt
 .claude
+.agents
+skills
+.cursorrules
+CLAUDE.md
 
 # Android
 *.apk
