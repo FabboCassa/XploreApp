@@ -40,6 +40,12 @@ interface AuthRepository {
     /** Get the current user's info. Requires an active session. */
     suspend fun getCurrentUser(): Result<UserInfoDto>
 
+    /** Upload avatar image. Returns updated user info with new avatarUrl. */
+    suspend fun uploadAvatar(imageBytes: ByteArray, fileName: String): Result<UserInfoDto>
+
+    /** Delete avatar image. */
+    suspend fun deleteAvatar(): Result<Boolean>
+
     /** Clear stored tokens and sign out. */
     fun logout()
 
@@ -48,4 +54,7 @@ interface AuthRepository {
 
     /** Check if current session is a guest session. */
     fun isGuest(): Boolean
+
+    /** Construct the frontend absolute URL for the user's avatar. */
+    fun getAvatarUrl(userId: String): String
 }

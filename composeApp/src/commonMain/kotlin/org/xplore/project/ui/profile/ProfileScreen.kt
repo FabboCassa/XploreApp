@@ -1,7 +1,6 @@
 package org.xplore.project.ui.profile
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,32 +8,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.xplore.project.ui.util.rememberImagePicker
+import org.xplore.project.ui.util.rememberCameraPicker
 import xploreapp.composeapp.generated.resources.*
 
 /**
- * User Profile screen with Logout and Cache Management.
+ * Profile detail screen with avatar, level, friends, 2FA & logout.
  */
 @Composable
 fun ProfileScreen(
@@ -43,175 +38,130 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = stringResource(Res.string.profile_coming_soon),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            )
 
-            Spacer(Modifier.height(32.dp))
+    // Image picker — delivers bytes to the ViewModel
+    val imagePicker = rememberImagePicker { picked ->
+        viewModel.uploadAvatar(picked.bytes, picked.fileName)
+    }
 
-            // ── Clear Map Cache ──
-            OutlinedButton(onClick = onClearMapCache) {
-                Text(stringResource(Res.string.clear_map_cache))
-            }
-            Text(
-                text = stringResource(Res.string.clear_map_cache_description),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                modifier = Modifier.padding(top = 4.dp, bottom = 24.dp),
-            )
+    // Camera picker
+    val cameraPicker = rememberCameraPicker { picked ->
+        viewModel.uploadAvatar(picked.bytes, picked.fileName)
+    }
 
-            // ── 2FA Setup ──
-            if (!uiState.isGuest) {
-                if (uiState.isTwoFactorEnabled) {
-                    Text(
-                        text = stringResource(Res.string.profile_2fa_enabled),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    )
-                } else {
-                    OutlinedButton(onClick = viewModel::onInitiateTwoFactorSetup, enabled = !uiState.isLoading) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
-                        }
-                        Text(stringResource(Res.string.profile_2fa_enable_btn))
-                    }
-                    Spacer(Modifier.height(24.dp))
-                }
-            }
-
-            // ── Logout or Login ──
-            Button(
-                onClick = onLogout, // onLogout will drop them to WelcomeRoute, which is correct for login redirect
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (uiState.isGuest) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    contentColor = if (uiState.isGuest) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
-                ),
-            ) {
-                Text(
-                    text = if (uiState.isGuest) stringResource(Res.string.profile_btn_login) else stringResource(Res.string.profile_btn_logout)
-                )
-            }
+    if (uiState.isLoading && uiState.displayName.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
+        return
     }
 
-    // ── Method Selection Dialog ──
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        // ── Avatar Section ──
+        ProfileHeader(
+            initial = uiState.avatarInitial,
+            displayName = if (uiState.isGuest) stringResource(Res.string.profile_guest_label) else uiState.displayName,
+            email = if (uiState.isGuest) "" else uiState.email,
+            avatarUrl = uiState.avatarUrl,
+            onEditAvatar = viewModel::openAvatarDialog,
+        )
+
+        // ── Level Section ── (hide for guests)
+        if (!uiState.isGuest) {
+            LevelCard(
+                level = uiState.currentLevel,
+                currentPoints = uiState.totalPoints,
+                nextLevelPoints = uiState.nextLevelPoints,
+            )
+        }
+
+        // ── Friends Section ── (hide for guests)
+        if (!uiState.isGuest) {
+            FriendsCard(
+                friendCount = uiState.friends.size,
+                onClick = viewModel::openFriendsDialog,
+            )
+        }
+
+        // ── Security Section ──
+        if (!uiState.isGuest) {
+            SecurityCard(
+                isTwoFactorEnabled = uiState.isTwoFactorEnabled,
+                isLoading = uiState.isLoading,
+                onEnable2FA = viewModel::onInitiateTwoFactorSetup,
+                onDisable2FA = viewModel::disableTwoFactor,
+            )
+        }
+
+        // ── Settings Section ──
+        SettingsCard(onClearMapCache = onClearMapCache)
+
+        // ── Logout / Login Button ──
+        Button(
+            onClick = onLogout,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (uiState.isGuest) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                contentColor = if (uiState.isGuest) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError,
+            ),
+        ) {
+            Text(
+                text = if (uiState.isGuest) stringResource(Res.string.profile_btn_login) else stringResource(Res.string.profile_btn_logout),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+    }
+
+    // ── Avatar Edit Dialog ──
+    if (uiState.isAvatarDialogOpen) {
+        AvatarEditDialog(
+            hasAvatar = uiState.avatarUrl != null,
+            isUploading = uiState.isAvatarUploading,
+            onPickFromGallery = {
+                imagePicker.launch()
+            },
+            onPickFromCamera = {
+                cameraPicker.launch()
+            },
+            onRemove = viewModel::deleteAvatar,
+            onDismiss = viewModel::closeAvatarDialog,
+        )
+    }
+
+    // ── Friends Dialog ──
+    if (uiState.isFriendsDialogOpen) {
+        FriendsDialog(
+            friends = uiState.friends,
+            searchQuery = uiState.friendSearchQuery,
+            onSearchChanged = viewModel::onFriendSearchQueryChanged,
+            onAdd = viewModel::addFriend,
+            onRemove = viewModel::removeFriend,
+            onDismiss = viewModel::closeFriendsDialog,
+        )
+    }
+
+    // ── 2FA Method Selection Dialog ──
     if (uiState.isSelectingTwoFactorMethod) {
-        AlertDialog(
-            onDismissRequest = viewModel::onCancelTwoFactorSetup,
-            title = { Text(stringResource(Res.string.profile_2fa_choose_method_title)) },
-            text = {
-                Column {
-                    Text(stringResource(Res.string.profile_2fa_choose_method_desc))
-                    Spacer(Modifier.height(16.dp))
-                    OutlinedButton(
-                        onClick = { viewModel.onTwoFactorMethodSelected("Authenticator") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    ) {
-                        Text(stringResource(Res.string.profile_2fa_method_app))
-                    }
-                    OutlinedButton(
-                        onClick = { viewModel.onTwoFactorMethodSelected("Email") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    ) {
-                        Text(stringResource(Res.string.profile_2fa_method_email))
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
-                    Text(stringResource(Res.string.two_factor_btn_cancel))
-                }
-            }
-        )
+        TwoFactorMethodDialog(viewModel)
     }
 
-    // ── 2FA Setup Dialog (Authenticator or Email) ──
+    // ── 2FA Setup Dialog ──
     if (uiState.setupTwoFactorKey != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::onCancelTwoFactorSetup,
-            title = { Text(stringResource(Res.string.profile_2fa_setup_title)) },
-            text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    if (uiState.selectedTwoFactorMethod == "Email") {
-                        Text(stringResource(Res.string.profile_2fa_setup_email_desc))
-                        Spacer(Modifier.height(16.dp))
-                    } else {
-                        Text(stringResource(Res.string.profile_2fa_setup_app_step_1))
-                        Spacer(Modifier.height(8.dp))
-                        uiState.setupTwoFactorUri?.let { uri ->
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .background(Color.White)
-                                    .padding(8.dp)
-                            ) {
-                                Image(
-                                    painter = rememberQrCodePainter(data = uri),
-                                    contentDescription = stringResource(Res.string.profile_2fa_qr_content_desc),
-                                    modifier = Modifier.size(160.dp)
-                                )
-                            }
-                            Spacer(Modifier.height(16.dp))
-                        }
-                        Text(
-                            text = stringResource(Res.string.profile_2fa_setup_app_manual),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = uiState.setupTwoFactorKey ?: "",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(stringResource(Res.string.profile_2fa_setup_app_step_2))
-                        Spacer(Modifier.height(8.dp))
-                    }
-                    OutlinedTextField(
-                        value = uiState.twoFactorCodeInput,
-                        onValueChange = viewModel::onTwoFactorCodeChanged,
-                        label = { Text(stringResource(Res.string.profile_2fa_confirmed_code_label)) },
-                        singleLine = true,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    uiState.errorMessage?.let { errorMsg ->
-                        Text(
-                            text = stringResource(errorMsg),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = viewModel::onVerifySetupClicked,
-                    enabled = uiState.twoFactorCodeInput.isNotBlank() && !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(Res.string.profile_2fa_btn_verify_save))
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::onCancelTwoFactorSetup) {
-                    Text(stringResource(Res.string.two_factor_btn_cancel))
-                }
-            }
-        )
+        TwoFactorSetupDialog(uiState, viewModel)
     }
 }

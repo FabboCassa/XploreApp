@@ -151,6 +151,30 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun uploadAvatar(imageBytes: ByteArray, fileName: String): Result<UserInfoDto> {
+        return try {
+            val token = tokenManager.accessToken
+                ?: return Result.failure(Exception("Not authenticated"))
+            val user = authApiService.uploadAvatar(token, imageBytes, fileName)
+            Result.success(user)
+        } catch (e: Exception) {
+            println("AuthError [uploadAvatar]: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteAvatar(): Result<Boolean> {
+        return try {
+            val token = tokenManager.accessToken
+                ?: return Result.failure(Exception("Not authenticated"))
+            authApiService.deleteAvatar(token)
+            Result.success(true)
+        } catch (e: Exception) {
+            println("AuthError [deleteAvatar]: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     override fun logout() {
         tokenManager.clear()
     }
@@ -158,4 +182,8 @@ class AuthRepositoryImpl(
     override fun isLoggedIn(): Boolean = tokenManager.isLoggedIn
 
     override fun isGuest(): Boolean = tokenManager.isGuest
+
+    override fun getAvatarUrl(userId: String): String {
+        return "${authApiService.baseUrl}/api/auth/avatar/$userId"
+    }
 }

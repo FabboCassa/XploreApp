@@ -80,9 +80,42 @@
     <string name="success_email_sent">Codice inviato via Email</string>
 
     <!-- Profile Screen -->
-    <string name="profile_coming_soon">Profilo — Coming Soon</string>
     <string name="profile_btn_logout">Esci (Logout)</string>
     <string name="profile_btn_login">Effettua il Login</string>
+    <string name="profile_title">Il tuo Profilo</string>
+    <string name="profile_guest_label">Ospite</string>
+    <string name="profile_avatar_content_desc">Foto profilo</string>
+    <string name="profile_avatar_edit_content_desc">Modifica foto profilo</string>
+    <string name="profile_avatar_change">Cambia foto profilo</string>
+    <string name="profile_avatar_remove">Rimuovi foto</string>
+    <string name="profile_avatar_select_source">Scegli sorgente</string>
+    <string name="profile_avatar_from_gallery">Galleria</string>
+    <string name="profile_avatar_from_camera">Fotocamera</string>
+    <string name="profile_avatar_uploading">Caricamento in corso…</string>
+    <string name="profile_avatar_error">Impossibile aggiornare la foto profilo</string>
+    <string name="profile_avatar_placeholder">%s</string>
+    <string name="profile_level_label">Livello</string>
+    <string name="profile_level_points">%1$d / %2$d pts</string>
+    <string name="profile_friends_title">Amici</string>
+    <string name="profile_friends_count">%1$d amici</string>
+    <string name="profile_friends_empty">Nessun amico aggiunto</string>
+    <string name="profile_friends_add_hint">Cerca per username…</string>
+    <string name="profile_friends_add_btn">Aggiungi</string>
+    <string name="profile_friends_remove_btn">Rimuovi</string>
+    <string name="profile_section_security">Sicurezza</string>
+    <string name="profile_section_settings">Impostazioni</string>
+
+    <!-- Explorer Levels -->
+    <string name="level_1">Novizio</string>
+    <string name="level_2">Casalingo</string>
+    <string name="level_3">Curioso</string>
+    <string name="level_4">Camminatore</string>
+    <string name="level_5">Local</string>
+    <string name="level_6">Explorer</string>
+    <string name="level_7">Avventuriero</string>
+    <string name="level_8">Pioniere</string>
+    <string name="level_9">Globetrotter</string>
+    <string name="level_10">Leggenda</string>
 
     <!-- Settings / Cache -->
     <string name="clear_map_cache">Svuota cache mappa</string>
@@ -92,7 +125,7 @@
     <!-- POI Loading -->
     <string name="loading_poi_search">Ricerca punti di interesse…</string>
     <string name="loading_poi_search_estimated">Ricerca punti di interesse… (~%ss)</string>
-    <string name="loading_poi_found">%d luoghi trovati!</string>
+    <string name="loading_poi_found">%1$d luoghi trovati!</string>
 
     <!-- Search -->
     <string name="search_searching">Ricerca in corso…</string>
@@ -166,6 +199,9 @@
     <string name="profile_2fa_setup_app_step_2">2. Inserisci il codice a 6 cifre generato dall\'app:</string>
     <string name="profile_2fa_confirmed_code_label">Codice confermato</string>
     <string name="profile_2fa_btn_verify_save">Verifica e Salva</string>
+    <string name="profile_2fa_disable_btn">Disabilita 2FA</string>
+    <string name="profile_2fa_add_method_btn">Aggiungi altro metodo 2FA</string>
+    <string name="profile_2fa_active_methods">Metodi 2FA Attivi</string>
 
     <!-- Filter Types (extended) -->
     <string name="filter_historic">Monumenti</string>
@@ -232,8 +268,8 @@
     <string name="competition_type_most_places">Visita più luoghi</string>
     <string name="competition_type_fastest">Finisci prima i luoghi selezionati</string>
     <string name="competition_type_scavenger">Caccia al Tesoro (con AI)</string>
-    <string name="competition_selected_places_count">%d luoghi selezionati</string>
-    <string name="competition_create_selected_places">Luoghi selezionati: %d</string>
+    <string name="competition_selected_places_count">%1$d luoghi selezionati</string>
+    <string name="competition_create_selected_places">Luoghi selezionati: %1$d</string>
     <string name="competition_start_date">Data d\'inizio (Opzionale, es. 2025-01-01)</string>
     <string name="competition_end_date">Data di fine (Opzionale, es. 2025-12-31)</string>
     <string name="competition_points_per_place">Punti per luogo visitato</string>

@@ -81,4 +81,5 @@ data class UserInfoDto(
     val museumId: String? = null,
     val companyName: String? = null,
     val roles: List<String> = emptyList(),
+    val hasAvatar: Boolean = false,
 )

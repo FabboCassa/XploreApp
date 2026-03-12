@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
  */
 class AuthApiService(
     private val httpClient: HttpClient,
-    private val baseUrl: String,
+    val baseUrl: String,
 ) {
     suspend fun login(request: LoginRequestDto): TokenResponseDto {
         return httpClient.post("$baseUrl/api/auth/login") {
@@ -79,6 +79,31 @@ class AuthApiService(
 
     suspend fun getCurrentUser(token: String): UserInfoDto {
         return httpClient.get("$baseUrl/api/auth/me") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }.handleResponse()
+    }
+
+    suspend fun uploadAvatar(token: String, imageBytes: ByteArray, fileName: String): UserInfoDto {
+        return httpClient.post("$baseUrl/api/auth/avatar") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            setBody(
+                io.ktor.client.request.forms.MultiPartFormDataContent(
+                    io.ktor.client.request.forms.formData {
+                        append("avatar", imageBytes, io.ktor.http.Headers.build {
+                            append(HttpHeaders.ContentType, "image/jpeg")
+                            append(
+                                HttpHeaders.ContentDisposition,
+                                "form-data; name=\"avatar\"; filename=\"$fileName\""
+                            )
+                        })
+                    }
+                )
+            )
+        }.handleResponse()
+    }
+
+    suspend fun deleteAvatar(token: String): AuthResponseDto {
+        return httpClient.delete("$baseUrl/api/auth/avatar") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }.handleResponse()
     }
