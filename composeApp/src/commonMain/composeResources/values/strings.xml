@@ -99,9 +99,22 @@
     <string name="profile_friends_title">Amici</string>
     <string name="profile_friends_count">%1$d amici</string>
     <string name="profile_friends_empty">Nessun amico aggiunto</string>
-    <string name="profile_friends_add_hint">Cerca per username…</string>
-    <string name="profile_friends_add_btn">Aggiungi</string>
     <string name="profile_friends_remove_btn">Rimuovi</string>
+    <string name="profile_friends_tab_friends">Amici</string>
+    <string name="profile_friends_tab_add">Aggiungi</string>
+    <string name="profile_friends_search_hint">Cerca username…</string>
+    <string name="profile_friends_search_btn">Cerca</string>
+    <string name="profile_friends_send_request">Invia richiesta</string>
+    <string name="profile_friends_cancel_request">Annulla richiesta</string>
+    <string name="profile_friends_accept_request">Accetta</string>
+    <string name="profile_friends_reject_request">Rifiuta</string>
+    <string name="profile_friends_received_title">Richieste ricevute</string>
+    <string name="profile_friends_sent_title">Richieste inviate</string>
+    <string name="profile_friends_no_results">Nessun utente trovato</string>
+    <string name="profile_friends_request_sent">Richiesta inviata</string>
+    <string name="profile_friends_pending">In attesa</string>
+    <string name="profile_friends_already_friend">Già amico</string>
+    <string name="profile_friends_request_already_sent">Richiesta già inviata</string>
     <string name="profile_section_security">Sicurezza</string>
     <string name="profile_section_settings">Impostazioni</string>
 

@@ -161,9 +161,18 @@ fun ProfileScreen(
     if (uiState.isFriendsDialogOpen) {
         FriendsDialog(
             friends = uiState.friends,
+            sentRequests = uiState.sentRequests,
+            receivedRequests = uiState.receivedRequests,
+            searchResults = uiState.searchResults,
             searchQuery = uiState.friendSearchQuery,
+            selectedTab = uiState.friendsSelectedTab,
+            onTabSelected = viewModel::onFriendsTabSelected,
             onSearchChanged = viewModel::onFriendSearchQueryChanged,
-            onAdd = viewModel::addFriend,
+            onSearch = viewModel::searchUsers,
+            onSendRequest = viewModel::sendFriendRequest,
+            onCancelRequest = viewModel::cancelFriendRequest,
+            onAcceptRequest = viewModel::acceptFriendRequest,
+            onRejectRequest = viewModel::rejectFriendRequest,
             onRemove = viewModel::removeFriend,
             onDismiss = viewModel::closeFriendsDialog,
         )

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.AuthResult
+import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
 
@@ -41,10 +42,26 @@ fun nextLevelThreshold(points: Int): Int {
     return next?.minPoints ?: explorerLevels.last().minPoints
 }
 
-// ── Simple friend model ─────────────────────────────────────────
+// ── Friend models ───────────────────────────────────────────────
 data class Friend(
     val id: String,
-    val displayName: String,
+    val displayName: String?,
+    val hasAvatar: Boolean = false,
+)
+
+data class FriendRequest(
+    val id: String,
+    val fromUserId: String,
+    val fromDisplayName: String?,
+    val fromHasAvatar: Boolean = false,
+    val sentAt: String = "",
+)
+
+data class SearchUser(
+    val userId: String,
+    val displayName: String?,
+    val hasAvatar: Boolean = false,
+    val friendshipStatus: String? = null,
 )
 
 // ── UI State ────────────────────────────────────────────────────
@@ -53,6 +70,7 @@ data class ProfileUiState(
     val errorMessage: StringResource? = null,
 
     // User info
+    val currentUserId: String = "",
     val displayName: String = "",
     val email: String = "",
     val isGuest: Boolean = false,
@@ -73,6 +91,11 @@ data class ProfileUiState(
     val friends: List<Friend> = emptyList(),
     val isFriendsDialogOpen: Boolean = false,
     val friendSearchQuery: String = "",
+    val friendsSelectedTab: Int = 0,
+    val sentRequests: List<FriendRequest> = emptyList(),
+    val receivedRequests: List<FriendRequest> = emptyList(),
+    val searchResults: List<SearchUser> = emptyList(),
+    val isSearchingFriends: Boolean = false,
 
     // 2FA
     val isSelectingTwoFactorMethod: Boolean = false,
@@ -85,6 +108,7 @@ data class ProfileUiState(
 
 class ProfileViewModel(
     private val authRepository: AuthRepository,
+    private val friendRepository: FriendRepository,
     private val tokenManager: TokenManager,
 ) : ViewModel() {
 
@@ -106,7 +130,6 @@ class ProfileViewModel(
                     val name = user.displayName ?: user.email
                     val initial = name.firstOrNull()?.uppercase() ?: "?"
 
-                    // Points: use a placeholder value – integrate real data when backend supports it
                     val points = 0
                     val level = levelForPoints(points)
                     val nextThreshold = nextLevelThreshold(points)
@@ -118,6 +141,7 @@ class ProfileViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            currentUserId = user.id,
                             displayName = name,
                             email = user.email,
                             avatarInitial = initial,
@@ -132,7 +156,29 @@ class ProfileViewModel(
                     _uiState.update { it.copy(isLoading = false) }
                 },
             )
+            loadFriendsData()
         }
+    }
+
+    private suspend fun loadFriendsData() {
+        val friendsResult = friendRepository.getFriends()
+        val requestsResult = friendRepository.getPendingRequests()
+
+        val friends = friendsResult.getOrNull()?.map {
+            Friend(id = it.userId, displayName = it.displayName, hasAvatar = it.hasAvatar)
+        } ?: return
+
+        val received = requestsResult.getOrNull()?.map {
+            FriendRequest(
+                id = it.requestId,
+                fromUserId = it.requesterId,
+                fromDisplayName = it.requesterDisplayName,
+                fromHasAvatar = it.requesterHasAvatar,
+                sentAt = it.sentAt,
+            )
+        } ?: emptyList()
+
+        _uiState.update { it.copy(friends = friends, receivedRequests = received) }
     }
 
     // ── Avatar ──────────────────────────────────────────────────
@@ -210,33 +256,156 @@ class ProfileViewModel(
 
     // ── Friends ─────────────────────────────────────────────────
     fun openFriendsDialog() {
-        _uiState.update { it.copy(isFriendsDialogOpen = true, friendSearchQuery = "") }
+        _uiState.update {
+            it.copy(
+                isFriendsDialogOpen = true,
+                friendSearchQuery = "",
+                searchResults = emptyList(),
+                friendsSelectedTab = 0,
+            )
+        }
     }
 
     fun closeFriendsDialog() {
-        _uiState.update { it.copy(isFriendsDialogOpen = false, friendSearchQuery = "") }
+        _uiState.update {
+            it.copy(
+                isFriendsDialogOpen = false,
+                friendSearchQuery = "",
+                searchResults = emptyList(),
+            )
+        }
+    }
+
+    fun onFriendsTabSelected(index: Int) {
+        _uiState.update { it.copy(friendsSelectedTab = index) }
+        if (index == 0) {
+            viewModelScope.launch {
+                val requestsResult = friendRepository.getPendingRequests()
+                requestsResult.getOrNull()?.let { dtos ->
+                    val received = dtos.map {
+                        FriendRequest(
+                            id = it.requestId,
+                            fromUserId = it.requesterId,
+                            fromDisplayName = it.requesterDisplayName,
+                            fromHasAvatar = it.requesterHasAvatar,
+                            sentAt = it.sentAt,
+                        )
+                    }
+                    _uiState.update { it.copy(receivedRequests = received) }
+                }
+            }
+        }
     }
 
     fun onFriendSearchQueryChanged(query: String) {
         _uiState.update { it.copy(friendSearchQuery = query) }
     }
 
-    fun addFriend() {
+    fun searchUsers() {
         val query = _uiState.value.friendSearchQuery.trim()
-        if (query.isBlank()) return
-        // Placeholder: in a real app this would call an API
-        val newFriend = Friend(id = query, displayName = query)
-        _uiState.update {
-            it.copy(
-                friends = it.friends + newFriend,
-                friendSearchQuery = "",
+        if (query.isBlank()) {
+            _uiState.update { it.copy(searchResults = emptyList()) }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSearchingFriends = true) }
+            val result = friendRepository.searchUsers(query)
+            result.fold(
+                onSuccess = { dtos ->
+                    val results = dtos.map {
+                        SearchUser(
+                            userId = it.userId,
+                            displayName = it.displayName,
+                            hasAvatar = it.hasAvatar,
+                            friendshipStatus = it.friendshipStatus,
+                        )
+                    }
+                    _uiState.update { it.copy(isSearchingFriends = false, searchResults = results) }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isSearchingFriends = false, searchResults = emptyList()) }
+                },
+            )
+        }
+    }
+
+    fun sendFriendRequest(addresseeId: String) {
+        viewModelScope.launch {
+            val result = friendRepository.sendFriendRequest(addresseeId)
+            result.fold(
+                onSuccess = {
+                    val query = _uiState.value.friendSearchQuery.trim()
+                    if (query.isNotBlank()) searchUsers()
+                },
+                onFailure = { /* silently ignore, status visible in search results */ },
+            )
+        }
+    }
+
+    fun cancelFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            val result = friendRepository.rejectRequest(requestId)
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(sentRequests = it.sentRequests.filter { r -> r.id != requestId }) }
+                },
+                onFailure = { /* silently ignore */ },
+            )
+        }
+    }
+
+    fun acceptFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            val result = friendRepository.acceptRequest(requestId)
+            result.fold(
+                onSuccess = {
+                    val friendsResult = friendRepository.getFriends()
+                    val requestsResult = friendRepository.getPendingRequests()
+                    val friends = friendsResult.getOrNull()?.map {
+                        Friend(id = it.userId, displayName = it.displayName, hasAvatar = it.hasAvatar)
+                    }
+                    val received = requestsResult.getOrNull()?.map {
+                        FriendRequest(
+                            id = it.requestId,
+                            fromUserId = it.requesterId,
+                            fromDisplayName = it.requesterDisplayName,
+                            fromHasAvatar = it.requesterHasAvatar,
+                            sentAt = it.sentAt,
+                        )
+                    }
+                    _uiState.update {
+                        it.copy(
+                            friends = friends ?: it.friends,
+                            receivedRequests = received ?: it.receivedRequests,
+                        )
+                    }
+                },
+                onFailure = { /* silently ignore */ },
+            )
+        }
+    }
+
+    fun rejectFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            val result = friendRepository.rejectRequest(requestId)
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(receivedRequests = it.receivedRequests.filter { r -> r.id != requestId }) }
+                },
+                onFailure = { /* silently ignore */ },
             )
         }
     }
 
     fun removeFriend(friendId: String) {
-        _uiState.update {
-            it.copy(friends = it.friends.filter { f -> f.id != friendId })
+        viewModelScope.launch {
+            val result = friendRepository.removeFriend(friendId)
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(friends = it.friends.filter { f -> f.id != friendId }) }
+                },
+                onFailure = { /* silently ignore */ },
+            )
         }
     }
 
@@ -314,7 +483,6 @@ class ProfileViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             // TODO: call authRepository.disableTwoFactor() when backend endpoint is available
-            // For now, just toggle the flag locally
             _uiState.update {
                 it.copy(
                     isLoading = false,
