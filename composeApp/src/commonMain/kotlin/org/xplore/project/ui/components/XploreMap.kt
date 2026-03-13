@@ -54,6 +54,7 @@ fun XploreMap(
     pins: List<MapPin>,
     onPinClick: (MapPin) -> Unit,
     modifier: Modifier = Modifier,
+    isDark: Boolean = false,
     userLatitude: Double? = null,
     userLongitude: Double? = null,
     selectedPin: MapPin? = null,
@@ -63,7 +64,10 @@ fun XploreMap(
     onDetailClick: (String) -> Unit = {},
     onCameraMove: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
 ) {
-    val styleUrl = "https://tiles.openfreemap.org/styles/liberty"
+    val styleUrl = if (isDark)
+        "https://tiles.openfreemap.org/styles/dark"
+    else
+        "https://tiles.openfreemap.org/styles/bright"
     val cameraState = rememberCameraState()
     
     var hasInitializedCamera by remember { mutableStateOf(false) }

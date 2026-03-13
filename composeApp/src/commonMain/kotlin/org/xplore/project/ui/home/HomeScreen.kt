@@ -1,5 +1,6 @@
 package org.xplore.project.ui.home
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,8 @@ import dev.icerock.moko.geo.compose.LocationTrackerAccuracy
 import dev.icerock.moko.geo.compose.rememberLocationTrackerFactory
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.compose.viewmodel.koinViewModel
+import org.xplore.project.data.local.ThemeMode
+import org.xplore.project.ui.app.AppViewModel
 import org.xplore.project.ui.community.CommunityScreen
 import org.xplore.project.ui.components.XploreBottomNavBar
 import org.xplore.project.ui.profile.ProfileScreen
@@ -32,8 +35,16 @@ fun HomeScreen(
     onNavigateToPoiDetail: (String) -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
+    appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val themeMode by appViewModel.themeMode.collectAsState()
+    val systemDark = isSystemInDarkTheme()
+    val isDark = when (themeMode) {
+        ThemeMode.SYSTEM -> systemDark
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
 
     // ── Location Tracking (composable-level, platform-aware) ──
     val locationTrackerFactory = rememberLocationTrackerFactory(LocationTrackerAccuracy.Best)
@@ -78,6 +89,7 @@ fun HomeScreen(
                     uiState = uiState,
                     viewModel = viewModel,
                     onDetailClick = onNavigateToPoiDetail,
+                    isDark = isDark,
                 )
                 1 -> CommunityScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
@@ -117,4 +129,3 @@ fun HomeScreen(
         )
     }
 }
-

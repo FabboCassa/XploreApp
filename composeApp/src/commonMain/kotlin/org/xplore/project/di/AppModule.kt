@@ -9,6 +9,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.MapPinLocalDataSource
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.local.db.DatabaseDriverFactory
@@ -27,6 +28,7 @@ import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.network.createHttpClient
+import org.xplore.project.ui.app.AppViewModel
 import org.xplore.project.ui.auth.AuthViewModel
 import org.xplore.project.ui.community.CommunityViewModel
 import org.xplore.project.ui.community.detail.CreateCompetitionViewModel
@@ -130,6 +132,7 @@ val appModule = module {
 
     // ── Local Storage ────────────────────────────────────────
     single { TokenManager() }
+    single { AppPreferences() }
 
     // ── SQLDelight Database ──────────────────────────────────
     single { get<DatabaseDriverFactory>().createDriver() }
@@ -173,6 +176,7 @@ val appModule = module {
     singleOf(::FriendRepositoryImpl) bind FriendRepository::class
 
     // ── Presentation layer ───────────────────────────────────
+    viewModelOf(::AppViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::AuthViewModel)
     viewModelOf(::ProfileViewModel)

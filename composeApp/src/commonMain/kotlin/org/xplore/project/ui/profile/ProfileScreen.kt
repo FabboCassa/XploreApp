@@ -37,6 +37,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.xplore.project.ui.app.AppViewModel
 import org.xplore.project.ui.util.rememberImagePicker
 import org.xplore.project.ui.util.rememberCameraPicker
 import xploreapp.composeapp.generated.resources.*
@@ -49,8 +50,10 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onClearMapCache: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
+    appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val themeMode by appViewModel.themeMode.collectAsState()
 
     // Image picker — delivers bytes to the ViewModel
     val imagePicker = rememberImagePicker { picked ->
@@ -128,7 +131,11 @@ fun ProfileScreen(
         }
 
         // ── Settings Section ──
-        SettingsCard(onClearMapCache = onClearMapCache)
+        SettingsCard(
+            onClearMapCache = onClearMapCache,
+            themeMode = themeMode,
+            onThemeModeChange = appViewModel::setThemeMode,
+        )
 
         // ── Logout / Login Button ──
         Button(

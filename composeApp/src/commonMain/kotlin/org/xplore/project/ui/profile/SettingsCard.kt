@@ -17,16 +17,30 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.xplore.project.data.local.ThemeMode
 import xploreapp.composeapp.generated.resources.*
 
+private val themeModeLabels = mapOf(
+    ThemeMode.SYSTEM to "Sistema",
+    ThemeMode.LIGHT to "Chiaro",
+    ThemeMode.DARK to "Scuro",
+)
+
 @Composable
-fun SettingsCard(onClearMapCache: () -> Unit) {
+fun SettingsCard(
+    onClearMapCache: () -> Unit,
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -52,8 +66,35 @@ fun SettingsCard(onClearMapCache: () -> Unit) {
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
+            // ── Theme section ──
+            Text(
+                text = "Tema",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+
+            val modes = ThemeMode.entries
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                modes.forEachIndexed { index, mode ->
+                    SegmentedButton(
+                        selected = themeMode == mode,
+                        onClick = { onThemeModeChange(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                    ) {
+                        Text(
+                            text = themeModeLabels[mode] ?: mode.name,
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // ── Map cache section ──
             OutlinedButton(
                 onClick = onClearMapCache,
                 modifier = Modifier.fillMaxWidth(),

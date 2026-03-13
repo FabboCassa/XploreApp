@@ -20,11 +20,11 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +47,7 @@ fun MapContent(
     uiState: HomeUiState,
     viewModel: HomeViewModel,
     onDetailClick: (String) -> Unit,
+    isDark: Boolean = false,
 ) {
     // ── Build initial camera position if saved ──
     val initialCamera = remember(uiState.initialCameraLat, uiState.initialCameraLng) {
@@ -65,6 +66,7 @@ fun MapContent(
         XploreMap(
             pins = uiState.pins,
             onPinClick = viewModel::onPinSelected,
+            isDark = isDark,
             userLatitude = uiState.userLatitude,
             userLongitude = uiState.userLongitude,
             selectedPin = uiState.selectedPin,
@@ -113,18 +115,18 @@ fun MapContent(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .height(4.dp),
-                        color = Color(0xFF4A90D9),
-                        trackColor = Color(0xFF4A90D9).copy(alpha = 0.15f),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                     )
                     Text(
                         text = stringResource(Res.string.search_searching),
                         fontSize = 12.sp,
-                        color = Color(0xFF333333),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
                             .padding(top = 6.dp)
                             .background(
-                                color = Color.White.copy(alpha = 0.85f),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                                 shape = RoundedCornerShape(8.dp),
                             )
                             .padding(horizontal = 12.dp, vertical = 4.dp),
@@ -143,13 +145,13 @@ fun MapContent(
                 Text(
                     text = stringResource(Res.string.search_no_results),
                     fontSize = 12.sp,
-                    color = Color(0xFF333333),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp, start = 16.dp, end = 16.dp)
                         .background(
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                             shape = RoundedCornerShape(8.dp),
                         )
                         .padding(horizontal = 12.dp, vertical = 4.dp),
@@ -171,20 +173,20 @@ fun MapContent(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .height(4.dp),
-                        color = Color(0xFF4A90D9),
-                        trackColor = Color(0xFF4A90D9).copy(alpha = 0.15f),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                     )
 
                     if (uiState.loadingStatusText != null) {
                         Text(
                             text = uiState.loadingStatusText.asString(),
                             fontSize = 12.sp,
-                            color = Color(0xFF333333),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier
                                 .padding(top = 6.dp)
                                 .background(
-                                    color = Color.White.copy(alpha = 0.85f),
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                                     shape = RoundedCornerShape(8.dp),
                                 )
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
