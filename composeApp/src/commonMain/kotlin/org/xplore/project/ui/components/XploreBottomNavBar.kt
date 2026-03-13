@@ -7,7 +7,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.DrawableResource
@@ -47,7 +50,9 @@ fun XploreBottomNavBar(
     )
 
     NavigationBar(
-        modifier = modifier.height(56.dp),
+        modifier = modifier
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .height(64.dp),
         containerColor = colorScheme.surface.copy(alpha = 0.95f),
         contentColor = colorScheme.onSurface,
         tonalElevation = 0.dp,
