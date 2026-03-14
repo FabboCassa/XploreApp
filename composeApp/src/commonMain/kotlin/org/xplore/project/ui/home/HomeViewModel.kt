@@ -90,6 +90,14 @@ class HomeViewModel(
 
         // Load pending badge count on startup
         refreshPendingNotificationBadge()
+
+        // Auto-refresh badge every 15s so it updates after accept/reject
+        viewModelScope.launch {
+            while (true) {
+                delay(15_000)
+                refreshPendingNotificationBadge()
+            }
+        }
     }
 
     // ── Map State ──────────────────────────────────────────────────

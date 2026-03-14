@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">XploreApp</string>
+    <string name="notification_channel_name">Notifiche Xplore</string>
 </resources>

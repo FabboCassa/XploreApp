@@ -128,6 +128,7 @@ fun ProfileScreen(
         if (!uiState.isGuest) {
             FriendsCard(
                 friendCount = uiState.friends.size,
+                showBadge = uiState.hasPendingNotification,
                 onClick = viewModel::openFriendsDialog,
             )
         }

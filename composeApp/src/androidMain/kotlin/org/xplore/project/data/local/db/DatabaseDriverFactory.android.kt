@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import org.xplore.project.R
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import android.database.sqlite.SQLiteDatabase
@@ -61,7 +62,7 @@ class XploreApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "xplore_default",
-                "Xplore Notifications",
+                getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             )
             getSystemService(NotificationManager::class.java)

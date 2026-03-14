@@ -303,6 +303,8 @@
     <string name="competition_map_open">Apri Mappa Competizione</string>
 
     <!-- Notifications & Group Invites -->
+    <string name="notification_channel_name">Notifiche Xplore</string>
+    <string name="notification_badge_content_desc">Notifiche in sospeso</string>
     <string name="notifications_title">Notifiche</string>
     <string name="notifications_empty">Nessuna notifica</string>
     <string name="group_invites_title">Inviti ai Gruppi</string>

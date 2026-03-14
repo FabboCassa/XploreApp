@@ -1,5 +1,6 @@
 package org.xplore.project.ui.profile
 
+import kotlinx.coroutines.delay
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,6 +100,9 @@ data class ProfileUiState(
     val searchResults: List<SearchUser> = emptyList(),
     val isSearchingFriends: Boolean = false,
 
+    // Notification badge
+    val hasPendingNotification: Boolean = false,
+
     // Group Invites
     val groupInvites: List<GroupInvite> = emptyList(),
     val isGroupInvitesDialogOpen: Boolean = false,
@@ -125,6 +129,17 @@ class ProfileViewModel(
 
     init {
         loadUserProfile()
+        startPeriodicFriendsRefresh()
+    }
+
+    private fun startPeriodicFriendsRefresh() {
+        viewModelScope.launch {
+            while (true) {
+                delay(15_000) // 15 seconds
+                loadFriendsData()
+                loadGroupInvites()
+            }
+        }
     }
 
     // ── Profile loading ─────────────────────────────────────────
@@ -186,7 +201,13 @@ class ProfileViewModel(
             )
         } ?: emptyList()
 
-        _uiState.update { it.copy(friends = friends, receivedRequests = received) }
+        _uiState.update {
+            it.copy(
+                friends = friends,
+                receivedRequests = received,
+                hasPendingNotification = received.isNotEmpty() || it.groupInvites.any { inv -> inv.status == org.xplore.project.domain.model.GroupInviteStatus.Pending },
+            )
+        }
     }
 
     // ── Avatar ──────────────────────────────────────────────────
@@ -364,43 +385,38 @@ class ProfileViewModel(
 
     fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
+            println("[Friends] Accepting request: $requestId")
             val result = friendRepository.acceptRequest(requestId)
             result.fold(
                 onSuccess = {
-                    val friendsResult = friendRepository.getFriends()
-                    val requestsResult = friendRepository.getPendingRequests()
-                    val friends = friendsResult.getOrNull()?.map {
-                        Friend(id = it.userId, displayName = it.displayName, hasAvatar = it.hasAvatar)
-                    }
-                    val received = requestsResult.getOrNull()?.map {
-                        FriendRequest(
-                            id = it.requestId,
-                            fromUserId = it.requesterId,
-                            fromDisplayName = it.requesterDisplayName,
-                            fromHasAvatar = it.requesterHasAvatar,
-                            sentAt = it.sentAt,
-                        )
-                    }
-                    _uiState.update {
-                        it.copy(
-                            friends = friends ?: it.friends,
-                            receivedRequests = received ?: it.receivedRequests,
-                        )
-                    }
+                    println("[Friends] Request accepted successfully")
+                    loadFriendsData()
                 },
-                onFailure = { /* silently ignore */ },
+                onFailure = { e ->
+                    println("[Friends] Accept failed: ${e.message}")
+                },
             )
         }
     }
 
     fun rejectFriendRequest(requestId: String) {
         viewModelScope.launch {
+            println("[Friends] Rejecting request: $requestId")
             val result = friendRepository.rejectRequest(requestId)
             result.fold(
                 onSuccess = {
-                    _uiState.update { it.copy(receivedRequests = it.receivedRequests.filter { r -> r.id != requestId }) }
+                    println("[Friends] Request rejected successfully")
+                    val newReceived = _uiState.value.receivedRequests.filter { r -> r.id != requestId }
+                    _uiState.update {
+                        it.copy(
+                            receivedRequests = newReceived,
+                            hasPendingNotification = newReceived.isNotEmpty() || it.groupInvites.any { inv -> inv.status == org.xplore.project.domain.model.GroupInviteStatus.Pending },
+                        )
+                    }
                 },
-                onFailure = { /* silently ignore */ },
+                onFailure = { e ->
+                    println("\u274C [Friends] Reject failed: ${e.message}")
+                },
             )
         }
     }
@@ -432,7 +448,8 @@ class ProfileViewModel(
             _uiState.update { it.copy(isLoadingInvites = true) }
             try {
                 val invites = communityRepository.getMyGroupInvites()
-                _uiState.update { it.copy(isLoadingInvites = false, groupInvites = invites) }
+                val hasPending = invites.any { it.status == org.xplore.project.domain.model.GroupInviteStatus.Pending } || _uiState.value.receivedRequests.isNotEmpty()
+                _uiState.update { it.copy(isLoadingInvites = false, groupInvites = invites, hasPendingNotification = hasPending) }
             } catch (_: Exception) {
                 _uiState.update { it.copy(isLoadingInvites = false) }
             }
