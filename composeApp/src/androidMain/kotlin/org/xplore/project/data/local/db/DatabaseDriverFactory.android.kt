@@ -1,10 +1,17 @@
 package org.xplore.project.data.local.db
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.xplore.project.di.appModule
+import org.xplore.project.di.platformModule
 
 /**
  * Android implementation: uses [AndroidSqliteDriver] backed by the system SQLite.
@@ -43,6 +50,23 @@ class XploreApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         appContext = this
+        startKoin {
+            androidContext(this@XploreApplication)
+            modules(platformModule(), appModule)
+        }
+        createNotificationChannel()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "xplore_default",
+                "Xplore Notifications",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            )
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
     }
 
     companion object {

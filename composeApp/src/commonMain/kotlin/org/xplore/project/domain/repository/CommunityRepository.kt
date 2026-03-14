@@ -1,6 +1,7 @@
 package org.xplore.project.domain.repository
 
 import org.xplore.project.domain.model.Group
+import org.xplore.project.domain.model.GroupInvite
 import org.xplore.project.domain.model.LeaderboardEntry
 
 /**
@@ -45,4 +46,10 @@ interface CommunityRepository {
     )
     suspend fun getCompetitions(groupId: String): List<org.xplore.project.domain.model.Competition>
     suspend fun getCompetitionLeaderboard(groupId: String, compId: String): List<org.xplore.project.domain.model.CompetitionLeaderboardEntry>
+
+    // Group Invites
+    suspend fun getMyGroupInvites(): List<GroupInvite>
+    suspend fun sendGroupInvite(groupId: String, invitedUserId: String)
+    suspend fun acceptGroupInvite(inviteId: String)
+    suspend fun rejectGroupInvite(inviteId: String)
 }

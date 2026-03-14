@@ -90,6 +90,8 @@ private fun closestIndex(km: Double): Int {
 fun SettingsDialog(
     searchRadiusKm: Double,
     radiusAverages: Map<Double, Long>,
+    notificationsEnabled: Boolean,
+    onNotificationsToggle: (Boolean) -> Unit,
     onRadiusChange: (Double) -> Unit,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
@@ -217,11 +219,11 @@ fun SettingsDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                // ── Placeholder: Notifications ──
+                // ── Notifications ──
                 SettingsToggleRow(
                     label = stringResource(Res.string.settings_notifications),
-                    checked = false,
-                    onCheckedChange = { /* placeholder */ },
+                    checked = notificationsEnabled,
+                    onCheckedChange = onNotificationsToggle,
                 )
 
                 Spacer(Modifier.weight(1f))

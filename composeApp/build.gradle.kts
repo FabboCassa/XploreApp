@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.spmForKmp)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -44,6 +45,9 @@ kotlin {
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.play.services.auth)
             implementation(libs.googleid)
+
+            // Firebase Cloud Messaging
+            implementation(libs.firebase.messaging)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

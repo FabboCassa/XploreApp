@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
+import org.xplore.project.domain.model.GroupInvite
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.AuthResult
+import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
@@ -97,6 +99,11 @@ data class ProfileUiState(
     val searchResults: List<SearchUser> = emptyList(),
     val isSearchingFriends: Boolean = false,
 
+    // Group Invites
+    val groupInvites: List<GroupInvite> = emptyList(),
+    val isGroupInvitesDialogOpen: Boolean = false,
+    val isLoadingInvites: Boolean = false,
+
     // 2FA
     val isSelectingTwoFactorMethod: Boolean = false,
     val selectedTwoFactorMethod: String? = null,
@@ -109,6 +116,7 @@ data class ProfileUiState(
 class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val friendRepository: FriendRepository,
+    private val communityRepository: CommunityRepository,
     private val tokenManager: TokenManager,
 ) : ViewModel() {
 
@@ -406,6 +414,54 @@ class ProfileViewModel(
                 },
                 onFailure = { /* silently ignore */ },
             )
+        }
+    }
+
+    // ── Group Invites ─────────────────────────────────────────
+    fun openGroupInvitesDialog() {
+        _uiState.update { it.copy(isGroupInvitesDialogOpen = true) }
+        loadGroupInvites()
+    }
+
+    fun closeGroupInvitesDialog() {
+        _uiState.update { it.copy(isGroupInvitesDialogOpen = false) }
+    }
+
+    private fun loadGroupInvites() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingInvites = true) }
+            try {
+                val invites = communityRepository.getMyGroupInvites()
+                _uiState.update { it.copy(isLoadingInvites = false, groupInvites = invites) }
+            } catch (_: Exception) {
+                _uiState.update { it.copy(isLoadingInvites = false) }
+            }
+        }
+    }
+
+    fun acceptGroupInvite(inviteId: String) {
+        viewModelScope.launch {
+            try {
+                communityRepository.acceptGroupInvite(inviteId)
+                _uiState.update {
+                    it.copy(groupInvites = it.groupInvites.filter { inv -> inv.id != inviteId })
+                }
+            } catch (_: Exception) {
+                _uiState.update { it.copy(errorMessage = Res.string.group_invite_error) }
+            }
+        }
+    }
+
+    fun rejectGroupInvite(inviteId: String) {
+        viewModelScope.launch {
+            try {
+                communityRepository.rejectGroupInvite(inviteId)
+                _uiState.update {
+                    it.copy(groupInvites = it.groupInvites.filter { inv -> inv.id != inviteId })
+                }
+            } catch (_: Exception) {
+                _uiState.update { it.copy(errorMessage = Res.string.group_invite_error) }
+            }
         }
     }
 

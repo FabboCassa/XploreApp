@@ -21,7 +21,9 @@ import org.xplore.project.data.remote.dto.JoinGroupRequest
 import org.xplore.project.data.remote.dto.CompetitionDto
 import org.xplore.project.data.remote.dto.CompetitionLeaderboardEntryDto
 import org.xplore.project.data.remote.dto.CreateCompetitionRequest
+import org.xplore.project.data.remote.dto.GroupInviteResponseDto
 import org.xplore.project.data.remote.dto.LeaderboardEntryDto
+import org.xplore.project.data.remote.dto.SendGroupInviteRequest
 import org.xplore.project.data.remote.dto.VisitPlaceRequest
 
 /**
@@ -202,5 +204,48 @@ class CommunityRemoteDataSource(
             throw Exception("HTTP Error ${response.status.value}")
         }
         return response.body()
+    }
+
+    /** Fetch pending group invites for the current user. */
+    suspend fun getMyGroupInvites(token: String): List<GroupInviteResponseDto> {
+        val response = httpClient.get("$baseUrl/api/community/invites") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+        return response.body()
+    }
+
+    /** Send a group invite to another user. */
+    suspend fun sendGroupInvite(groupId: String, invitedUserId: String, token: String) {
+        val response = httpClient.post("$baseUrl/api/community/groups/$groupId/invite") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            contentType(ContentType.Application.Json)
+            setBody(SendGroupInviteRequest(invitedUserId))
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+    }
+
+    /** Accept a group invite. */
+    suspend fun acceptGroupInvite(inviteId: String, token: String) {
+        val response = httpClient.post("$baseUrl/api/community/invites/$inviteId/accept") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
+    }
+
+    /** Reject a group invite. */
+    suspend fun rejectGroupInvite(inviteId: String, token: String) {
+        val response = httpClient.post("$baseUrl/api/community/invites/$inviteId/reject") {
+            header(HttpHeaders.Authorization, "Bearer $token")
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("HTTP Error ${response.status.value}")
+        }
     }
 }

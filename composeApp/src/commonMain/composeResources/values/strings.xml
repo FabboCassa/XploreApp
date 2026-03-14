@@ -301,4 +301,17 @@
     <string name="competition_map_save_selection">Salva Selezione (%1$d)</string>
     <string name="competition_map_search_hint">Cerca luogo da aggiungere...</string>
     <string name="competition_map_open">Apri Mappa Competizione</string>
+
+    <!-- Notifications & Group Invites -->
+    <string name="notifications_title">Notifiche</string>
+    <string name="notifications_empty">Nessuna notifica</string>
+    <string name="group_invites_title">Inviti ai Gruppi</string>
+    <string name="group_invites_empty">Nessun invito pendente</string>
+    <string name="group_invite_from">Invito da %s</string>
+    <string name="group_invite_accept">Accetta</string>
+    <string name="group_invite_reject">Rifiuta</string>
+    <string name="group_invite_send">Invita</string>
+    <string name="group_invite_sent">Invito inviato</string>
+    <string name="group_invite_error">Impossibile elaborare l\'invito</string>
+    <string name="group_invite_accepted">Invito accettato!</string>
 </resources>

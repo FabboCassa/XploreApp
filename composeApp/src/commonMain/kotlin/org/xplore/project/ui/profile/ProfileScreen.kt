@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,11 +50,22 @@ import xploreapp.composeapp.generated.resources.*
 fun ProfileScreen(
     onLogout: () -> Unit,
     onClearMapCache: () -> Unit,
+    openFriendRequests: Boolean = false,
+    onFriendRequestsConsumed: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
     appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val themeMode by appViewModel.themeMode.collectAsState()
+
+    // Deep-link: open the friends dialog on the "Received requests" tab
+    LaunchedEffect(openFriendRequests) {
+        if (openFriendRequests) {
+            viewModel.openFriendsDialog()
+            viewModel.onFriendsTabSelected(0)
+            onFriendRequestsConsumed()
+        }
+    }
 
     // Image picker — delivers bytes to the ViewModel
     val imagePicker = rememberImagePicker { picked ->

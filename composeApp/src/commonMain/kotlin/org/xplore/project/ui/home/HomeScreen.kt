@@ -11,7 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.icerock.moko.geo.LocationTracker
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
@@ -24,6 +26,8 @@ import org.xplore.project.ui.app.AppViewModel
 import org.xplore.project.ui.community.CommunityScreen
 import org.xplore.project.ui.components.XploreBottomNavBar
 import org.xplore.project.ui.profile.ProfileScreen
+import org.xplore.project.ui.util.LocalNotificationPermissionRequester
+import org.xplore.project.ui.util.PendingDeepLink
 
 /**
  * The main container screen that hosts the Bottom Navigation and switches
@@ -39,6 +43,17 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val themeMode by appViewModel.themeMode.collectAsState()
+    var openFriendRequests by remember { mutableStateOf(false) }
+
+    // Handle notification deep links (e.g. tap on "friend_request" notification)
+    val deepLinkEvent by PendingDeepLink.event.collectAsState()
+    LaunchedEffect(deepLinkEvent) {
+        if (deepLinkEvent == "open_friend_requests") {
+            viewModel.onNavItemSelected(2)
+            openFriendRequests = true
+            PendingDeepLink.consume()
+        }
+    }
     val systemDark = isSystemInDarkTheme()
     val isDark = when (themeMode) {
         ThemeMode.SYSTEM -> systemDark
@@ -71,9 +86,11 @@ fun HomeScreen(
 
     Scaffold(
         bottomBar = {
+            val hasPendingNotification by viewModel.hasPendingNotification.collectAsState()
             XploreBottomNavBar(
                 selectedIndex = uiState.selectedNavIndex,
                 onItemSelected = viewModel::onNavItemSelected,
+                profileHasBadge = hasPendingNotification,
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -100,6 +117,8 @@ fun HomeScreen(
                         onLogout()
                     },
                     onClearMapCache = { viewModel.clearMapCache() },
+                    openFriendRequests = openFriendRequests,
+                    onFriendRequestsConsumed = { openFriendRequests = false },
                 )
             }
         }
@@ -107,9 +126,16 @@ fun HomeScreen(
 
     // ── Settings Dialog (rendered above everything) ──
     if (uiState.isSettingsOpen) {
+        val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+        val permissionRequester = LocalNotificationPermissionRequester.current
+
         SettingsDialog(
             searchRadiusKm = uiState.searchRadiusKm,
             radiusAverages = uiState.radiusAverages,
+            notificationsEnabled = notificationsEnabled,
+            onNotificationsToggle = { enabled ->
+                viewModel.onNotificationsToggle(enabled, permissionRequester)
+            },
             onRadiusChange = viewModel::updateSearchRadius,
             onDismiss = viewModel::closeSettings,
             onLogout = {

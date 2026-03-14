@@ -1,5 +1,7 @@
 package org.xplore.project.ui.components
 
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -39,6 +41,7 @@ import xploreapp.composeapp.generated.resources.nav_community
 fun XploreBottomNavBar(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
+    profileHasBadge: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -63,10 +66,20 @@ fun XploreBottomNavBar(
                 selected = isSelected,
                 onClick = { onItemSelected(index) },
                 icon = {
-                    Icon(
-                        painter = painterResource(item.iconRes),
-                        contentDescription = stringResource(item.labelRes),
-                    )
+                    val isProfileTab = index == 2
+                    if (isProfileTab && profileHasBadge) {
+                        BadgedBox(badge = { Badge() }) {
+                            Icon(
+                                painter = painterResource(item.iconRes),
+                                contentDescription = stringResource(item.labelRes),
+                            )
+                        }
+                    } else {
+                        Icon(
+                            painter = painterResource(item.iconRes),
+                            contentDescription = stringResource(item.labelRes),
+                        )
+                    }
                 },
                 label = null,
                 alwaysShowLabel = false,

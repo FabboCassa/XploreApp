@@ -32,11 +32,35 @@ class AppPreferences {
             _themeModeFlow.value = value
         }
 
+    // ── Notifications ───────────────────────────────────────────
+
+    private val _notificationsEnabledFlow = MutableStateFlow(
+        settings.getBoolean(KEY_NOTIFICATIONS, false)
+    )
+    val notificationsEnabledFlow: StateFlow<Boolean> = _notificationsEnabledFlow.asStateFlow()
+
+    var notificationsEnabled: Boolean
+        get() = _notificationsEnabledFlow.value
+        set(value) {
+            settings.putBoolean(KEY_NOTIFICATIONS, value)
+            _notificationsEnabledFlow.value = value
+        }
+
+    var notificationsAsked: Boolean
+        get() = settings.getBoolean(KEY_NOTIFICATIONS_ASKED, false)
+        set(value) {
+            settings.putBoolean(KEY_NOTIFICATIONS_ASKED, value)
+        }
+
+    // ── Helpers ──────────────────────────────────────────────────
+
     private fun readThemeMode(): ThemeMode =
         ThemeMode.entries.find { it.name == settings.getStringOrNull(KEY_THEME_MODE) }
             ?: ThemeMode.SYSTEM
 
     companion object {
         private const val KEY_THEME_MODE = "xplore_theme_mode"
+        private const val KEY_NOTIFICATIONS = "xplore_notifications_enabled"
+        private const val KEY_NOTIFICATIONS_ASKED = "xplore_notifications_asked"
     }
 }

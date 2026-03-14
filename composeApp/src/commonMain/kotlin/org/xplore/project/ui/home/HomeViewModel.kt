@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -13,9 +16,13 @@ import kotlin.time.Clock
 import org.jetbrains.compose.resources.getString
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
+import org.xplore.project.domain.model.GroupInviteStatus
 import org.xplore.project.domain.repository.AuthRepository
+import org.xplore.project.domain.repository.CommunityRepository
+import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
+import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
 
@@ -38,6 +45,9 @@ class HomeViewModel(
     private val authRepository: AuthRepository,
     private val metricsDataSource: RadiusMetricsRemoteDataSource,
     private val tokenManager: TokenManager,
+    private val appPreferences: AppPreferences,
+    private val friendRepository: FriendRepository,
+    private val communityRepository: CommunityRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -48,6 +58,14 @@ class HomeViewModel(
     private var searchJob: Job? = null
     private var loadPinsJob: Job? = null
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    // Emits navigation commands from external triggers (e.g. notification tap)
+    private val _navigationEvent = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val navigationEvent: SharedFlow<String> = _navigationEvent.asSharedFlow()
+
+    fun navigateTo(event: String) {
+        _navigationEvent.tryEmit(event)
+    }
 
     init {
         // Restore base radius
@@ -69,6 +87,9 @@ class HomeViewModel(
             val averages = metricsDataSource.getLoadingAverages()
             _uiState.update { it.copy(radiusAverages = averages) }
         }
+
+        // Load pending badge count on startup
+        refreshPendingNotificationBadge()
     }
 
     // ── Map State ──────────────────────────────────────────────────
@@ -114,6 +135,7 @@ class HomeViewModel(
 
     fun onNavItemSelected(index: Int) {
         _uiState.update { it.copy(selectedNavIndex = index, selectedPin = null) }
+        if (index == 2) refreshPendingNotificationBadge()
     }
 
     fun onClearSearch() {
@@ -129,6 +151,39 @@ class HomeViewModel(
 
     fun onDismissCallout() {
         _uiState.update { it.copy(selectedPin = null) }
+    }
+
+    // ── Notifications ──────────────────────────────────────────────
+
+    val notificationsEnabled: StateFlow<Boolean> = appPreferences.notificationsEnabledFlow
+
+    private val _hasPendingNotification = MutableStateFlow(false)
+    val hasPendingNotification: StateFlow<Boolean> = _hasPendingNotification.asStateFlow()
+
+    /**
+     * Loads pending friend requests and group invites count.
+     * Sets [hasPendingNotification] to true if at least one is pending.
+     * Called on init and when the user navigates to the Profile tab.
+     */
+    fun refreshPendingNotificationBadge() {
+        viewModelScope.launch {
+            val hasPendingFriendRequests = friendRepository.getPendingRequests()
+                .getOrNull()
+                ?.isNotEmpty() == true
+            val hasPendingGroupInvites = runCatching {
+                communityRepository.getMyGroupInvites()
+                    .any { it.status == GroupInviteStatus.Pending }
+            }.getOrDefault(false)
+            _hasPendingNotification.value = hasPendingFriendRequests || hasPendingGroupInvites
+        }
+    }
+
+    fun onNotificationsToggle(enabled: Boolean, requestPermission: () -> Unit) {
+        if (enabled) {
+            requestPermission()
+        } else {
+            appPreferences.notificationsEnabled = false
+        }
     }
 
     fun logout() {

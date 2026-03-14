@@ -24,6 +24,7 @@ gen/
 out/
 .api_prev.txt
 dependencies.txt
+google-services.json
 
 # Gradle
 .gradle/

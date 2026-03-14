@@ -16,11 +16,14 @@ import org.xplore.project.domain.model.CompetitionType
 import org.xplore.project.domain.model.CompetitionRule
 import org.xplore.project.domain.model.CompetitionActionType
 import org.xplore.project.domain.model.CompetitionLeaderboardEntry
+import org.xplore.project.domain.model.GroupInvite
+import org.xplore.project.domain.model.GroupInviteStatus
 import org.xplore.project.data.remote.dto.CompetitionDto
 import org.xplore.project.data.remote.dto.CompetitionRuleDto
 import org.xplore.project.data.remote.dto.CompetitionLeaderboardEntryDto
 import org.xplore.project.data.remote.dto.CreateCompetitionRequest
 import org.xplore.project.data.remote.dto.CompetitionRuleRequest
+import org.xplore.project.data.remote.dto.GroupInviteResponseDto
 import org.xplore.project.domain.repository.CommunityRepository
 
 /**
@@ -205,5 +208,36 @@ class CommunityRepositoryImpl(
         displayName = displayName,
         points = points,
         rank = rank,
+    )
+
+    override suspend fun getMyGroupInvites(): List<GroupInvite> {
+        val token = requireToken()
+        return remoteDataSource.getMyGroupInvites(token).map { it.toDomain() }
+    }
+
+    override suspend fun sendGroupInvite(groupId: String, invitedUserId: String) {
+        val token = requireToken()
+        remoteDataSource.sendGroupInvite(groupId, invitedUserId, token)
+    }
+
+    override suspend fun acceptGroupInvite(inviteId: String) {
+        val token = requireToken()
+        remoteDataSource.acceptGroupInvite(inviteId, token)
+    }
+
+    override suspend fun rejectGroupInvite(inviteId: String) {
+        val token = requireToken()
+        remoteDataSource.rejectGroupInvite(inviteId, token)
+    }
+
+    private fun GroupInviteResponseDto.toDomain() = GroupInvite(
+        id = id,
+        groupId = groupId,
+        groupName = groupName,
+        invitedByUserId = invitedByUserId,
+        invitedByDisplayName = invitedByDisplayName,
+        invitedUserId = invitedUserId,
+        status = GroupInviteStatus.fromValue(status),
+        createdAt = createdAt,
     )
 }
