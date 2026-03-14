@@ -43,6 +43,8 @@ import org.jetbrains.compose.resources.stringResource
 
 import org.xplore.project.ui.components.pinTypeColor
 import xploreapp.composeapp.generated.resources.*
+import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material3.OutlinedButton
 
 /**
  * Reusable UI components for the POI Detail screen.
@@ -143,6 +145,7 @@ fun PoiDetailBody(
     uriHandler: androidx.compose.ui.platform.UriHandler,
     onRateClick: () -> Unit,
     onMarkVisitedClick: () -> Unit,
+    onAddStopClick: () -> Unit = {},
     visitStatus: VisitStatus,
     isGuest: Boolean,
 ) {
@@ -271,6 +274,28 @@ fun PoiDetailBody(
                     )
                 }
             }
+        }
+
+        // Add Stop Button
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = onAddStopClick,
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().height(36.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AddLocationAlt,
+                contentDescription = null,
+                tint = Color(0xFF4A90D9),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = stringResource(Res.string.itinerary_add_stop),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF4A90D9),
+            )
         }
 
         // Description

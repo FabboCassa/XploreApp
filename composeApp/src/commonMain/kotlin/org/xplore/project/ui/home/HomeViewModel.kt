@@ -24,6 +24,7 @@ import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.TokenManager
+import org.xplore.project.data.remote.OsrmRoutingService
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -48,6 +49,7 @@ class HomeViewModel(
     private val appPreferences: AppPreferences,
     private val friendRepository: FriendRepository,
     private val communityRepository: CommunityRepository,
+    private val osrmRoutingService: OsrmRoutingService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -90,6 +92,14 @@ class HomeViewModel(
 
         // Load pending badge count on startup
         refreshPendingNotificationBadge()
+
+        // Auto-refresh badge every 15s so it updates after accept/reject
+        viewModelScope.launch {
+            while (true) {
+                delay(15_000)
+                refreshPendingNotificationBadge()
+            }
+        }
     }
 
     // ── Map State ──────────────────────────────────────────────────
@@ -292,6 +302,9 @@ class HomeViewModel(
         if (isFirstFix) {
             loadPinsInternal(latitude, longitude, allowNetworkRefresh = true)
         }
+
+        // ── Live navigation: check proximity to next stop ──
+        checkNavigationProgress(latitude, longitude)
     }
 
     /**
@@ -455,4 +468,210 @@ class HomeViewModel(
         FilterChipData(id = "viewpoints",  labelRes = Res.string.filter_viewpoints),
         FilterChipData(id = "other",       labelRes = Res.string.filter_other),
     )
+
+    // ── Itinerary ─────────────────────────────────────────────
+
+    private val routeUseCase = org.xplore.project.domain.usecase.GenerateAutomatedRouteUseCase()
+
+    fun addItineraryStop(pin: MapPin) {
+        val state = _uiState.value
+        if (state.itineraryStops.any { it.pin.id == pin.id }) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(itinerarySnackbar = getString(Res.string.itinerary_stop_already_added)) }
+                delay(2000)
+                _uiState.update { it.copy(itinerarySnackbar = null) }
+            }
+            return
+        }
+        val stop = org.xplore.project.domain.model.ItineraryStop(pin = pin)
+        _uiState.update { it.copy(itineraryStops = it.itineraryStops + stop) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(itinerarySnackbar = getString(Res.string.itinerary_stop_added)) }
+            delay(2000)
+            _uiState.update { it.copy(itinerarySnackbar = null) }
+        }
+    }
+
+    fun removeItineraryStop(pinId: String) {
+        _uiState.update { it.copy(itineraryStops = it.itineraryStops.filter { s -> s.pin.id != pinId }) }
+    }
+
+    fun clearItinerary() {
+        routeFetchJob?.cancel()
+        _uiState.update { it.copy(itineraryStops = emptyList(), isNavigationActive = false, routeGeometryJson = null, nextStopIndex = 0) }
+    }
+
+    fun openAutomatedRouteDialog() {
+        _uiState.update { it.copy(isAutomatedRouteDialogOpen = true) }
+    }
+
+    fun closeAutomatedRouteDialog() {
+        _uiState.update { it.copy(isAutomatedRouteDialogOpen = false) }
+    }
+
+    private var routeFetchJob: Job? = null
+
+    fun startNavigation() {
+        val state = _uiState.value
+        val stops = state.itineraryStops
+        if (stops.isEmpty()) return
+
+        _uiState.update { it.copy(isNavigationActive = true, nextStopIndex = 0) }
+        fetchRouteFromCurrentPosition()
+    }
+
+    fun stopNavigation() {
+        routeFetchJob?.cancel()
+        _uiState.update { it.copy(isNavigationActive = false, routeGeometryJson = null, nextStopIndex = 0) }
+    }
+
+    /**
+     * Fetches the OSRM route from the user's current position through
+     * remaining stops (from [nextStopIndex] onward).
+     */
+    private fun fetchRouteFromCurrentPosition() {
+        routeFetchJob?.cancel()
+        val state = _uiState.value
+        val lat = state.userLatitude ?: return
+        val lng = state.userLongitude ?: return
+        val remainingStops = state.itineraryStops.drop(state.nextStopIndex)
+        if (remainingStops.isEmpty()) {
+            // All stops visited
+            _uiState.update { it.copy(routeGeometryJson = null) }
+            return
+        }
+
+        // Create a virtual "user position" pin as the route origin
+        val userPin = MapPin(
+            id = "__user_origin__",
+            label = "",
+            latitude = lat,
+            longitude = lng,
+            type = PinType.OTHER,
+        )
+        val waypoints = listOf(userPin) + remainingStops.map { it.pin }
+
+        routeFetchJob = viewModelScope.launch {
+            val geometry = osrmRoutingService.fetchRouteGeometry(waypoints)
+            _uiState.update { it.copy(routeGeometryJson = geometry) }
+        }
+    }
+
+    /**
+     * Called on every location update during active navigation.
+     * Checks if the user is within ~50m of the next stop.
+     * If so, advances to the next stop and re-fetches the route.
+     */
+    private fun checkNavigationProgress(latitude: Double, longitude: Double) {
+        val state = _uiState.value
+        if (!state.isNavigationActive) return
+
+        val stops = state.itineraryStops
+        val nextIndex = state.nextStopIndex
+        if (nextIndex >= stops.size) return
+
+        val nextStop = stops[nextIndex].pin
+        val distanceMeters = haversineDistance(
+            lat1 = latitude, lng1 = longitude,
+            lat2 = nextStop.latitude, lng2 = nextStop.longitude,
+        )
+
+        if (distanceMeters < 50.0) {
+            // Stop reached — advance to next
+            val newIndex = nextIndex + 1
+            if (newIndex >= stops.size) {
+                // All stops visited — navigation complete
+                viewModelScope.launch {
+                    _uiState.update { it.copy(
+                        nextStopIndex = newIndex,
+                        routeGeometryJson = null,
+                        itinerarySnackbar = "Percorso completato!",
+                    ) }
+                    delay(3000)
+                    _uiState.update { it.copy(
+                        isNavigationActive = false,
+                        nextStopIndex = 0,
+                        itinerarySnackbar = null,
+                    ) }
+                }
+            } else {
+                _uiState.update { it.copy(nextStopIndex = newIndex) }
+                fetchRouteFromCurrentPosition()
+            }
+        }
+    }
+
+    /**
+     * Haversine distance between two lat/lng points, in meters.
+     */
+    private fun haversineDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val r = 6_371_000.0 // Earth radius in meters
+        val dLat = kotlin.math.PI / 180.0 * (lat2 - lat1)
+        val dLng = kotlin.math.PI / 180.0 * (lng2 - lng1)
+        val radLat1 = kotlin.math.PI / 180.0 * lat1
+        val radLat2 = kotlin.math.PI / 180.0 * lat2
+        val a = kotlin.math.sin(dLat / 2) * kotlin.math.sin(dLat / 2) +
+                kotlin.math.cos(radLat1) * kotlin.math.cos(radLat2) *
+                kotlin.math.sin(dLng / 2) * kotlin.math.sin(dLng / 2)
+        val c = 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+        return r * c
+    }
+
+    fun generateAutomatedRoute(
+        constraint: org.xplore.project.domain.usecase.GenerateAutomatedRouteUseCase.RouteConstraint,
+        travelMode: org.xplore.project.domain.usecase.GenerateAutomatedRouteUseCase.TravelMode,
+        categories: Set<org.xplore.project.domain.model.PinType>,
+    ) {
+        val state = _uiState.value
+        val lat = state.userLatitude ?: return
+        val lng = state.userLongitude ?: return
+
+        val params = org.xplore.project.domain.usecase.GenerateAutomatedRouteUseCase.Params(
+            allPins = state.allLoadedPins,
+            startLat = lat,
+            startLng = lng,
+            constraint = constraint,
+            travelMode = travelMode,
+            selectedCategories = categories,
+        )
+
+        val result = routeUseCase.execute(params)
+        _uiState.update {
+            it.copy(
+                itineraryStops = result.stops,
+                isAutomatedRouteDialogOpen = false,
+            )
+        }
+
+        viewModelScope.launch {
+            val snackbarMessage = when {
+                result.stops.isEmpty() -> getString(Res.string.route_dialog_no_results)
+                result.infoMessage != null -> result.infoMessage
+                else -> null
+            }
+
+            if (snackbarMessage != null) {
+                _uiState.update { it.copy(itinerarySnackbar = snackbarMessage) }
+                delay(4000)
+                _uiState.update { it.copy(itinerarySnackbar = null) }
+            }
+        }
+    }
+
+    /**
+     * Builds a Google Maps URL from the current itinerary and returns it,
+     * so the UI layer can open it via UriHandler.
+     */
+    fun buildExportUrl(): String? {
+        val state = _uiState.value
+        val pins = state.itineraryStops.map { it.pin }
+        // Don't pass origin — let Google Maps use the device's live GPS
+        return org.xplore.project.util.MapsIntentUtil.buildGoogleMapsUrl(
+            waypoints = pins,
+        )
+    }
+
+    fun dismissItinerarySnackbar() {
+        _uiState.update { it.copy(itinerarySnackbar = null) }
+    }
 }

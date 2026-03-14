@@ -27,6 +27,9 @@ import org.jetbrains.compose.resources.stringResource
 import org.xplore.project.domain.model.MapPin
 import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.poi_detail_discover
+import xploreapp.composeapp.generated.resources.itinerary_add_stop
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.AddLocationAlt
 import xploreapp.composeapp.generated.resources.poi_rating_format
 import xploreapp.composeapp.generated.resources.poi_rating_count_format
 import xploreapp.composeapp.generated.resources.poi_rating_count_format_single
@@ -51,6 +54,7 @@ import androidx.compose.foundation.layout.width
 fun PinCallout(
     pin: MapPin,
     onDetailClick: (String) -> Unit,
+    onAddStop: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val accentColor = pinTypeColor(pin.type)
@@ -168,6 +172,28 @@ fun PinCallout(
                         text = stringResource(Res.string.poi_detail_discover),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
+                    )
+                }
+
+                // ── "Aggiungi tappa" Button ──
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onAddStop,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AddLocationAlt,
+                        contentDescription = null,
+                        tint = Color(0xFF4A90D9),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.itinerary_add_stop),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = Color(0xFF4A90D9),
                     )
                 }
             } // Close inner Column

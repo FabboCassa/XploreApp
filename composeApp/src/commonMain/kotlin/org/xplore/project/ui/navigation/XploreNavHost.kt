@@ -20,6 +20,7 @@ import org.xplore.project.ui.community.detail.PoiSelectionMapScreen
 import org.xplore.project.ui.community.detail.CompetitionMapScreen
 import org.xplore.project.ui.community.detail.CreateCompetitionViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import org.xplore.project.ui.home.HomeViewModel
 
 /**
  * Root navigation host for the Xplore application.
@@ -110,10 +111,12 @@ fun XploreNavHost(
         // ── POI Detail ──────────────────────────────────────
         composable<PoiDetailRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<PoiDetailRoute>()
+            val homeVm: HomeViewModel = koinViewModel()
             PoiDetailScreen(
                 poiId = route.poiId,
                 onBack = { navController.popBackStack() },
-                onNavigateToLogin = { navController.navigate(LoginRoute) }
+                onNavigateToLogin = { navController.navigate(LoginRoute) },
+                onAddStop = { pin -> homeVm.addItineraryStop(pin) },
             )
         }
 

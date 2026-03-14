@@ -41,6 +41,13 @@ data class HomeUiState(
     val radiusAverages: Map<Double, Long> = emptyMap(),
     val initialCameraLat: Double? = null,
     val initialCameraLng: Double? = null,
+    // ── Itinerary ──
+    val itineraryStops: List<org.xplore.project.domain.model.ItineraryStop> = emptyList(),
+    val isAutomatedRouteDialogOpen: Boolean = false,
+    val isNavigationActive: Boolean = false,
+    val routeGeometryJson: String? = null,
+    val nextStopIndex: Int = 0,
+    val itinerarySnackbar: String? = null,
 )
 
 /**

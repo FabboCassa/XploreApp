@@ -303,6 +303,8 @@
     <string name="competition_map_open">Apri Mappa Competizione</string>
 
     <!-- Notifications & Group Invites -->
+    <string name="notification_channel_name">Notifiche Xplore</string>
+    <string name="notification_badge_content_desc">Notifiche in sospeso</string>
     <string name="notifications_title">Notifiche</string>
     <string name="notifications_empty">Nessuna notifica</string>
     <string name="group_invites_title">Inviti ai Gruppi</string>
@@ -314,4 +316,50 @@
     <string name="group_invite_sent">Invito inviato</string>
     <string name="group_invite_error">Impossibile elaborare l\'invito</string>
     <string name="group_invite_accepted">Invito accettato!</string>
+
+    <!-- Itinerary / Route Builder -->
+    <string name="itinerary_create_route">Crea percorso</string>
+    <string name="itinerary_automated_route">Genera percorso</string>
+    <string name="itinerary_add_stop">Aggiungi tappa</string>
+    <string name="itinerary_stop_added">Tappa aggiunta!</string>
+    <string name="itinerary_stop_already_added">Tappa già presente</string>
+    <string name="itinerary_stop_removed">Tappa rimossa</string>
+    <string name="itinerary_stops_count">%1$d tappe</string>
+    <string name="itinerary_stops_count_single">1 tappa</string>
+    <string name="itinerary_export">Esporta in Maps</string>
+    <string name="itinerary_clear">Svuota</string>
+    <string name="itinerary_export_maps">Esporta in Maps (max 10)</string>
+    <string name="itinerary_navigate">Avvia Navigazione</string>
+    <string name="itinerary_estimated_time">~%1$d min</string>
+    <string name="itinerary_no_stops">Nessuna tappa nel percorso</string>
+    <string name="itinerary_export_error">Impossibile aprire Google Maps</string>
+    <string name="itinerary_nav_stop_of">Tappa %1$d di %2$d</string>
+    <string name="itinerary_nav_prev">Precedente</string>
+    <string name="itinerary_nav_next">Prossima</string>
+    <string name="itinerary_nav_disclaimer">Navigazione senza traffico in tempo reale. Le indicazioni stradali potrebbero contenere errori.</string>
+    <string name="itinerary_navigation_active">Navigazione attiva</string>
+    <string name="itinerary_stop_navigation">Ferma</string>
+
+    <!-- Automated Route Dialog -->
+    <string name="route_dialog_title">Genera Percorso Automatico</string>
+    <string name="route_dialog_constraint_time">Per Tempo</string>
+    <string name="route_dialog_constraint_stops">Per Quantità</string>
+    <string name="route_dialog_time_label">Tempo di viaggio massimo</string>
+    <string name="route_dialog_time_info">Considerato solo come tempo di spostamento tra una tappa e l\'altra, esclusa la visita.</string>
+    <string name="route_dialog_time_hours">%1$d ore</string>
+    <string name="route_dialog_time_minutes">%1$d min</string>
+    <string name="route_dialog_stops_label">Numero di tappe</string>
+    <string name="route_dialog_transport_label">Mezzo di trasporto</string>
+    <string name="route_dialog_transport_walking">A piedi</string>
+    <string name="route_dialog_transport_bicycling">Bicicletta</string>
+    <string name="route_dialog_transport_driving">Auto</string>
+    <string name="route_dialog_categories_label">Categorie preferite</string>
+    <string name="route_dialog_categories_all">Tutte</string>
+    <string name="route_dialog_generate">Genera percorso</string>
+    <string name="route_dialog_no_results">Nessun percorso trovato con questi parametri</string>
+    <string name="route_dialog_fewer_results">Percorso generato con %1$d tappe (meno delle %2$d richieste a causa dei POI disponibili).</string>
+    <string name="route_dialog_result_title">Percorso generato</string>
+    <string name="route_dialog_result_stops">%1$d tappe</string>
+    <string name="route_dialog_time_info_title">Tempo di spostamento</string>
+    <string name="route_dialog_time_info_body">Considerato solo come tempo di spostamento tra una tappa e l\'altra, esclusa la visita.</string>
 </resources>

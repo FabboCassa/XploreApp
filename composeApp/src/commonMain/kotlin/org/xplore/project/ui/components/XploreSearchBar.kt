@@ -50,8 +50,6 @@ fun XploreSearchBar(
         value = query,
         onValueChange = onQueryChange,
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
             .height(56.dp)
             .shadow(
                 elevation = 8.dp,

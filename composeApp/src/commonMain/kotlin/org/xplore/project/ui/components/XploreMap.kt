@@ -20,6 +20,7 @@ import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.OrnamentOptions
@@ -63,6 +64,9 @@ fun XploreMap(
     onDismissCallout: () -> Unit = {},
     onDetailClick: (String) -> Unit = {},
     onCameraMove: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
+    onAddStop: (MapPin) -> Unit = {},
+    routeStops: List<MapPin> = emptyList(),
+    routeGeometryJson: String? = null,
 ) {
     val styleUrl = if (isDark)
         "https://tiles.openfreemap.org/styles/dark"
@@ -92,6 +96,18 @@ fun XploreMap(
                 ),
             )
             hasCenteredOnUser = true
+        }
+    }
+
+    // ── Zoom on user position when navigation starts (like Maps) ──
+    LaunchedEffect(routeStops) {
+        if (routeStops.isNotEmpty() && userLatitude != null && userLongitude != null) {
+            cameraState.animateTo(
+                finalPosition = CameraPosition(
+                    target = Position(longitude = userLongitude, latitude = userLatitude),
+                    zoom = 15.0,
+                ),
+            )
         }
     }
 
@@ -182,23 +198,51 @@ fun XploreMap(
                 )
             }
 
-            // ── Per-type POI layers ──
-            for ((type, json) in jsonByType) {
-                val source = rememberGeoJsonSource(data = GeoJsonData.JsonString(json))
-                val color = pinTypeColor(type)
-
-                CircleLayer(
-                    id = "poi-${type.name.lowercase()}",
-                    source = source,
-                    radius = const(8.dp),
-                    color = const(color),
-                    strokeColor = const(Color.White),
-                    strokeWidth = const(2.dp),
-                    onClick = { features ->
-                        resolveClick(features)
-                        ClickResult.Consume
-                    },
+            // ── Route polyline (OSRM road geometry or straight-line fallback) ──
+            if (routeStops.size >= 2) {
+                val routeLineJson = routeGeometryJson ?: remember(routeStops) { routeLineGeoJsonString(routeStops) }
+                val routeLineSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(routeLineJson))
+                LineLayer(
+                    id = "route-line",
+                    source = routeLineSource,
+                    color = const(Color(0xFF4A90D9)),
+                    width = const(4.dp),
                 )
+            }
+
+            // ── Route stop markers (numbered) ──
+            if (routeStops.isNotEmpty()) {
+                val routeMarkersJson = remember(routeStops) { routeMarkersGeoJsonString(routeStops) }
+                val routeMarkersSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(routeMarkersJson))
+                CircleLayer(
+                    id = "route-stops",
+                    source = routeMarkersSource,
+                    radius = const(12.dp),
+                    color = const(Color(0xFF4A90D9)),
+                    strokeColor = const(Color.White),
+                    strokeWidth = const(2.5.dp),
+                )
+            }
+
+            // ── Per-type POI layers (hidden during navigation) ──
+            if (routeStops.isEmpty()) {
+                for ((type, json) in jsonByType) {
+                    val source = rememberGeoJsonSource(data = GeoJsonData.JsonString(json))
+                    val color = pinTypeColor(type)
+
+                    CircleLayer(
+                        id = "poi-${type.name.lowercase()}",
+                        source = source,
+                        radius = const(8.dp),
+                        color = const(color),
+                        strokeColor = const(Color.White),
+                        strokeWidth = const(2.dp),
+                        onClick = { features ->
+                            resolveClick(features)
+                            ClickResult.Consume
+                        },
+                    )
+                }
             }
         }
 
@@ -214,6 +258,7 @@ fun XploreMap(
             PinCallout(
                 pin = selectedPin,
                 onDetailClick = onDetailClick,
+                onAddStop = { onAddStop(selectedPin) },
                 modifier = Modifier.align(Alignment.Center),
             )
         }
@@ -264,4 +309,16 @@ private fun userLocationGeoJsonString(lat: Double?, lng: Double?): String {
         return """{"type":"FeatureCollection","features":[]}"""
     }
     return """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[$lng,$lat]},"properties":{}}]}"""
+}
+
+private fun routeLineGeoJsonString(stops: List<MapPin>): String {
+    val coords = stops.joinToString(",") { "[${it.longitude},${it.latitude}]" }
+    return """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"LineString","coordinates":[$coords]},"properties":{}}]}"""
+}
+
+private fun routeMarkersGeoJsonString(stops: List<MapPin>): String {
+    val features = stops.mapIndexed { index, pin ->
+        """{"type":"Feature","geometry":{"type":"Point","coordinates":[${pin.longitude},${pin.latitude}]},"properties":{"index":${index + 1}}}"""
+    }.joinToString(",")
+    return """{"type":"FeatureCollection","features":[$features]}"""
 }

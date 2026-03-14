@@ -4,8 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -15,16 +18,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,9 +47,11 @@ import org.maplibre.spatialk.geojson.Position
 import org.xplore.project.ui.components.XploreFilterChips
 import org.xplore.project.ui.components.XploreMap
 import org.xplore.project.ui.components.XploreSearchBar
+import org.xplore.project.ui.itinerary.ItineraryFloatingBar
 import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.search_no_results
 import xploreapp.composeapp.generated.resources.search_searching
+import xploreapp.composeapp.generated.resources.itinerary_automated_route
 
 /**
  * Map tab content — extracted for clarity.
@@ -48,6 +62,8 @@ fun MapContent(
     viewModel: HomeViewModel,
     onDetailClick: (String) -> Unit,
     isDark: Boolean = false,
+    onExportItinerary: () -> Unit = {},
+    onNavigateItinerary: () -> Unit = {},
 ) {
     // ── Build initial camera position if saved ──
     val initialCamera = remember(uiState.initialCameraLat, uiState.initialCameraLng) {
@@ -74,6 +90,11 @@ fun MapContent(
             onDismissCallout = viewModel::onDismissCallout,
             onDetailClick = onDetailClick,
             onCameraMove = viewModel::onMapCameraMove,
+            onAddStop = viewModel::addItineraryStop,
+            routeStops = if (uiState.isNavigationActive) {
+                uiState.itineraryStops.drop(uiState.nextStopIndex).map { it.pin }
+            } else emptyList(),
+            routeGeometryJson = uiState.routeGeometryJson,
         )
 
         Column(
@@ -85,18 +106,44 @@ fun MapContent(
                 )
                 .padding(top = 8.dp),
         ) {
-            XploreSearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = viewModel::onSearchQueryChanged,
-                onClear = viewModel::onClearSearch,
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                XploreSearchBar(
+                    query = uiState.searchQuery,
+                    onQueryChange = viewModel::onSearchQueryChanged,
+                    onClear = viewModel::onClearSearch,
+                    modifier = Modifier.weight(1f)
+                )
+
+                androidx.compose.material3.Button(
+                    onClick = viewModel::openAutomatedRouteDialog,
+                    modifier = Modifier.height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Route,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
 
             Spacer(Modifier.height(12.dp))
 
+            // ── Filter chips row ──
             XploreFilterChips(
                 filters = uiState.filters,
                 onFilterClick = viewModel::onFilterSelected,
-                onSettingsClick = viewModel::openSettings,
                 onMoreFiltersClick = viewModel::openFilterDialog,
             )
 
@@ -193,6 +240,33 @@ fun MapContent(
                         )
                     }
                 }
+            }
+        }
+
+        // ── Itinerary Floating Bar (bottom) ──
+        ItineraryFloatingBar(
+            stops = uiState.itineraryStops,
+            isNavigationActive = uiState.isNavigationActive,
+            nextStopIndex = uiState.nextStopIndex,
+            onNavigate = onNavigateItinerary,
+            onStopNavigation = viewModel::stopNavigation,
+            onExport = onExportItinerary,
+            onClear = viewModel::clearItinerary,
+            onRemoveStop = viewModel::removeItineraryStop,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+
+        // ── Itinerary Snackbar ──
+        if (uiState.itinerarySnackbar != null) {
+            Snackbar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = if (uiState.itineraryStops.isNotEmpty()) 180.dp else 16.dp)
+                    .padding(horizontal = 16.dp),
+                containerColor = Color(0xFF323232),
+                contentColor = Color.White,
+            ) {
+                Text(text = uiState.itinerarySnackbar)
             }
         }
     }

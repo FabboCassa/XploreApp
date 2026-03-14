@@ -50,6 +50,7 @@ import xploreapp.composeapp.generated.resources.*
 fun ProfileScreen(
     onLogout: () -> Unit,
     onClearMapCache: () -> Unit,
+    onOpenMapSettings: () -> Unit = {},
     openFriendRequests: Boolean = false,
     onFriendRequestsConsumed: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
@@ -128,6 +129,7 @@ fun ProfileScreen(
         if (!uiState.isGuest) {
             FriendsCard(
                 friendCount = uiState.friends.size,
+                showBadge = uiState.hasPendingNotification,
                 onClick = viewModel::openFriendsDialog,
             )
         }
@@ -147,6 +149,7 @@ fun ProfileScreen(
             onClearMapCache = onClearMapCache,
             themeMode = themeMode,
             onThemeModeChange = appViewModel::setThemeMode,
+            onOpenMapSettings = onOpenMapSettings,
         )
 
         // ── Logout / Login Button ──

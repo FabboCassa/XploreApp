@@ -91,6 +91,7 @@ fun PoiDetailScreen(
     poiId: String,
     onBack: () -> Unit,
     onNavigateToLogin: () -> Unit = {},
+    onAddStop: (org.xplore.project.domain.model.MapPin) -> Unit = {},
     viewModel: PoiDetailViewModel = koinViewModel(),
 ) {
     LaunchedEffect(poiId) { viewModel.loadPin(poiId) }
@@ -169,6 +170,7 @@ fun PoiDetailScreen(
                             viewModel.markAsVisited(currentPin.id)
                         }
                     },
+                    onAddStopClick = { onAddStop(currentPin) },
                     visitStatus = visitStatus,
                     isGuest = viewModel.isGuest,
                 )

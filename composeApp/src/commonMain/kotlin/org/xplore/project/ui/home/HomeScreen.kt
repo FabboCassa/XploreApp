@@ -28,6 +28,8 @@ import org.xplore.project.ui.components.XploreBottomNavBar
 import org.xplore.project.ui.profile.ProfileScreen
 import org.xplore.project.ui.util.LocalNotificationPermissionRequester
 import org.xplore.project.ui.util.PendingDeepLink
+import org.xplore.project.ui.itinerary.AutomatedRouteDialog
+import androidx.compose.ui.platform.LocalUriHandler
 
 /**
  * The main container screen that hosts the Bottom Navigation and switches
@@ -44,6 +46,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val themeMode by appViewModel.themeMode.collectAsState()
     var openFriendRequests by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     // Handle notification deep links (e.g. tap on "friend_request" notification)
     val deepLinkEvent by PendingDeepLink.event.collectAsState()
@@ -107,6 +110,13 @@ fun HomeScreen(
                     viewModel = viewModel,
                     onDetailClick = onNavigateToPoiDetail,
                     isDark = isDark,
+                    onExportItinerary = {
+                        val url = viewModel.buildExportUrl()
+                        if (url != null) {
+                            uriHandler.openUri(url)
+                        }
+                    },
+                    onNavigateItinerary = viewModel::startNavigation,
                 )
                 1 -> CommunityScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
@@ -117,6 +127,7 @@ fun HomeScreen(
                         onLogout()
                     },
                     onClearMapCache = { viewModel.clearMapCache() },
+                    onOpenMapSettings = viewModel::openSettings,
                     openFriendRequests = openFriendRequests,
                     onFriendRequestsConsumed = { openFriendRequests = false },
                 )
@@ -154,4 +165,13 @@ fun HomeScreen(
             onDismiss = viewModel::closeFilterDialog,
         )
     }
+
+    // ── Automated Route Dialog ──
+    if (uiState.isAutomatedRouteDialogOpen) {
+        AutomatedRouteDialog(
+            onDismiss = viewModel::closeAutomatedRouteDialog,
+            onGenerate = viewModel::generateAutomatedRoute,
+        )
+    }
+
 }

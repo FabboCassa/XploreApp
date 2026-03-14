@@ -19,6 +19,7 @@ import org.xplore.project.data.remote.CommunityRemoteDataSource
 import org.xplore.project.data.remote.FriendApiService
 import org.xplore.project.data.remote.NotificationApiService
 import org.xplore.project.data.remote.MapPinRemoteDataSource
+import org.xplore.project.data.remote.OsrmRoutingService
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.repository.AuthRepositoryImpl
 import org.xplore.project.data.repository.CommunityRepositoryImpl
@@ -155,6 +156,9 @@ val appModule = module {
             baseUrl = "https://10.0.2.2:7109",
         )
     }
+
+    // ── Routing Service (OSRM) ──────────────────────────────
+    single { OsrmRoutingService(httpClient = get()) }
 
     // ── Data layer ───────────────────────────────────────────
     singleOf(::MuseumRepositoryImpl) bind MuseumRepository::class
