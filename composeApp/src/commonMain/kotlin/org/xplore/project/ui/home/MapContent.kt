@@ -252,6 +252,7 @@ fun MapContent(
             nextStopIndex = uiState.nextStopIndex,
             nextStopDistanceMeters = uiState.routeInfo?.nextLegDistanceMeters,
             nextStopDurationSeconds = uiState.routeInfo?.nextLegDurationSeconds,
+            navigationInstruction = uiState.routeInfo?.nextInstruction,
             onNavigate = onNavigateItinerary,
             onStopNavigation = viewModel::stopNavigation,
             onExport = onExportItinerary,

@@ -26,6 +26,7 @@ import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.remote.OsrmRoutingService
 import org.xplore.project.data.remote.RouteInfo
+import org.xplore.project.domain.notification.NavigationNotifier
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -51,6 +52,7 @@ class HomeViewModel(
     private val friendRepository: FriendRepository,
     private val communityRepository: CommunityRepository,
     private val osrmRoutingService: OsrmRoutingService,
+    private val navigationNotifier: NavigationNotifier,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -518,11 +520,27 @@ class HomeViewModel(
         if (stops.isEmpty()) return
 
         _uiState.update { it.copy(isNavigationActive = true, nextStopIndex = 0) }
+
+        // Show persistent OS notification
+        val firstStop = stops[0].pin
+        val distMeters = state.routeInfo?.nextLegDistanceMeters?.toInt()
+            ?: if (state.userLatitude != null && state.userLongitude != null) {
+                haversineDistance(state.userLatitude, state.userLongitude, firstStop.latitude, firstStop.longitude).toInt()
+            } else 0
+        navigationNotifier.startNavigation(
+            poiName = firstStop.label,
+            distanceMeters = distMeters,
+            stopIndex = 1,
+            totalStops = stops.size,
+            instruction = state.routeInfo?.nextInstruction,
+        )
+
         fetchRouteFromCurrentPosition()
     }
 
     fun stopNavigation() {
         routeFetchJob?.cancel()
+        navigationNotifier.stopNavigation()
         _uiState.update { it.copy(isNavigationActive = false, routeInfo = null, nextStopIndex = 0) }
     }
 
@@ -555,6 +573,23 @@ class HomeViewModel(
         routeFetchJob = viewModelScope.launch {
             val routeInfo = osrmRoutingService.fetchRouteGeometry(waypoints)
             _uiState.update { it.copy(routeInfo = routeInfo) }
+
+            // Immediately refresh the notification with the turn instruction
+            if (routeInfo != null) {
+                val updatedState = _uiState.value
+                val nextIdx = updatedState.nextStopIndex
+                val stps = updatedState.itineraryStops
+                if (nextIdx < stps.size) {
+                    val nextStop = stps[nextIdx].pin
+                    navigationNotifier.updateNavigation(
+                        poiName = nextStop.label,
+                        distanceMeters = routeInfo.nextLegDistanceMeters?.toInt() ?: 0,
+                        stopIndex = nextIdx + 1,
+                        totalStops = stps.size,
+                        instruction = routeInfo.nextInstruction,
+                    )
+                }
+            }
         }
     }
 
@@ -577,11 +612,22 @@ class HomeViewModel(
             lat2 = nextStop.latitude, lng2 = nextStop.longitude,
         )
 
+        // ── Update the OS notification with current distance ──
+        val roadDistance = state.routeInfo?.nextLegDistanceMeters?.toInt() ?: distanceMeters.toInt()
+        navigationNotifier.updateNavigation(
+            poiName = nextStop.label,
+            distanceMeters = roadDistance,
+            stopIndex = nextIndex + 1,
+            totalStops = stops.size,
+            instruction = state.routeInfo?.nextInstruction,
+        )
+
         if (distanceMeters < 50.0) {
             // Stop reached — advance to next
             val newIndex = nextIndex + 1
             if (newIndex >= stops.size) {
                 // All stops visited — navigation complete
+                navigationNotifier.stopNavigation()
                 viewModelScope.launch {
                     _uiState.update { it.copy(
                         nextStopIndex = newIndex,

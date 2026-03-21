@@ -64,6 +64,7 @@ fun ItineraryFloatingBar(
     nextStopIndex: Int = 0,
     nextStopDistanceMeters: Double? = null,
     nextStopDurationSeconds: Double? = null,
+    navigationInstruction: String? = null,
     onNavigate: () -> Unit,
     onStopNavigation: () -> Unit = {},
     onExport: () -> Unit,
@@ -113,6 +114,19 @@ fun ItineraryFloatingBar(
                         )
 
                         Spacer(Modifier.height(2.dp))
+
+                        // Turn-by-turn instruction
+                        if (navigationInstruction != null) {
+                            Text(
+                                text = navigationInstruction,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = Color(0xFF4A90D9),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                        }
 
                         // Distance & ETA row
                         val infoBuilder = StringBuilder()
