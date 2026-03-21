@@ -67,6 +67,8 @@ fun XploreMap(
     onAddStop: (MapPin) -> Unit = {},
     routeStops: List<MapPin> = emptyList(),
     routeGeometryJson: String? = null,
+    isNavigationActive: Boolean = false,
+    routeNextStopIndex: Int = 0,
 ) {
     val styleUrl = if (isDark)
         "https://tiles.openfreemap.org/styles/dark"
@@ -99,17 +101,7 @@ fun XploreMap(
         }
     }
 
-    // ── Zoom on user position when navigation starts (like Maps) ──
-    LaunchedEffect(routeStops) {
-        if (routeStops.isNotEmpty() && userLatitude != null && userLongitude != null) {
-            cameraState.animateTo(
-                finalPosition = CameraPosition(
-                    target = Position(longitude = userLongitude, latitude = userLatitude),
-                    zoom = 15.0,
-                ),
-            )
-        }
-    }
+
 
     // ── Dismiss callout when camera moves ──
     LaunchedEffect(selectedPin) {
@@ -198,30 +190,125 @@ fun XploreMap(
                 )
             }
 
-            // ── Route polyline (OSRM road geometry or straight-line fallback) ──
+            // ── Route polyline — split into current leg (solid) and future legs (transparent) ──
             if (routeStops.size >= 2) {
+                // Completed Route - Gray
+                val visitedStops = routeStops.take(routeNextStopIndex)
+                if (visitedStops.isNotEmpty() && userLatitude != null && userLongitude != null) {
+                    val completedCoords = visitedStops.map { it.longitude to it.latitude } + (userLongitude to userLatitude)
+                    val completedJson = remember(completedCoords) {
+                        val coordsStr = completedCoords.joinToString(",") { (lng, lat) -> "[$lng,$lat]" }
+                        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"LineString","coordinates":[$coordsStr]},"properties":{}}]}"""
+                    }
+                    val completedSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(completedJson))
+                    LineLayer(
+                        id = "route-line-completed-casing",
+                        source = completedSource,
+                        color = const(Color(0xFF9E9E9E).copy(alpha = 0.5f)),
+                        width = const(8.dp),
+                    )
+                    LineLayer(
+                        id = "route-line-completed",
+                        source = completedSource,
+                        color = const(Color(0xFF9E9E9E)),
+                        width = const(4.dp),
+                    )
+                }
+
                 val routeLineJson = routeGeometryJson ?: remember(routeStops) { routeLineGeoJsonString(routeStops) }
-                val routeLineSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(routeLineJson))
-                LineLayer(
-                    id = "route-line",
-                    source = routeLineSource,
-                    color = const(Color(0xFF4A90D9)),
-                    width = const(4.dp),
-                )
+                val nextStop = routeStops.getOrNull(routeNextStopIndex)
+
+                val (currentLegJson, futureLegJson) = remember(routeLineJson, nextStop) {
+                    splitRouteGeoJson(routeLineJson, nextStop)
+                }
+
+                // Current leg — solid blue with casing
+                if (currentLegJson != null) {
+                    val currentSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(currentLegJson))
+                    LineLayer(
+                        id = "route-line-current-casing",
+                        source = currentSource,
+                        color = const(Color(0xFF0D47A1)),
+                        width = const(9.dp),
+                    )
+                    LineLayer(
+                        id = "route-line-current",
+                        source = currentSource,
+                        color = const(Color(0xFF00B0FF)),
+                        width = const(4.5.dp),
+                    )
+                }
+
+                // Future legs — transparent light blue, NO casing
+                if (futureLegJson != null) {
+                    val futureSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(futureLegJson))
+                    LineLayer(
+                        id = "route-line-future",
+                        source = futureSource,
+                        color = const(Color(0xFF81D4FA).copy(alpha = 0.25f)),
+                        width = const(2.dp),
+                    )
+                }
             }
 
-            // ── Route stop markers (numbered) ──
+            // ── Route stop markers (3-color by visit status) ──
             if (routeStops.isNotEmpty()) {
-                val routeMarkersJson = remember(routeStops) { routeMarkersGeoJsonString(routeStops) }
-                val routeMarkersSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(routeMarkersJson))
-                CircleLayer(
-                    id = "route-stops",
-                    source = routeMarkersSource,
-                    radius = const(12.dp),
-                    color = const(Color(0xFF4A90D9)),
-                    strokeColor = const(Color.White),
-                    strokeWidth = const(2.5.dp),
-                )
+                // Visited stops (grey)
+                val visitedStops = routeStops.take(routeNextStopIndex)
+                if (visitedStops.isNotEmpty()) {
+                    val visitedJson = remember(visitedStops) { routeMarkersGeoJsonString(visitedStops) }
+                    val visitedSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(visitedJson))
+                    CircleLayer(
+                        id = "route-stops-visited",
+                        source = visitedSource,
+                        radius = const(8.dp),
+                        color = const(Color(0xFF9E9E9E)),
+                        strokeColor = const(Color.White),
+                        strokeWidth = const(2.dp),
+                    )
+                }
+
+                // Next stop (green, emphasised)
+                val nextStop = routeStops.getOrNull(routeNextStopIndex)
+                if (nextStop != null) {
+                    val nextJson = remember(nextStop) { routeMarkersGeoJsonString(listOf(nextStop)) }
+                    val nextSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(nextJson))
+                    CircleLayer(
+                        id = "route-stop-next-glow",
+                        source = nextSource,
+                        radius = const(20.dp),
+                        color = const(Color(0xFF4CAF50).copy(alpha = 0.25f)),
+                    )
+                    CircleLayer(
+                        id = "route-stop-next",
+                        source = nextSource,
+                        radius = const(12.dp),
+                        color = const(Color(0xFF4CAF50)),
+                        strokeColor = const(Color.White),
+                        strokeWidth = const(3.dp),
+                    )
+                }
+
+                // Future stops (orange)
+                val futureStops = routeStops.drop(routeNextStopIndex + 1)
+                if (futureStops.isNotEmpty()) {
+                    val futureJson = remember(futureStops) { routeMarkersGeoJsonString(futureStops) }
+                    val futureSource = rememberGeoJsonSource(data = GeoJsonData.JsonString(futureJson))
+                    CircleLayer(
+                        id = "route-stops-future-glow",
+                        source = futureSource,
+                        radius = const(16.dp),
+                        color = const(Color(0xFFE64A19).copy(alpha = 0.25f)),
+                    )
+                    CircleLayer(
+                        id = "route-stops-future",
+                        source = futureSource,
+                        radius = const(10.dp),
+                        color = const(Color(0xFFE64A19)),
+                        strokeColor = const(Color.White),
+                        strokeWidth = const(2.5.dp),
+                    )
+                }
             }
 
             // ── Per-type POI layers (hidden during navigation) ──
@@ -321,4 +408,63 @@ private fun routeMarkersGeoJsonString(stops: List<MapPin>): String {
         """{"type":"Feature","geometry":{"type":"Point","coordinates":[${pin.longitude},${pin.latitude}]},"properties":{"index":${index + 1}}}"""
     }.joinToString(",")
     return """{"type":"FeatureCollection","features":[$features]}"""
+}
+
+/**
+ * Splits a route GeoJSON LineString into two parts at [splitAt] pin location.
+ * Returns (currentLeg, futureLeg) as GeoJSON FeatureCollection strings.
+ * If splitAt is null, returns the full route as currentLeg and null for futureLeg.
+ */
+private fun splitRouteGeoJson(
+    routeGeoJson: String,
+    splitAt: MapPin?,
+): Pair<String?, String?> {
+    try {
+        val coordRegex = """\[(-?\d+\.?\d*),\s*(-?\d+\.?\d*)\]""".toRegex()
+        val coords = coordRegex.findAll(routeGeoJson).map {
+            it.groupValues[1].toDouble() to it.groupValues[2].toDouble() // lng, lat
+        }.toList()
+
+        if (coords.size < 2) return routeGeoJson to null
+        if (splitAt == null) return routeGeoJson to null
+
+        var splitIndex = coords.size // default: full route is current leg
+        var minDistance = Double.MAX_VALUE
+
+        for (i in coords.indices) {
+            val (lng, lat) = coords[i]
+            val dist = haversineMeters(lat, lng, splitAt.latitude, splitAt.longitude)
+            if (dist < minDistance) {
+                minDistance = dist
+                splitIndex = i
+            }
+        }
+
+        fun toGeoJson(pts: List<Pair<Double, Double>>): String? {
+            if (pts.size < 2) return null
+            val c = pts.joinToString(",") { (lng, lat) -> "[$lng,$lat]" }
+            return """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"LineString","coordinates":[$c]},"properties":{}}]}"""
+        }
+
+        // Include the split point in both segments so they connect visually
+        val currentCoords = coords.take(splitIndex + 1)
+        val futureCoords = coords.drop(splitIndex)
+
+        return toGeoJson(currentCoords) to toGeoJson(futureCoords)
+    } catch (_: Exception) {
+        return routeGeoJson to null
+    }
+}
+
+private fun haversineMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+    val r = 6_371_000.0
+    val dLat = kotlin.math.PI / 180.0 * (lat2 - lat1)
+    val dLng = kotlin.math.PI / 180.0 * (lng2 - lng1)
+    val radLat1 = kotlin.math.PI / 180.0 * lat1
+    val radLat2 = kotlin.math.PI / 180.0 * lat2
+    val a = kotlin.math.sin(dLat / 2) * kotlin.math.sin(dLat / 2) +
+            kotlin.math.cos(radLat1) * kotlin.math.cos(radLat2) *
+            kotlin.math.sin(dLng / 2) * kotlin.math.sin(dLng / 2)
+    val c = 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+    return r * c
 }

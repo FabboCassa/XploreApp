@@ -92,9 +92,11 @@ fun MapContent(
             onCameraMove = viewModel::onMapCameraMove,
             onAddStop = viewModel::addItineraryStop,
             routeStops = if (uiState.isNavigationActive) {
-                uiState.itineraryStops.drop(uiState.nextStopIndex).map { it.pin }
+                uiState.itineraryStops.map { it.pin }
             } else emptyList(),
-            routeGeometryJson = uiState.routeGeometryJson,
+            routeGeometryJson = uiState.routeInfo?.geometryJson,
+            isNavigationActive = uiState.isNavigationActive,
+            routeNextStopIndex = uiState.nextStopIndex,
         )
 
         Column(
@@ -248,6 +250,8 @@ fun MapContent(
             stops = uiState.itineraryStops,
             isNavigationActive = uiState.isNavigationActive,
             nextStopIndex = uiState.nextStopIndex,
+            nextStopDistanceMeters = uiState.routeInfo?.nextLegDistanceMeters,
+            nextStopDurationSeconds = uiState.routeInfo?.nextLegDurationSeconds,
             onNavigate = onNavigateItinerary,
             onStopNavigation = viewModel::stopNavigation,
             onExport = onExportItinerary,

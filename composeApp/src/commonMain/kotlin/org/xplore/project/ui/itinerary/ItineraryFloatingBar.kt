@@ -62,6 +62,8 @@ fun ItineraryFloatingBar(
     stops: List<ItineraryStop>,
     isNavigationActive: Boolean = false,
     nextStopIndex: Int = 0,
+    nextStopDistanceMeters: Double? = null,
+    nextStopDurationSeconds: Double? = null,
     onNavigate: () -> Unit,
     onStopNavigation: () -> Unit = {},
     onExport: () -> Unit,
@@ -86,27 +88,59 @@ fun ItineraryFloatingBar(
         ) {
             if (isNavigationActive) {
                 // ── Navigation active mode ──
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val remaining = stops.size - nextStopIndex
-                    val progressText = stringResource(
-                        Res.string.itinerary_nav_stop_of,
-                        nextStopIndex + 1,
-                        stops.size,
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    // Header row
+                    Text(
+                        text = stringResource(Res.string.itinerary_navigation_active),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4A90D9),
                     )
 
-                    Column {
+                    Spacer(Modifier.height(4.dp))
+
+                    // Next POI info
+                    val nextStop = stops.getOrNull(nextStopIndex)
+                    if (nextStop != null) {
+                        // POI name
                         Text(
-                            text = stringResource(Res.string.itinerary_navigation_active),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4A90D9),
+                            text = nextStop.pin.label,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A2E),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
+
+                        Spacer(Modifier.height(2.dp))
+
+                        // Distance & ETA row
+                        val infoBuilder = StringBuilder()
+                        val progressText = stringResource(
+                            Res.string.itinerary_nav_stop_of,
+                            nextStopIndex + 1,
+                            stops.size,
+                        )
+                        infoBuilder.append(progressText)
+
+                        if (nextStopDistanceMeters != null) {
+                            val distText = if (nextStopDistanceMeters < 1000) {
+                                "${nextStopDistanceMeters.toInt()} m"
+                            } else {
+                                val km = nextStopDistanceMeters / 1000.0
+                                "${(kotlin.math.round(km * 10) / 10.0)} km"
+                            }
+                            infoBuilder.append(" • $distText")
+                        }
+
+                        if (nextStopDurationSeconds != null) {
+                            val mins = (nextStopDurationSeconds / 60.0).toInt()
+                            val durText = if (mins < 1) "< 1 min" else "$mins min"
+                            infoBuilder.append(" • $durText")
+                        }
+
                         Text(
-                            text = progressText,
+                            text = infoBuilder.toString(),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF888888),
@@ -116,51 +150,26 @@ fun ItineraryFloatingBar(
 
                 Spacer(Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                // Single full-width Stop button
+                OutlinedButton(
+                    onClick = onStopNavigation,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFFD32F2F),
+                    ),
                 ) {
-                    OutlinedButton(
-                        onClick = onStopNavigation,
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(0xFFD32F2F),
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Stop,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(Res.string.itinerary_stop_navigation),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = onExport,
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(0xFF388E3C),
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Map,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(Res.string.itinerary_export_maps),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.itinerary_stop_navigation),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
                 }
             } else {
                 // ── Normal itinerary mode ──

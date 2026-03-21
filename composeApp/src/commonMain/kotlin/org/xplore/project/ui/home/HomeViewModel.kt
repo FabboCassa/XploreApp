@@ -25,6 +25,7 @@ import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
 import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.remote.OsrmRoutingService
+import org.xplore.project.data.remote.RouteInfo
 import xploreapp.composeapp.generated.resources.*
 
 /**
@@ -498,7 +499,7 @@ class HomeViewModel(
 
     fun clearItinerary() {
         routeFetchJob?.cancel()
-        _uiState.update { it.copy(itineraryStops = emptyList(), isNavigationActive = false, routeGeometryJson = null, nextStopIndex = 0) }
+        _uiState.update { it.copy(itineraryStops = emptyList(), isNavigationActive = false, routeInfo = null, nextStopIndex = 0) }
     }
 
     fun openAutomatedRouteDialog() {
@@ -522,7 +523,7 @@ class HomeViewModel(
 
     fun stopNavigation() {
         routeFetchJob?.cancel()
-        _uiState.update { it.copy(isNavigationActive = false, routeGeometryJson = null, nextStopIndex = 0) }
+        _uiState.update { it.copy(isNavigationActive = false, routeInfo = null, nextStopIndex = 0) }
     }
 
     /**
@@ -537,7 +538,7 @@ class HomeViewModel(
         val remainingStops = state.itineraryStops.drop(state.nextStopIndex)
         if (remainingStops.isEmpty()) {
             // All stops visited
-            _uiState.update { it.copy(routeGeometryJson = null) }
+            _uiState.update { it.copy(routeInfo = null) }
             return
         }
 
@@ -552,8 +553,8 @@ class HomeViewModel(
         val waypoints = listOf(userPin) + remainingStops.map { it.pin }
 
         routeFetchJob = viewModelScope.launch {
-            val geometry = osrmRoutingService.fetchRouteGeometry(waypoints)
-            _uiState.update { it.copy(routeGeometryJson = geometry) }
+            val routeInfo = osrmRoutingService.fetchRouteGeometry(waypoints)
+            _uiState.update { it.copy(routeInfo = routeInfo) }
         }
     }
 
@@ -584,7 +585,7 @@ class HomeViewModel(
                 viewModelScope.launch {
                     _uiState.update { it.copy(
                         nextStopIndex = newIndex,
-                        routeGeometryJson = null,
+                        routeInfo = null,
                         itinerarySnackbar = "Percorso completato!",
                     ) }
                     delay(3000)
