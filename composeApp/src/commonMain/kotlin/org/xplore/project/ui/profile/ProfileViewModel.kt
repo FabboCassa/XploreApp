@@ -10,10 +10,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.xplore.project.domain.model.GroupInvite
+import org.xplore.project.domain.model.SavedRoute
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.AuthResult
 import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.FriendRepository
+import org.xplore.project.domain.repository.SavedRouteRepository
 import org.xplore.project.data.local.TokenManager
 import xploreapp.composeapp.generated.resources.*
 
@@ -108,6 +110,11 @@ data class ProfileUiState(
     val isGroupInvitesDialogOpen: Boolean = false,
     val isLoadingInvites: Boolean = false,
 
+    // Saved Routes
+    val savedRoutes: List<SavedRoute> = emptyList(),
+    val completedRoutes: List<SavedRoute> = emptyList(),
+    val isLoadingRoutes: Boolean = false,
+
     // 2FA
     val isSelectingTwoFactorMethod: Boolean = false,
     val selectedTwoFactorMethod: String? = null,
@@ -121,6 +128,7 @@ class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val friendRepository: FriendRepository,
     private val communityRepository: CommunityRepository,
+    private val savedRouteRepository: SavedRouteRepository,
     private val tokenManager: TokenManager,
 ) : ViewModel() {
 
@@ -180,6 +188,46 @@ class ProfileViewModel(
                 },
             )
             loadFriendsData()
+            loadSavedRoutes()
+        }
+    }
+
+    // ── Saved Routes ─────────────────────────────────────────
+    fun refreshSavedRoutes() = loadSavedRoutes()
+
+    private fun loadSavedRoutes() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingRoutes = true) }
+            val savedResult = savedRouteRepository.getSavedRoutes()
+            val completedResult = savedRouteRepository.getCompletedRoutes()
+            _uiState.update {
+                it.copy(
+                    isLoadingRoutes = false,
+                    savedRoutes = savedResult.getOrNull() ?: emptyList(),
+                    completedRoutes = completedResult.getOrNull() ?: emptyList(),
+                )
+            }
+        }
+    }
+
+    fun shareRoute(route: SavedRoute): String {
+        return "https://xplore.app/routes/shared/${route.shareToken}"
+    }
+
+    fun deleteRoute(routeId: String) {
+        viewModelScope.launch {
+            val result = savedRouteRepository.deleteRoute(routeId)
+            result.fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(
+                            savedRoutes = it.savedRoutes.filter { r -> r.id != routeId },
+                            completedRoutes = it.completedRoutes.filter { r -> r.id != routeId },
+                        )
+                    }
+                },
+                onFailure = { /* silently ignore */ },
+            )
         }
     }
 

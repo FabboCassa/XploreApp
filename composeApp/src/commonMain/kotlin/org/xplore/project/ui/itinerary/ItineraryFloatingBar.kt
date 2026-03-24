@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Navigation
@@ -65,6 +66,9 @@ fun ItineraryFloatingBar(
     nextStopDistanceMeters: Double? = null,
     nextStopDurationSeconds: Double? = null,
     navigationInstruction: String? = null,
+    isLoadedFromSaved: Boolean = false,
+    onSaveRoute: () -> Unit = {},
+    onCancelLoadedRoute: () -> Unit = {},
     onNavigate: () -> Unit,
     onStopNavigation: () -> Unit = {},
     onExport: () -> Unit,
@@ -196,6 +200,25 @@ fun ItineraryFloatingBar(
                         stringResource(Res.string.itinerary_stops_count_single)
                     else
                         stringResource(Res.string.itinerary_stops_count, stops.size)
+
+                    if (isLoadedFromSaved) {
+                        TextButton(onClick = onCancelLoadedRoute) {
+                            Text(
+                                text = stringResource(Res.string.itinerary_cancel_loaded),
+                                color = Color(0xFFD32F2F),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = onSaveRoute, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = stringResource(Res.string.itinerary_save_route),
+                                tint = Color(0xFF4A90D9),
+                            )
+                        }
+                    }
 
                     Column {
                         Text(

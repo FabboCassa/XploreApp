@@ -39,6 +39,8 @@ import androidx.compose.ui.window.DialogProperties
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.xplore.project.ui.app.AppViewModel
+import org.xplore.project.ui.home.HomeViewModel
+import org.xplore.project.ui.profile.components.RouteListSection
 import org.xplore.project.ui.util.rememberImagePicker
 import org.xplore.project.ui.util.rememberCameraPicker
 import xploreapp.composeapp.generated.resources.*
@@ -51,13 +53,20 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onClearMapCache: () -> Unit,
     onOpenMapSettings: () -> Unit = {},
+    onShareRoute: (String) -> Unit = {},
     openFriendRequests: Boolean = false,
     onFriendRequestsConsumed: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
     appViewModel: AppViewModel = koinViewModel(),
+    homeViewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val themeMode by appViewModel.themeMode.collectAsState()
+
+    // Refresh saved routes every time the Profile tab is shown
+    LaunchedEffect(Unit) {
+        viewModel.refreshSavedRoutes()
+    }
 
     // Deep-link: open the friends dialog on the "Received requests" tab
     LaunchedEffect(openFriendRequests) {
@@ -122,6 +131,40 @@ fun ProfileScreen(
                 level = uiState.currentLevel,
                 currentPoints = uiState.totalPoints,
                 nextLevelPoints = uiState.nextLevelPoints,
+            )
+        }
+
+        // ── Saved Routes Section ── (hide for guests)
+        if (!uiState.isGuest) {
+            RouteListSection(
+                title = stringResource(Res.string.profile_saved_routes),
+                routes = uiState.savedRoutes,
+                emptyMessage = stringResource(Res.string.profile_no_saved_routes),
+                onShareRoute = { route ->
+                    onShareRoute(viewModel.shareRoute(route))
+                },
+                onDeleteRoute = { route ->
+                    viewModel.deleteRoute(route.id)
+                },
+                showOpenButton = true,
+                onOpenRoute = { route ->
+                    homeViewModel.loadSavedRoute(route)
+                },
+            )
+        }
+
+        // ── Completed Routes Section ── (hide for guests)
+        if (!uiState.isGuest) {
+            RouteListSection(
+                title = stringResource(Res.string.profile_completed_routes),
+                routes = uiState.completedRoutes,
+                emptyMessage = stringResource(Res.string.profile_no_completed_routes),
+                onShareRoute = { route ->
+                    onShareRoute(viewModel.shareRoute(route))
+                },
+                onDeleteRoute = { route ->
+                    viewModel.deleteRoute(route.id)
+                },
             )
         }
 

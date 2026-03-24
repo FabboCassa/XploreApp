@@ -14,7 +14,7 @@ import org.xplore.project.domain.model.MapPin
  * @param filters List of filter chips with their selection state.
  * @param pins List of map pins to render on the map.
  * @param isLoading Whether data is currently being fetched.
- * @param selectedNavIndex Index of the currently active bottom nav tab.
+ * @param selectedTab Index of the currently active bottom nav tab (0=Map, 1=Community, 2=Profile).
  * @param errorMessage User-facing error message, if any.
  * @param userLatitude User's current latitude (null if unknown).
  * @param userLongitude User's current longitude (null if unknown).
@@ -26,7 +26,7 @@ data class HomeUiState(
     val allLoadedPins: List<MapPin> = emptyList(),
     val pins: List<MapPin> = emptyList(),
     val isLoading: Boolean = true,
-    val selectedNavIndex: Int = 0,
+    val selectedTab: Int = 0,
     val errorMessage: String? = null,
     val userLatitude: Double? = null,
     val userLongitude: Double? = null,
@@ -48,6 +48,9 @@ data class HomeUiState(
     val routeInfo: org.xplore.project.data.remote.RouteInfo? = null,
     val nextStopIndex: Int = 0,
     val itinerarySnackbar: String? = null,
+    val isLoadedFromSaved: Boolean = false,
+    val loadedSavedRouteId: String? = null,
+    val saveRouteDialogOpen: Boolean = false,
 )
 
 /**

@@ -317,6 +317,18 @@
     <string name="group_invite_error">Impossibile elaborare l\'invito</string>
     <string name="group_invite_accepted">Invito accettato!</string>
 
+    <!-- Save Route Dialog -->
+    <string name="route_save_dialog_title">Salva Percorso</string>
+    <string name="route_save_dialog_name_label">Nome percorso</string>
+    <string name="route_save_dialog_description_label">Descrizione (opzionale)</string>
+    <string name="route_save_dialog_confirm">Salva</string>
+    <string name="route_save_dialog_cancel">Annulla</string>
+    <string name="route_save_success">Percorso salvato!</string>
+    <string name="route_save_error">Impossibile salvare il percorso</string>
+    <string name="route_open_action">Apri</string>
+    <string name="itinerary_save_route">Salva percorso</string>
+    <string name="itinerary_cancel_loaded">Annulla</string>
+
     <!-- Itinerary / Route Builder -->
     <string name="itinerary_create_route">Crea percorso</string>
     <string name="itinerary_automated_route">Genera percorso</string>
@@ -339,6 +351,15 @@
     <string name="itinerary_nav_disclaimer">Navigazione senza traffico in tempo reale. Le indicazioni stradali potrebbero contenere errori.</string>
     <string name="itinerary_navigation_active">Navigazione attiva</string>
     <string name="itinerary_stop_navigation">Ferma</string>
+
+    <!-- Saved Routes (Profile) -->
+    <string name="profile_saved_routes">Percorsi Salvati</string>
+    <string name="profile_completed_routes">Percorsi Completati</string>
+    <string name="profile_no_saved_routes">Nessun percorso salvato.</string>
+    <string name="profile_no_completed_routes">Nessun percorso completato.</string>
+    <string name="route_share_action">Condividi Percorso</string>
+    <string name="route_stops_count">%1$d tappe</string>
+    <string name="route_delete_action">Elimina</string>
 
     <!-- Automated Route Dialog -->
     <string name="route_dialog_title">Genera Percorso Automatico</string>

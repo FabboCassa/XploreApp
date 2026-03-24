@@ -21,16 +21,19 @@ import org.xplore.project.data.remote.NotificationApiService
 import org.xplore.project.data.remote.MapPinRemoteDataSource
 import org.xplore.project.data.remote.OsrmRoutingService
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
+import org.xplore.project.data.remote.RoutesRemoteDataSource
 import org.xplore.project.data.repository.AuthRepositoryImpl
 import org.xplore.project.data.repository.CommunityRepositoryImpl
 import org.xplore.project.data.repository.FriendRepositoryImpl
 import org.xplore.project.data.repository.MuseumRepositoryImpl
 import org.xplore.project.data.repository.NotificationRepositoryImpl
+import org.xplore.project.data.repository.SavedRouteRepositoryImpl
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.domain.repository.MuseumRepository
 import org.xplore.project.domain.repository.NotificationRepository
+import org.xplore.project.domain.repository.SavedRouteRepository
 import org.xplore.project.network.createHttpClient
 import org.xplore.project.ui.app.AppViewModel
 import org.xplore.project.ui.auth.AuthViewModel
@@ -160,11 +163,20 @@ val appModule = module {
     // ── Routing Service (OSRM) ──────────────────────────────
     single { OsrmRoutingService(httpClient = get()) }
 
+    // ── Routes Data Source ────────────────────────────────────
+    single {
+        RoutesRemoteDataSource(
+            httpClient = get(),
+            baseUrl = "https://10.0.2.2:7109",
+        )
+    }
+
     // ── Data layer ───────────────────────────────────────────
     singleOf(::MuseumRepositoryImpl) bind MuseumRepository::class
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
     singleOf(::CommunityRepositoryImpl) bind CommunityRepository::class
     singleOf(::NotificationRepositoryImpl) bind NotificationRepository::class
+    singleOf(::SavedRouteRepositoryImpl) bind SavedRouteRepository::class
 
     // ── Community Data Source ─────────────────────────────────
     single {

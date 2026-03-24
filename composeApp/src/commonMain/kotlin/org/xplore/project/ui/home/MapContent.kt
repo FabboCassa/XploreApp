@@ -91,7 +91,7 @@ fun MapContent(
             onDetailClick = onDetailClick,
             onCameraMove = viewModel::onMapCameraMove,
             onAddStop = viewModel::addItineraryStop,
-            routeStops = if (uiState.isNavigationActive) {
+            routeStops = if (uiState.isNavigationActive || uiState.isLoadedFromSaved) {
                 uiState.itineraryStops.map { it.pin }
             } else emptyList(),
             routeGeometryJson = uiState.routeInfo?.geometryJson,
@@ -245,34 +245,38 @@ fun MapContent(
             }
         }
 
-        // ── Itinerary Floating Bar (bottom) ──
-        ItineraryFloatingBar(
-            stops = uiState.itineraryStops,
-            isNavigationActive = uiState.isNavigationActive,
-            nextStopIndex = uiState.nextStopIndex,
-            nextStopDistanceMeters = uiState.routeInfo?.nextLegDistanceMeters,
-            nextStopDurationSeconds = uiState.routeInfo?.nextLegDurationSeconds,
-            navigationInstruction = uiState.routeInfo?.nextInstruction,
-            onNavigate = onNavigateItinerary,
-            onStopNavigation = viewModel::stopNavigation,
-            onExport = onExportItinerary,
-            onClear = viewModel::clearItinerary,
-            onRemoveStop = viewModel::removeItineraryStop,
+        // ── Itinerary Floating Bar + Snackbar (bottom) ──
+        Column(
             modifier = Modifier.align(Alignment.BottomCenter),
-        )
-
-        // ── Itinerary Snackbar ──
-        if (uiState.itinerarySnackbar != null) {
-            Snackbar(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = if (uiState.itineraryStops.isNotEmpty()) 180.dp else 16.dp)
-                    .padding(horizontal = 16.dp),
-                containerColor = Color(0xFF323232),
-                contentColor = Color.White,
-            ) {
-                Text(text = uiState.itinerarySnackbar)
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Snackbar sits directly above the floating bar
+            if (uiState.itinerarySnackbar != null) {
+                Snackbar(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    containerColor = Color(0xFF323232),
+                    contentColor = Color.White,
+                ) {
+                    Text(text = uiState.itinerarySnackbar)
+                }
             }
+
+            ItineraryFloatingBar(
+                stops = uiState.itineraryStops,
+                isNavigationActive = uiState.isNavigationActive,
+                nextStopIndex = uiState.nextStopIndex,
+                nextStopDistanceMeters = uiState.routeInfo?.nextLegDistanceMeters,
+                nextStopDurationSeconds = uiState.routeInfo?.nextLegDurationSeconds,
+                navigationInstruction = uiState.routeInfo?.nextInstruction,
+                isLoadedFromSaved = uiState.isLoadedFromSaved,
+                onSaveRoute = viewModel::openSaveRouteDialog,
+                onCancelLoadedRoute = viewModel::clearItinerary,
+                onNavigate = onNavigateItinerary,
+                onStopNavigation = viewModel::stopNavigation,
+                onExport = onExportItinerary,
+                onClear = viewModel::clearItinerary,
+                onRemoveStop = viewModel::removeItineraryStop,
+            )
         }
     }
 }

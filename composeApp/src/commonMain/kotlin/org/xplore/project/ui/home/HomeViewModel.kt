@@ -17,11 +17,15 @@ import org.jetbrains.compose.resources.getString
 import org.xplore.project.domain.model.MapPin
 import org.xplore.project.domain.model.PinType
 import org.xplore.project.domain.model.GroupInviteStatus
+import org.xplore.project.domain.model.ItineraryStop
+import org.xplore.project.domain.model.SavedRoute
 import org.xplore.project.domain.repository.AuthRepository
 import org.xplore.project.domain.repository.CommunityRepository
 import org.xplore.project.domain.repository.FriendRepository
 import org.xplore.project.domain.repository.MuseumRepository
+import org.xplore.project.domain.repository.SavedRouteRepository
 import org.xplore.project.data.remote.RadiusMetricsRemoteDataSource
+import org.xplore.project.data.remote.dto.SavedRouteWaypointRequest
 import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.remote.OsrmRoutingService
@@ -53,6 +57,7 @@ class HomeViewModel(
     private val communityRepository: CommunityRepository,
     private val osrmRoutingService: OsrmRoutingService,
     private val navigationNotifier: NavigationNotifier,
+    private val savedRouteRepository: SavedRouteRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -147,7 +152,7 @@ class HomeViewModel(
     }
 
     fun onNavItemSelected(index: Int) {
-        _uiState.update { it.copy(selectedNavIndex = index, selectedPin = null) }
+        _uiState.update { it.copy(selectedTab = index, selectedPin = null) }
         if (index == 2) refreshPendingNotificationBadge()
     }
 
@@ -501,7 +506,89 @@ class HomeViewModel(
 
     fun clearItinerary() {
         routeFetchJob?.cancel()
-        _uiState.update { it.copy(itineraryStops = emptyList(), isNavigationActive = false, routeInfo = null, nextStopIndex = 0) }
+        _uiState.update {
+            it.copy(
+                itineraryStops = emptyList(),
+                isNavigationActive = false,
+                routeInfo = null,
+                nextStopIndex = 0,
+                isLoadedFromSaved = false,
+                loadedSavedRouteId = null,
+            )
+        }
+    }
+
+    fun openSaveRouteDialog() = _uiState.update { it.copy(saveRouteDialogOpen = true) }
+    fun closeSaveRouteDialog() = _uiState.update { it.copy(saveRouteDialogOpen = false) }
+
+    fun saveCurrentRoute(name: String, description: String?) {
+        val stops = _uiState.value.itineraryStops
+        if (stops.isEmpty()) return
+        val waypoints = stops.mapIndexed { index, stop ->
+            SavedRouteWaypointRequest(
+                placeId = stop.pin.id,
+                name = stop.pin.label,
+                latitude = stop.pin.latitude,
+                longitude = stop.pin.longitude,
+                orderIndex = index,
+            )
+        }
+        viewModelScope.launch {
+            val result = savedRouteRepository.createRoute(name, description, waypoints)
+            result.fold(
+                onSuccess = { saved ->
+                    _uiState.update {
+                        it.copy(
+                            saveRouteDialogOpen = false,
+                            isLoadedFromSaved = true,
+                            loadedSavedRouteId = saved.id,
+                            itinerarySnackbar = getString(Res.string.route_save_success),
+                        )
+                    }
+                },
+                onFailure = {
+                    _uiState.update {
+                        it.copy(
+                            saveRouteDialogOpen = false,
+                            itinerarySnackbar = getString(Res.string.route_save_error),
+                        )
+                    }
+                },
+            )
+            delay(3000)
+            _uiState.update { it.copy(itinerarySnackbar = null) }
+        }
+    }
+
+    fun loadSavedRoute(route: SavedRoute) {
+        val stops = route.waypoints.sortedBy { it.orderIndex }.map { wp ->
+            ItineraryStop(
+                pin = MapPin(
+                    id = wp.placeId,
+                    label = wp.name,
+                    latitude = wp.latitude,
+                    longitude = wp.longitude,
+                    type = PinType.OTHER,
+                    description = null,
+                    category = null,
+                    imageUrl = null,
+                    openingHours = null,
+                    fee = null,
+                    phone = null,
+                    website = null,
+                    rating = null,
+                    ratingsCount = null,
+                )
+            )
+        }
+        _uiState.update {
+            it.copy(
+                itineraryStops = stops,
+                isLoadedFromSaved = true,
+                loadedSavedRouteId = route.id,
+                selectedTab = 0,
+            )
+        }
     }
 
     fun openAutomatedRouteDialog() {
