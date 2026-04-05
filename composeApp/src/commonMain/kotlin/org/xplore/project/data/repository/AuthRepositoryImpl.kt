@@ -70,7 +70,15 @@ class AuthRepositoryImpl(
             AuthResult.Success
         } catch (e: Exception) {
             println("AuthError [guestLogin]: ${e.message}")
-            AuthResult.Error(e.message ?: "Guest login failed")
+            // Server unreachable — create a local-only offline guest session
+            // so the user can still explore with cached / Overpass-fallback POIs.
+            println("🔌 [Auth] Server offline — creating local guest session")
+            tokenManager.saveTokens(
+                access = "offline_guest",
+                refresh = "offline_guest",
+                isGuest = true,
+            )
+            AuthResult.Success
         }
     }
 

@@ -397,4 +397,8 @@
     <string name="route_background_warning_title">Avis</string>
     <string name="route_background_warning_msg">L'emplacement ne sera enregistré que lorsque l'application sera ouverte.</string>
     <string name="route_background_warning_ok">Compris</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">Mode Limité</string>
+    <string name="server_offline_msg">Le serveur est actuellement inaccessible. Les fonctionnalités de communauté, profil et classement ne seront pas disponibles. Vous pouvez continuer à explorer la carte et naviguer.</string>
+    <string name="server_offline_ok">Compris</string>
 </resources>

@@ -210,6 +210,19 @@ fun HomeScreen(
         )
     }
 
+    if (uiState.showServerOfflineWarning) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissServerOfflineWarning,
+            title = { Text(stringResource(Res.string.server_offline_title)) },
+            text = { Text(stringResource(Res.string.server_offline_msg)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissServerOfflineWarning) {
+                    Text(stringResource(Res.string.server_offline_ok))
+                }
+            }
+        )
+    }
+
 }
 
 @Composable

@@ -31,6 +31,10 @@ import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.session_expired_title
 import xploreapp.composeapp.generated.resources.session_expired_message
 import xploreapp.composeapp.generated.resources.close
+import xploreapp.composeapp.generated.resources.server_offline_title
+import xploreapp.composeapp.generated.resources.server_offline_msg
+import xploreapp.composeapp.generated.resources.server_offline_ok
+import io.ktor.client.request.get
 
 /**
  * Root navigation host for the Xplore application.
@@ -77,6 +81,31 @@ fun XploreNavHost(
                     }
                 }) {
                     Text(stringResource(Res.string.close))
+                }
+            },
+        )
+    }
+
+    // ── Server-offline alert (shown once at app launch) ──────
+    val showServerOffline = remember { mutableStateOf(false) }
+    val httpClient: io.ktor.client.HttpClient = koinInject()
+
+    LaunchedEffect(Unit) {
+        try {
+            httpClient.get("https://10.0.2.2:7109/api/auth/health")
+        } catch (_: Exception) {
+            showServerOffline.value = true
+        }
+    }
+
+    if (showServerOffline.value) {
+        AlertDialog(
+            onDismissRequest = { showServerOffline.value = false },
+            title = { Text(stringResource(Res.string.server_offline_title)) },
+            text  = { Text(stringResource(Res.string.server_offline_msg)) },
+            confirmButton = {
+                TextButton(onClick = { showServerOffline.value = false }) {
+                    Text(stringResource(Res.string.server_offline_ok))
                 }
             },
         )

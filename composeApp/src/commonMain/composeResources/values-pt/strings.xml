@@ -324,4 +324,8 @@
     <string name="route_background_warning_title">Aviso</string>
     <string name="route_background_warning_msg">A localização só será registrada com o aplicativo aberto.</string>
     <string name="route_background_warning_ok">Entendido</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">Modo Limitado</string>
+    <string name="server_offline_msg">O servidor está indisponível no momento. As funcionalidades de comunidade, perfil e classificação não estarão disponíveis. Pode continuar a explorar o mapa e navegar.</string>
+    <string name="server_offline_ok">Entendido</string>
 </resources>

@@ -92,10 +92,24 @@ class HomeViewModel(
             ) }
         }
 
-        // Preload radius loading averages from backend
+        // Preload radius loading averages from backend & detect server reachability
         viewModelScope.launch {
-            val averages = metricsDataSource.getLoadingAverages()
-            _uiState.update { it.copy(radiusAverages = averages) }
+            try {
+                val averages = metricsDataSource.getLoadingAverages()
+                _uiState.update { it.copy(radiusAverages = averages) }
+            } catch (e: Exception) {
+                println("⚠️ [Home] Server unreachable: ${e.message}")
+                _uiState.update { it.copy(showServerOfflineWarning = true) }
+            }
+        }
+
+        // Sync any offline-queued visits from a previous session
+        viewModelScope.launch {
+            try {
+                communityRepository.syncPendingVisits()
+            } catch (e: Exception) {
+                println("🔄 [Home] Pending visits sync skipped: ${e.message}")
+            }
         }
 
         // Load pending badge count on startup
@@ -522,6 +536,7 @@ class HomeViewModel(
     fun closeSaveRouteDialog() = _uiState.update { it.copy(saveRouteDialogOpen = false) }
 
     fun dismissRouteBackgroundWarning() = _uiState.update { it.copy(showRouteBackgroundWarning = false) }
+    fun dismissServerOfflineWarning() = _uiState.update { it.copy(showServerOfflineWarning = false) }
 
     fun saveCurrentRoute(name: String, description: String?) {
         val stops = _uiState.value.itineraryStops

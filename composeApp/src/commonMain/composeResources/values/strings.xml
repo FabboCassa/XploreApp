@@ -397,4 +397,8 @@
     <string name="route_background_warning_title">Notice</string>
     <string name="route_background_warning_msg">Places will only be registered as visited if the app remains open during navigation.</string>
     <string name="route_background_warning_ok">Got it</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">Limited Mode</string>
+    <string name="server_offline_msg">The server is currently unreachable. Community, profile and leaderboard features will not be available. You can still explore the map and navigate.</string>
+    <string name="server_offline_ok">Got it</string>
 </resources>

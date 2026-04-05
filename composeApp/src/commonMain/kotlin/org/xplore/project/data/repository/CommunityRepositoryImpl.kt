@@ -1,5 +1,6 @@
 package org.xplore.project.data.repository
 
+import org.xplore.project.data.local.PendingVisitLocalDataSource
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.remote.CommunityRemoteDataSource
 import org.xplore.project.data.remote.dto.CreateGroupRequest
@@ -32,6 +33,7 @@ import org.xplore.project.domain.repository.CommunityRepository
 class CommunityRepositoryImpl(
     private val remoteDataSource: CommunityRemoteDataSource,
     private val tokenManager: TokenManager,
+    private val pendingVisitLocalDataSource: PendingVisitLocalDataSource,
 ) : CommunityRepository {
 
     override suspend fun getAllGroups(page: Int, pageSize: Int): List<Group> =
@@ -99,7 +101,35 @@ class CommunityRepositoryImpl(
 
     override suspend fun visitPlace(placeId: String) {
         val token = requireToken()
-        remoteDataSource.visitPlace(placeId, token)
+        try {
+            remoteDataSource.visitPlace(placeId, token)
+        } catch (e: Exception) {
+            // Server unreachable — queue visit for later sync
+            println("🔌 [Community] visitPlace failed: ${e.message} — queuing for offline sync")
+            pendingVisitLocalDataSource.insertVisit(placeId)
+        }
+    }
+
+    override suspend fun syncPendingVisits() {
+        val token = tokenManager.accessToken ?: return
+        // Don't try to sync if we're using offline guest tokens
+        if (token == "offline_guest") return
+
+        val pending = pendingVisitLocalDataSource.getAllPending()
+        if (pending.isEmpty()) return
+
+        println("🔄 [Community] Syncing ${pending.size} pending visits...")
+        for (placeId in pending) {
+            try {
+                remoteDataSource.visitPlace(placeId, token)
+                pendingVisitLocalDataSource.deleteVisit(placeId)
+                println("🔄 [Community] ✅ Synced visit for $placeId")
+            } catch (e: Exception) {
+                // Still offline — stop trying, will retry next time
+                println("🔄 [Community] ❌ Sync failed for $placeId: ${e.message} — will retry later")
+                break
+            }
+        }
     }
 
     override suspend fun createCompetition(

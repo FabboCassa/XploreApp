@@ -398,4 +398,8 @@
     <string name="route_background_warning_title">Avviso</string>
     <string name="route_background_warning_msg">La località verrà registrata solo con app aperta.</string>
     <string name="route_background_warning_ok">Ho capito</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">Modalità Limitata</string>
+    <string name="server_offline_msg">Il server non è raggiungibile al momento. Le funzionalità di community, profilo e classifica non saranno disponibili. Puoi comunque esplorare la mappa e navigare.</string>
+    <string name="server_offline_ok">Ho capito</string>
 </resources>

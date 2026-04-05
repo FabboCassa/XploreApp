@@ -52,6 +52,7 @@ data class HomeUiState(
     val loadedSavedRouteId: String? = null,
     val saveRouteDialogOpen: Boolean = false,
     val showRouteBackgroundWarning: Boolean = false,
+    val showServerOfflineWarning: Boolean = false,
 )
 
 /**

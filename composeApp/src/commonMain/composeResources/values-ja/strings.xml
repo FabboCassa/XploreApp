@@ -398,4 +398,8 @@
     <string name="route_background_warning_title">お知らせ</string>
     <string name="route_background_warning_msg">アプリが開いている場合のみ位置情報が記録されます。</string>
     <string name="route_background_warning_ok">OK</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">制限モード</string>
+    <string name="server_offline_msg">サーバーに接続できません。コミュニティ、プロフィール、ランキング機能は利用できません。マップの閲覧とナビゲーションは引き続きご利用いただけます。</string>
+    <string name="server_offline_ok">OK</string>
 </resources>

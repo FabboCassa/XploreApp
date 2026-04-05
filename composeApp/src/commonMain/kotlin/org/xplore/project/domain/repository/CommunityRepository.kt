@@ -27,6 +27,8 @@ interface CommunityRepository {
     
     // Competitions & Visits
     suspend fun visitPlace(placeId: String)
+    /** Sync any visits that were recorded while offline to the backend. */
+    suspend fun syncPendingVisits()
     suspend fun createCompetition(
         groupId: String,
         name: String,

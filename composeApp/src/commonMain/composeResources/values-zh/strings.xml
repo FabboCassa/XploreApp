@@ -398,4 +398,8 @@
     <string name="route_background_warning_title">提示</string>
     <string name="route_background_warning_msg">只有在应用打开时才会记录位置。</string>
     <string name="route_background_warning_ok">我知道了</string>
+    <!-- Server Offline Warning -->
+    <string name="server_offline_title">受限模式</string>
+    <string name="server_offline_msg">服务器目前无法连接。社区、个人资料和排行榜功能将不可用。您仍然可以浏览地图和导航。</string>
+    <string name="server_offline_ok">我知道了</string>
 </resources>

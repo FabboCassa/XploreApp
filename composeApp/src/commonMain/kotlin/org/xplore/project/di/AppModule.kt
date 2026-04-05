@@ -11,6 +11,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.xplore.project.data.local.AppPreferences
 import org.xplore.project.data.local.MapPinLocalDataSource
+import org.xplore.project.data.local.PendingVisitLocalDataSource
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.data.local.db.DatabaseDriverFactory
 import org.xplore.project.data.local.db.XploreDatabase
@@ -112,13 +113,18 @@ val appModule = module {
                                 tm.saveTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "", tm.isGuest)
                                 BearerTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "")
                             } else {
-                                // Refresh rejected – session is expired
-                                tm.triggerSessionExpired()
+                                // Explicit server rejection (401/400) – session is truly expired
+                                val code = response.status.value
+                                if (code == 401 || code == 400) {
+                                    tm.triggerSessionExpired()
+                                }
+                                // For other server errors (500, 503…), keep user logged in
                                 null
                             }
                         } catch (e: Exception) {
-                            // Network error during refresh – treat as session expired
-                            tm.triggerSessionExpired()
+                            // Network error (server offline / unreachable) –
+                            // do NOT logout. Keep user in offline mode with existing tokens.
+                            println("🔌 [Auth] Token refresh failed (network): ${e.message} — staying logged in offline")
                             null
                         }
                     }
@@ -155,6 +161,7 @@ val appModule = module {
 
     // ── Data Sources ─────────────────────────────────────────
     single { MapPinLocalDataSource(get()) }
+    single { PendingVisitLocalDataSource(get()) }
     single {
         MapPinRemoteDataSource(
             httpClient = get(),

@@ -1,0 +1,23 @@
+-- Table for queuing place visits that occurred while offline.
+-- These are synced to the backend when connectivity is restored.
+CREATE TABLE PendingVisit (
+    placeId    TEXT NOT NULL PRIMARY KEY,
+    visitedAt  INTEGER NOT NULL  -- epoch millis
+);
+
+-- Insert a pending visit (ignore if already queued)
+insertVisit:
+INSERT OR IGNORE INTO PendingVisit(placeId, visitedAt)
+VALUES (?, ?);
+
+-- Fetch all pending visits
+selectAll:
+SELECT * FROM PendingVisit;
+
+-- Delete a synced visit by placeId
+deleteVisit:
+DELETE FROM PendingVisit WHERE placeId = ?;
+
+-- Delete all pending visits (bulk clear after sync)
+deleteAll:
+DELETE FROM PendingVisit;
