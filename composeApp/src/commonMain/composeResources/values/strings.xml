@@ -137,7 +137,7 @@
 
     <!-- POI Loading -->
     <string name="loading_poi_search">Ricerca punti di interesse…</string>
-    <string name="loading_poi_search_estimated">Ricerca punti di interesse… (~%ss)</string>
+    <string name="loading_poi_search_estimated">Ricerca punti di interesse…</string>
     <string name="loading_poi_found">%1$d luoghi trovati!</string>
 
     <!-- Search -->
