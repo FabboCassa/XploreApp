@@ -51,6 +51,7 @@ data class HomeUiState(
     val isLoadedFromSaved: Boolean = false,
     val loadedSavedRouteId: String? = null,
     val saveRouteDialogOpen: Boolean = false,
+    val showRouteBackgroundWarning: Boolean = false,
 )
 
 /**

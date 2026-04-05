@@ -320,4 +320,8 @@
     <string name="nav_place_visited">Ort besucht: %s</string>
     <string name="nav_place_visited_points">+%1$d Punkte! Ort freigeschaltet</string>
     <string name="nav_route_completed_points">Route abgeschlossen! +%1$d Punkte verdient</string>
+    <!-- Route Background Warning -->
+    <string name="route_background_warning_title">Hinweis</string>
+    <string name="route_background_warning_msg">Der Standort wird nur bei geöffneter App erfasst.</string>
+    <string name="route_background_warning_ok">Verstanden</string>
 </resources>

@@ -197,6 +197,19 @@ fun HomeScreen(
         )
     }
 
+    if (uiState.showRouteBackgroundWarning) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissRouteBackgroundWarning,
+            title = { Text(stringResource(Res.string.route_background_warning_title)) },
+            text = { Text(stringResource(Res.string.route_background_warning_msg)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissRouteBackgroundWarning) {
+                    Text(stringResource(Res.string.route_background_warning_ok))
+                }
+            }
+        )
+    }
+
 }
 
 @Composable

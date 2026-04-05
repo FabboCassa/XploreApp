@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
@@ -70,8 +71,9 @@ fun App() {
 
         // Apply the locale at the platform level so Compose Resources
         // resolves the correct values-<tag>/strings.xml
-        LaunchedEffect(effectiveTag) {
+        remember(effectiveTag) {
             applyLocaleOverride(effectiveTag)
+            true
         }
 
         val systemDark = isSystemInDarkTheme()

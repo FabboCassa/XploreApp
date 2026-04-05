@@ -394,4 +394,8 @@
     <string name="nav_place_visited">Luogo visitato: %s</string>
     <string name="nav_place_visited_points">+%1$d punti! Luogo sbloccato</string>
     <string name="nav_route_completed_points">Percorso completato! +%1$d punti guadagnati</string>
+    <!-- Route Background Warning -->
+    <string name="route_background_warning_title">Avviso</string>
+    <string name="route_background_warning_msg">La località verrà registrata solo con app aperta.</string>
+    <string name="route_background_warning_ok">Ho capito</string>
 </resources>

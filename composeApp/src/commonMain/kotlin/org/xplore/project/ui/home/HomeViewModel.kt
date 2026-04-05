@@ -521,6 +521,8 @@ class HomeViewModel(
     fun openSaveRouteDialog() = _uiState.update { it.copy(saveRouteDialogOpen = true) }
     fun closeSaveRouteDialog() = _uiState.update { it.copy(saveRouteDialogOpen = false) }
 
+    fun dismissRouteBackgroundWarning() = _uiState.update { it.copy(showRouteBackgroundWarning = false) }
+
     fun saveCurrentRoute(name: String, description: String?) {
         val stops = _uiState.value.itineraryStops
         if (stops.isEmpty()) return
@@ -543,6 +545,7 @@ class HomeViewModel(
                             isLoadedFromSaved = true,
                             loadedSavedRouteId = saved.id,
                             itinerarySnackbar = getString(Res.string.route_save_success),
+                            showRouteBackgroundWarning = true,
                         )
                     }
                 },
@@ -606,7 +609,7 @@ class HomeViewModel(
         val stops = state.itineraryStops
         if (stops.isEmpty()) return
 
-        _uiState.update { it.copy(isNavigationActive = true, nextStopIndex = 0) }
+        _uiState.update { it.copy(isNavigationActive = true, nextStopIndex = 0, showRouteBackgroundWarning = true) }
 
         // Show persistent OS notification
         val firstStop = stops[0].pin

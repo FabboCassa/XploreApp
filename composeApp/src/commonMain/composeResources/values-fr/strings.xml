@@ -393,4 +393,8 @@
     <string name="nav_place_visited">Lieu visité : %s</string>
     <string name="nav_place_visited_points">+%1$d points ! Lieu débloqué</string>
     <string name="nav_route_completed_points">Parcours terminé ! +%1$d points gagnés</string>
+    <!-- Route Background Warning -->
+    <string name="route_background_warning_title">Avis</string>
+    <string name="route_background_warning_msg">L'emplacement ne sera enregistré que lorsque l'application sera ouverte.</string>
+    <string name="route_background_warning_ok">Compris</string>
 </resources>

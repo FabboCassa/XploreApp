@@ -394,4 +394,8 @@
     <string name="nav_place_visited">Place visited: %s</string>
     <string name="nav_place_visited_points">+%1$d points! Place unlocked</string>
     <string name="nav_route_completed_points">Route completed! +%1$d points earned</string>
+    <!-- Route Background Warning -->
+    <string name="route_background_warning_title">提示</string>
+    <string name="route_background_warning_msg">只有在应用打开时才会记录位置。</string>
+    <string name="route_background_warning_ok">我知道了</string>
 </resources>
