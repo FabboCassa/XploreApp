@@ -21,6 +21,16 @@ import org.xplore.project.ui.community.detail.CompetitionMapScreen
 import org.xplore.project.ui.community.detail.CreateCompetitionViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.xplore.project.ui.home.HomeViewModel
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import org.jetbrains.compose.resources.stringResource
+import xploreapp.composeapp.generated.resources.Res
+import xploreapp.composeapp.generated.resources.session_expired_title
+import xploreapp.composeapp.generated.resources.session_expired_message
+import xploreapp.composeapp.generated.resources.close
 
 /**
  * Root navigation host for the Xplore application.
@@ -44,6 +54,33 @@ fun XploreNavHost(
     tokenManager: TokenManager = koinInject(),
 ) {
     val startDest = if (tokenManager.isLoggedIn || tokenManager.isGuest) MainRoute else WelcomeRoute
+
+    // ── Session-expired dialog state ──────────────────────────
+    val showSessionExpired = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        tokenManager.sessionExpiredEvent.collect {
+            showSessionExpired.value = true
+        }
+    }
+
+    if (showSessionExpired.value) {
+        AlertDialog(
+            onDismissRequest = { /* non-dismissable – user must tap the button */ },
+            title = { Text(stringResource(Res.string.session_expired_title)) },
+            text  = { Text(stringResource(Res.string.session_expired_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSessionExpired.value = false
+                    navController.navigate(WelcomeRoute) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }) {
+                    Text(stringResource(Res.string.close))
+                }
+            },
+        )
+    }
 
     NavHost(
         navController = navController,

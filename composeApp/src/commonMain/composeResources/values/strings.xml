@@ -383,4 +383,8 @@
     <string name="route_dialog_result_stops">%1$d tappe</string>
     <string name="route_dialog_time_info_title">Tempo di spostamento</string>
     <string name="route_dialog_time_info_body">Considerato solo come tempo di spostamento tra una tappa e l\'altra, esclusa la visita.</string>
+
+    <!-- Session Expiration -->
+    <string name="session_expired_title">Sessione Scaduta</string>
+    <string name="session_expired_message">Logout per inattività, rieffettuare il login.</string>
 </resources>

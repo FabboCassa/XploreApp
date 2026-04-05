@@ -26,8 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
@@ -61,17 +59,7 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        colorScheme.background,
-                        colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        colorScheme.background,
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(0f, 2000f),
-                )
-            )
+            .background(colorScheme.background)
             .windowInsetsPadding(WindowInsets.systemBars),
     ) {
         Column(

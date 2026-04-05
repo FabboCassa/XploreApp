@@ -108,9 +108,13 @@ val appModule = module {
                                 tm.saveTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "", tm.isGuest)
                                 BearerTokens(newTokens.actualAccessToken ?: "", newTokens.actualRefreshToken ?: "")
                             } else {
+                                // Refresh rejected – session is expired
+                                tm.triggerSessionExpired()
                                 null
                             }
                         } catch (e: Exception) {
+                            // Network error during refresh – treat as session expired
+                            tm.triggerSessionExpired()
                             null
                         }
                     }

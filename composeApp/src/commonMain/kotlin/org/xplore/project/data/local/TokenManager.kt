@@ -1,6 +1,8 @@
 package org.xplore.project.data.local
 
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Manages JWT token persistence across app sessions.
@@ -17,6 +19,16 @@ import com.russhwolf.settings.Settings
 class TokenManager {
 
     private val settings = Settings()
+
+    /** Emitted when a token refresh fails, signalling that the user must re-login. */
+    private val _sessionExpiredEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val sessionExpiredEvent = _sessionExpiredEvent.asSharedFlow()
+
+    /** Call from the HTTP-client refresh logic when the refresh token is rejected. */
+    fun triggerSessionExpired() {
+        clear()
+        _sessionExpiredEvent.tryEmit(Unit)
+    }
 
     var accessToken: String?
         get() = settings.getStringOrNull(KEY_ACCESS_TOKEN)
