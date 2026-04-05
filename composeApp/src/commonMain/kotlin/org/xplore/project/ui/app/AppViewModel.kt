@@ -6,14 +6,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.xplore.project.data.local.AppPreferences
+import org.xplore.project.data.local.LanguageMode
 import org.xplore.project.data.local.ThemeMode
 import org.xplore.project.data.local.TokenManager
 import org.xplore.project.domain.repository.NotificationRepository
 import org.xplore.project.getCurrentFcmToken
 
 /**
- * Lightweight ViewModel that exposes theme preference for UI screens.
- * Delegates to [AppPreferences.themeModeFlow] so that every observer
+ * Lightweight ViewModel that exposes theme and language preferences for UI screens.
+ * Delegates to [AppPreferences] flows so that every observer
  * — including [App.kt] — recomposes immediately on change.
  *
  * Also registers the FCM device token with the backend on startup
@@ -26,6 +27,7 @@ class AppViewModel(
 ) : ViewModel() {
 
     val themeMode: StateFlow<ThemeMode> = appPreferences.themeModeFlow
+    val languageMode: StateFlow<LanguageMode> = appPreferences.languageModeFlow
 
     init {
         registerFcmTokenIfLoggedIn()
@@ -33,6 +35,10 @@ class AppViewModel(
 
     fun setThemeMode(mode: ThemeMode) {
         appPreferences.themeMode = mode
+    }
+
+    fun setLanguageMode(mode: LanguageMode) {
+        appPreferences.languageMode = mode
     }
 
     /**
@@ -51,3 +57,4 @@ class AppViewModel(
         }
     }
 }
+

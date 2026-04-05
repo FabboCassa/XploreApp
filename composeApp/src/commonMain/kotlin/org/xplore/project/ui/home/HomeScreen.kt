@@ -151,6 +151,7 @@ fun HomeScreen(
     if (uiState.isSettingsOpen) {
         val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
         val permissionRequester = LocalNotificationPermissionRequester.current
+        val currentLanguage by appViewModel.languageMode.collectAsState()
 
         SettingsDialog(
             searchRadiusKm = uiState.searchRadiusKm,
@@ -159,6 +160,8 @@ fun HomeScreen(
             onNotificationsToggle = { enabled ->
                 viewModel.onNotificationsToggle(enabled, permissionRequester)
             },
+            selectedLanguage = currentLanguage,
+            onLanguageChange = appViewModel::setLanguageMode,
             onRadiusChange = viewModel::updateSearchRadius,
             onDismiss = viewModel::closeSettings,
             onLogout = {

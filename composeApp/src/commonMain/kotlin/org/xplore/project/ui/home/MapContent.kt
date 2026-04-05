@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.remember
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.spatialk.geojson.Position
@@ -52,6 +53,8 @@ import xploreapp.composeapp.generated.resources.Res
 import xploreapp.composeapp.generated.resources.search_no_results
 import xploreapp.composeapp.generated.resources.search_searching
 import xploreapp.composeapp.generated.resources.itinerary_automated_route
+import xploreapp.composeapp.generated.resources.ic_settings
+import xploreapp.composeapp.generated.resources.settings_title
 
 /**
  * Map tab content — extracted for clarity.
@@ -142,12 +145,30 @@ fun MapContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // ── Filter chips row ──
-            XploreFilterChips(
-                filters = uiState.filters,
-                onFilterClick = viewModel::onFilterSelected,
-                onMoreFiltersClick = viewModel::openFilterDialog,
-            )
+            // ── Filter chips row + settings gear ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                XploreFilterChips(
+                    filters = uiState.filters,
+                    onFilterClick = viewModel::onFilterSelected,
+                    onMoreFiltersClick = viewModel::openFilterDialog,
+                    modifier = Modifier.weight(1f),
+                )
+
+                androidx.compose.material3.IconButton(
+                    onClick = viewModel::openSettings,
+                    modifier = Modifier.padding(end = 12.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_settings),
+                        contentDescription = stringResource(Res.string.settings_title),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
 
             // ── Search indicator ──
             AnimatedVisibility(

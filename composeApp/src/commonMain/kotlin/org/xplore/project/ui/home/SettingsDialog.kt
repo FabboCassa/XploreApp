@@ -92,6 +92,8 @@ fun SettingsDialog(
     radiusAverages: Map<Double, Long>,
     notificationsEnabled: Boolean,
     onNotificationsToggle: (Boolean) -> Unit,
+    selectedLanguage: org.xplore.project.data.local.LanguageMode,
+    onLanguageChange: (org.xplore.project.data.local.LanguageMode) -> Unit,
     onRadiusChange: (Double) -> Unit,
     onDismiss: () -> Unit,
     onLogout: () -> Unit,
@@ -225,6 +227,51 @@ fun SettingsDialog(
                     checked = notificationsEnabled,
                     onCheckedChange = onNotificationsToggle,
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                // ── Language Selector ──
+                Text(
+                    text = stringResource(Res.string.settings_language),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(4.dp))
+
+                var languageExpanded by remember { mutableStateOf(false) }
+
+                Box {
+                    OutlinedButton(
+                        onClick = { languageExpanded = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text(
+                            text = selectedLanguage.displayName,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = languageExpanded,
+                        onDismissRequest = { languageExpanded = false },
+                    ) {
+                        org.xplore.project.data.local.LanguageMode.entries.forEach { mode ->
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = mode.displayName,
+                                        fontWeight = if (mode == selectedLanguage)
+                                            FontWeight.Bold else FontWeight.Normal,
+                                    )
+                                },
+                                onClick = {
+                                    onLanguageChange(mode)
+                                    languageExpanded = false
+                                },
+                            )
+                        }
+                    }
+                }
 
                 Spacer(Modifier.weight(1f))
 

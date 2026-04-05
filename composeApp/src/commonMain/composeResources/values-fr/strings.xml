@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="app_name">Xplore</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Rechercher musées, œuvres, événements…</string>
+
+    <!-- Filter Chips -->
+    <string name="filter_museums">Musées</string>
+    <string name="filter_artworks">Œuvres</string>
+    <string name="filter_events">Événements</string>
+    <string name="filter_nearby">À proximité</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_map">Carte</string>
+    <string name="nav_community">Communauté</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Map -->
+    <string name="map_placeholder_label">Vue carte</string>
+    <string name="map_placeholder_subtitle">Votre carte culturelle apparaîtra ici</string>
+    <string name="map_loading">Chargement de la carte…</string>
+    <string name="map_error_loading">Impossible de charger la carte</string>
+
+    <!-- Location -->
+    <string name="location_permission_rationale">Xplore a besoin de votre position pour afficher les lieux culturels à proximité</string>
+    <string name="location_permission_denied">Permission de localisation refusée. Activez-la dans les paramètres.</string>
+    <string name="location_btn_enable">Activer la localisation</string>
+
+    <!-- Offline -->
+    <string name="offline_saving_in_progress">Enregistrement de la zone hors ligne…</string>
+    <string name="offline_mode_active">Mode hors ligne actif</string>
+    <string name="offline_save_success">Zone hors ligne enregistrée avec succès</string>
+
+    <!-- General -->
+    <string name="loading">Chargement…</string>
+    <string name="error_generic">Une erreur est survenue</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Xplore</string>
+    <string name="welcome_subtitle">Découvrez la culture autour de vous</string>
+    <string name="welcome_btn_login">Se connecter</string>
+    <string name="welcome_btn_guest">Continuer sans compte</string>
+    <string name="welcome_guest_loading">Connexion en cours…</string>
+
+    <!-- Login Screen -->
+    <string name="login_welcome_back">Bon retour</string>
+    <string name="login_subtitle">Connectez-vous pour explorer la culture</string>
+    <string name="login_email_username_label">Email ou nom d\'utilisateur</string>
+    <string name="login_password_label">Mot de passe</string>
+    <string name="login_hide_password">Masquer</string>
+    <string name="login_show_password">Afficher</string>
+    <string name="login_btn">Se connecter</string>
+    <string name="login_or">  ou  </string>
+    <string name="login_google_btn">Continuer avec Google</string>
+    <string name="login_apple_btn">Continuer avec Apple</string>
+    <string name="login_no_account">Pas de compte ? </string>
+    <string name="login_register_link">S\'inscrire</string>
+
+    <!-- Register Screen -->
+    <string name="register_back">← Retour</string>
+    <string name="register_title">Créer un compte</string>
+    <string name="register_subtitle">Inscrivez-vous pour débloquer toutes les fonctionnalités</string>
+    <string name="register_username_label">Nom d\'utilisateur</string>
+    <string name="register_email_label">Email</string>
+    <string name="register_password_label">Mot de passe</string>
+    <string name="register_btn">S\'inscrire</string>
+
+    <!-- Google Auth -->
+    <string name="google_web_client_id">816106524086-7cl7l2gdnqbpluft6s6pr2eg8a90fvdl.apps.googleusercontent.com</string>
+
+    <!-- Auth View Model / Errors -->
+    <string name="error_missing_email_password">Entrez votre email et mot de passe</string>
+    <string name="error_invalid_credentials">Identifiants invalides. Réessayez.</string>
+    <string name="error_guest_failed">Connexion impossible. Vérifiez votre connexion.</string>
+    <string name="error_missing_fields">Remplissez tous les champs</string>
+    <string name="error_register_failed">Inscription échouée. Réessayez.</string>
+    <string name="error_google_unavailable">Connexion Google pas encore disponible</string>
+    <string name="error_apple_unavailable">Connexion Apple pas encore disponible</string>
+    <string name="success_email_sent">Code envoyé par email</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_btn_logout">Se déconnecter</string>
+    <string name="profile_btn_login">Se connecter</string>
+    <string name="profile_title">Votre profil</string>
+    <string name="profile_guest_label">Invité</string>
+    <string name="profile_avatar_content_desc">Photo de profil</string>
+    <string name="profile_avatar_edit_content_desc">Modifier la photo de profil</string>
+    <string name="profile_avatar_change">Changer la photo de profil</string>
+    <string name="profile_avatar_remove">Supprimer la photo</string>
+    <string name="profile_avatar_select_source">Choisir la source</string>
+    <string name="profile_avatar_from_gallery">Galerie</string>
+    <string name="profile_avatar_from_camera">Appareil photo</string>
+    <string name="profile_avatar_uploading">Téléchargement en cours…</string>
+    <string name="profile_avatar_error">Impossible de mettre à jour la photo de profil</string>
+    <string name="profile_avatar_placeholder">%s</string>
+    <string name="profile_level_label">Niveau</string>
+    <string name="profile_level_points">%1$d / %2$d pts</string>
+    <string name="profile_friends_title">Amis</string>
+    <string name="profile_friends_count">%1$d amis</string>
+    <string name="profile_friends_empty">Aucun ami ajouté</string>
+    <string name="profile_friends_remove_btn">Supprimer</string>
+    <string name="profile_friends_tab_friends">Amis</string>
+    <string name="profile_friends_tab_add">Ajouter</string>
+    <string name="profile_friends_search_hint">Rechercher un nom d\'utilisateur…</string>
+    <string name="profile_friends_search_btn">Rechercher</string>
+    <string name="profile_friends_send_request">Envoyer une demande</string>
+    <string name="profile_friends_cancel_request">Annuler la demande</string>
+    <string name="profile_friends_accept_request">Accepter</string>
+    <string name="profile_friends_reject_request">Refuser</string>
+    <string name="profile_friends_received_title">Demandes reçues</string>
+    <string name="profile_friends_sent_title">Demandes envoyées</string>
+    <string name="profile_friends_no_results">Aucun utilisateur trouvé</string>
+    <string name="profile_friends_request_sent">Demande envoyée</string>
+    <string name="profile_friends_pending">En attente</string>
+    <string name="profile_friends_already_friend">Déjà ami</string>
+    <string name="profile_friends_request_already_sent">Demande déjà envoyée</string>
+    <string name="profile_section_security">Sécurité</string>
+    <string name="profile_section_settings">Paramètres</string>
+
+    <!-- Explorer Levels -->
+    <string name="level_1">Novice</string>
+    <string name="level_2">Casanier</string>
+    <string name="level_3">Curieux</string>
+    <string name="level_4">Marcheur</string>
+    <string name="level_5">Local</string>
+    <string name="level_6">Explorateur</string>
+    <string name="level_7">Aventurier</string>
+    <string name="level_8">Pionnier</string>
+    <string name="level_9">Globe-trotteur</string>
+    <string name="level_10">Légende</string>
+
+    <!-- Settings / Cache -->
+    <string name="clear_map_cache">Vider le cache de la carte</string>
+    <string name="clear_map_cache_description">Les données de carte de plus de 30 jours sont supprimées automatiquement</string>
+    <string name="cache_cleared">Cache de la carte vidé</string>
+
+    <!-- POI Loading -->
+    <string name="loading_poi_search">Recherche de points d\'intérêt…</string>
+    <string name="loading_poi_search_estimated">Recherche de points d\'intérêt…</string>
+    <string name="loading_poi_found">%1$d lieux trouvés !</string>
+
+    <!-- Search -->
+    <string name="search_searching">Recherche en cours…</string>
+    <string name="search_no_results">Aucun résultat trouvé</string>
+
+    <!-- Community Screen -->
+    <string name="community_title">Communauté</string>
+    <string name="community_create_group">Créer un groupe</string>
+    <string name="community_join_group">Rejoindre</string>
+    <string name="community_my_groups">Mes groupes</string>
+    <string name="community_all_groups">Explorer les groupes</string>
+    <string name="community_no_groups">Aucun groupe trouvé</string>
+    <string name="community_login_prompt">Connectez-vous pour créer et rejoindre des groupes</string>
+    <string name="community_join">Rejoindre</string>
+    <string name="community_leave">Quitter</string>
+    <string name="community_members_count">%1$d membres</string>
+    <string name="community_group_name">Nom du groupe</string>
+    <string name="community_group_description">Description (optionnelle)</string>
+    <string name="community_btn_create">Créer</string>
+    <string name="community_btn_cancel">Annuler</string>
+    <string name="community_create_tooltip">Créer un groupe</string>
+    <string name="community_join_tooltip">Rejoindre un groupe</string>
+    <string name="community_search_groups">Rechercher des groupes…</string>
+    <string name="community_access_label">Type d\'accès</string>
+    <string name="community_access_public">Public</string>
+    <string name="community_access_password">Protégé par mot de passe</string>
+    <string name="community_access_invite">Sur invitation uniquement</string>
+    <string name="community_password_label">Mot de passe</string>
+    <string name="community_password_required">Mot de passe requis</string>
+    <string name="community_leaderboard_title">Classement des explorateurs</string>
+    <string name="community_leaderboard_score">%1$d pts</string>
+    <string name="community_leaderboard_rank">#%1$d</string>
+    <string name="community_leaderboard_anonymous">Anonyme</string>
+    <string name="community_leaderboard_empty">Aucun explorateur au classement</string>
+
+    <!-- Settings Dialog -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_search_radius">Rayon de recherche</string>
+    <string name="settings_data_sources">Sources de données</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_btn_apply">Appliquer le filtre de rayon</string>
+    <string name="settings_btn_logout">Se déconnecter</string>
+    <string name="settings_warning_slow">Temps de chargement plus longs</string>
+    <string name="settings_estimated_time">Temps estimé : ~%ss</string>
+    <string name="close">Fermer</string>
+    <string name="error_unknown">Erreur inconnue</string>
+    <string name="error_search_failed">Recherche échouée</string>
+    <string name="error_login_required">Vous devez vous connecter pour voter.</string>
+    <string name="error_already_rated">Vous avez déjà noté cette étape.</string>
+
+    <!-- 2FA Setup & Login -->
+    <string name="two_factor_title">Vérification à deux facteurs (2FA)</string>
+    <string name="two_factor_desc">Entrez le code temporaire de votre app Authenticator ou reçu par email :</string>
+    <string name="two_factor_code_label">Code 2FA</string>
+    <string name="two_factor_btn_send_email">Envoyer le code par email</string>
+    <string name="two_factor_btn_verify">Vérifier</string>
+    <string name="two_factor_btn_cancel">Annuler</string>
+
+    <!-- Profile Screen 2FA -->
+    <string name="profile_2fa_enabled">Authentification à deux facteurs activée ✅</string>
+    <string name="profile_2fa_enable_btn">Activer 2FA</string>
+    <string name="profile_2fa_choose_method_title">Choisir une méthode 2FA</string>
+    <string name="profile_2fa_choose_method_desc">Sélectionnez comment recevoir les codes de vérification :</string>
+    <string name="profile_2fa_method_app">App Authenticator (Google, Authy, etc.)</string>
+    <string name="profile_2fa_method_email">Email</string>
+    <string name="profile_2fa_setup_title">Configurer 2FA</string>
+    <string name="profile_2fa_setup_email_desc">Nous avons envoyé un code de confirmation à votre adresse email. Entrez-le ci-dessous pour activer.</string>
+    <string name="profile_2fa_setup_app_step_1">1. Scannez ce QR Code avec votre app Authenticator :</string>
+    <string name="profile_2fa_qr_content_desc">QR Code pour 2FA</string>
+    <string name="profile_2fa_setup_app_manual">Ou entrez cette clé manuellement :</string>
+    <string name="profile_2fa_setup_app_step_2">2. Entrez le code à 6 chiffres de l\'app :</string>
+    <string name="profile_2fa_confirmed_code_label">Code confirmé</string>
+    <string name="profile_2fa_btn_verify_save">Vérifier et sauvegarder</string>
+    <string name="profile_2fa_disable_btn">Désactiver 2FA</string>
+    <string name="profile_2fa_add_method_btn">Ajouter une autre méthode 2FA</string>
+    <string name="profile_2fa_active_methods">Méthodes 2FA actives</string>
+
+    <!-- Filter Types (extended) -->
+    <string name="filter_historic">Monuments</string>
+    <string name="filter_religious">Lieux sacrés</string>
+    <string name="filter_nature">Nature</string>
+    <string name="filter_culture">Culture</string>
+    <string name="filter_attractions">Attractions</string>
+    <string name="filter_viewpoints">Points de vue</string>
+    <string name="filter_other">Autre</string>
+
+    <!-- Filter Dialog -->
+    <string name="filter_dialog_title">Filtres</string>
+    <string name="filter_dialog_btn_apply">Appliquer les filtres</string>
+    <string name="filter_more">Plus de filtres</string>
+
+    <!-- POI Detail Screen -->
+    <string name="poi_detail_discover">En savoir plus</string>
+    <string name="poi_detail_opening_hours">Horaires d\'ouverture</string>
+    <string name="poi_detail_cost">Coût</string>
+    <string name="poi_detail_website">Site web</string>
+    <string name="poi_detail_phone">Téléphone</string>
+    <string name="poi_detail_description">Description</string>
+    <string name="poi_detail_info_not_available">Information non disponible</string>
+    <string name="poi_detail_free">Gratuit</string>
+    <string name="poi_detail_back">Retour</string>
+    <string name="poi_detail_paid">Payant</string>
+
+    <!-- POI Ratings & Interactions -->
+    <string name="poi_add_stop">Ajouter une étape</string>
+    <string name="poi_rating_format">%1$.1f / 10</string>
+    <string name="poi_rating_count_format">(%1$d votes)</string>
+    <string name="poi_rating_count_format_single">(1 vote)</string>
+    <string name="poi_no_rating">Note : n/d</string>
+    <string name="poi_rating_login_prompt">Connectez-vous pour noter</string>
+
+    <!-- Group Detail Screen -->
+    <string name="group_detail_title_fallback">Détails du groupe</string>
+    <string name="group_detail_change_visibility">Changer la visibilité</string>
+    <string name="group_detail_delete_group">Supprimer le groupe</string>
+    <string name="group_detail_admin">Admin</string>
+    <string name="group_detail_exit_group">Quitter le groupe</string>
+    <string name="group_detail_delete_confirm">Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.</string>
+    <string name="group_detail_btn_delete">Supprimer</string>
+    <string name="group_detail_btn_cancel">Annuler</string>
+    <string name="group_detail_access_type">Type d\'accès</string>
+    <string name="group_detail_new_password">Nouveau mot de passe</string>
+    <string name="group_detail_btn_save">Enregistrer</string>
+
+    <!-- POI Rating Extension -->
+    <string name="poi_rating_title">Noter</string>
+    <string name="poi_rating_success">Note enregistrée avec succès !</string>
+    <string name="poi_rating_close">Fermer</string>
+    <string name="poi_rating_cancel">Annuler</string>
+    <string name="poi_rating_send">Envoyer</string>
+
+    <!-- Competitions -->
+    <string name="competition_tab_members">Membres</string>
+    <string name="competition_tab_competitions">Compétitions</string>
+    <string name="competition_empty">Aucune compétition active</string>
+    <string name="competition_btn_create">Créer une compétition</string>
+    <string name="competition_create_title">Nouvelle compétition</string>
+    <string name="competition_name_label">Nom de la compétition</string>
+    <string name="competition_type_label">Type de compétition</string>
+    <string name="competition_type_most_places">Visiter le plus de lieux</string>
+    <string name="competition_type_fastest">Terminer les lieux sélectionnés en premier</string>
+    <string name="competition_type_scavenger">Chasse au trésor (avec IA)</string>
+    <string name="competition_selected_places_count">%1$d lieux sélectionnés</string>
+    <string name="competition_create_selected_places">Lieux sélectionnés : %1$d</string>
+    <string name="competition_start_date">Date de début (optionnelle, ex. 2025-01-01)</string>
+    <string name="competition_end_date">Date de fin (optionnelle, ex. 2025-12-31)</string>
+    <string name="competition_points_per_place">Points par lieu visité</string>
+    <string name="competition_leaderboard_title">Classement de la compétition active</string>
+    <string name="competition_no_leaderboard">Sélectionnez une compétition pour voir le classement.</string>
+
+    <string name="competition_starts_at">Début : %s</string>
+    <string name="competition_leaderboard_empty">Le classement est vide.</string>
+    <string name="competition_anonymous_user">Anonyme</string>
+    <string name="competition_mark_visited">Marquer comme visité</string>
+    <string name="competition_visit_success">Lieu visité avec succès !</string>
+
+    <!-- Competition Map -->
+    <string name="competition_map_select_places">Sélectionner des lieux sur la carte</string>
+    <string name="competition_map_save_selection">Enregistrer la sélection (%1$d)</string>
+    <string name="competition_map_search_hint">Rechercher un lieu à ajouter…</string>
+    <string name="competition_map_open">Ouvrir la carte de compétition</string>
+
+    <!-- Notifications & Group Invites -->
+    <string name="notification_channel_name">Notifications Xplore</string>
+    <string name="notification_badge_content_desc">Notifications en attente</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">Aucune notification</string>
+    <string name="group_invites_title">Invitations aux groupes</string>
+    <string name="group_invites_empty">Aucune invitation en attente</string>
+    <string name="group_invite_from">Invitation de %s</string>
+    <string name="group_invite_accept">Accepter</string>
+    <string name="group_invite_reject">Refuser</string>
+    <string name="group_invite_send">Inviter</string>
+    <string name="group_invite_sent">Invitation envoyée</string>
+    <string name="group_invite_error">Impossible de traiter l\'invitation</string>
+    <string name="group_invite_accepted">Invitation acceptée !</string>
+
+    <!-- Save Route Dialog -->
+    <string name="route_save_dialog_title">Enregistrer le parcours</string>
+    <string name="route_save_dialog_name_label">Nom du parcours</string>
+    <string name="route_save_dialog_description_label">Description (optionnelle)</string>
+    <string name="route_save_dialog_confirm">Enregistrer</string>
+    <string name="route_save_dialog_cancel">Annuler</string>
+    <string name="route_save_success">Parcours enregistré !</string>
+    <string name="route_save_error">Impossible d\'enregistrer le parcours</string>
+    <string name="route_open_action">Ouvrir</string>
+    <string name="itinerary_save_route">Enregistrer le parcours</string>
+    <string name="itinerary_cancel_loaded">Annuler</string>
+
+    <!-- Itinerary / Route Builder -->
+    <string name="itinerary_create_route">Créer un parcours</string>
+    <string name="itinerary_automated_route">Générer un parcours</string>
+    <string name="itinerary_add_stop">Ajouter une étape</string>
+    <string name="itinerary_stop_added">Étape ajoutée !</string>
+    <string name="itinerary_stop_already_added">Étape déjà présente</string>
+    <string name="itinerary_stop_removed">Étape supprimée</string>
+    <string name="itinerary_stops_count">%1$d étapes</string>
+    <string name="itinerary_stops_count_single">1 étape</string>
+    <string name="itinerary_export">Exporter vers Maps</string>
+    <string name="itinerary_clear">Vider</string>
+    <string name="itinerary_export_maps">Exporter vers Maps (max 10)</string>
+    <string name="itinerary_navigate">Démarrer la navigation</string>
+    <string name="itinerary_estimated_time">~%1$d min</string>
+    <string name="itinerary_no_stops">Aucune étape dans le parcours</string>
+    <string name="itinerary_export_error">Impossible d\'ouvrir Google Maps</string>
+    <string name="itinerary_nav_stop_of">Étape %1$d sur %2$d</string>
+    <string name="itinerary_nav_prev">Précédente</string>
+    <string name="itinerary_nav_next">Suivante</string>
+    <string name="itinerary_nav_disclaimer">Navigation sans trafic en temps réel. Les indications peuvent contenir des erreurs.</string>
+    <string name="itinerary_navigation_active">Navigation active</string>
+    <string name="itinerary_stop_navigation">Arrêter</string>
+
+    <!-- Saved Routes (Profile) -->
+    <string name="profile_saved_routes">Parcours enregistrés</string>
+    <string name="profile_completed_routes">Parcours terminés</string>
+    <string name="profile_no_saved_routes">Aucun parcours enregistré.</string>
+    <string name="profile_no_completed_routes">Aucun parcours terminé.</string>
+    <string name="route_share_action">Partager le parcours</string>
+    <string name="route_stops_count">%1$d étapes</string>
+    <string name="route_delete_action">Supprimer</string>
+
+    <!-- Automated Route Dialog -->
+    <string name="route_dialog_title">Générer un parcours automatique</string>
+    <string name="route_dialog_constraint_time">Par temps</string>
+    <string name="route_dialog_constraint_stops">Par quantité</string>
+    <string name="route_dialog_time_label">Temps de trajet maximum</string>
+    <string name="route_dialog_time_info">Seul le temps de déplacement entre les étapes est pris en compte, hors visites.</string>
+    <string name="route_dialog_time_hours">%1$d heures</string>
+    <string name="route_dialog_time_minutes">%1$d min</string>
+    <string name="route_dialog_stops_label">Nombre d\'étapes</string>
+    <string name="route_dialog_transport_label">Mode de transport</string>
+    <string name="route_dialog_transport_walking">À pied</string>
+    <string name="route_dialog_transport_bicycling">Vélo</string>
+    <string name="route_dialog_transport_driving">Voiture</string>
+    <string name="route_dialog_categories_label">Catégories préférées</string>
+    <string name="route_dialog_categories_all">Toutes</string>
+    <string name="route_dialog_generate">Générer le parcours</string>
+    <string name="route_dialog_no_results">Aucun parcours trouvé avec ces paramètres</string>
+    <string name="route_dialog_fewer_results">Parcours généré avec %1$d étapes (moins que les %2$d demandées en raison des POI disponibles).</string>
+    <string name="route_dialog_result_title">Parcours généré</string>
+    <string name="route_dialog_result_stops">%1$d étapes</string>
+    <string name="route_dialog_time_info_title">Temps de déplacement</string>
+    <string name="route_dialog_time_info_body">Seul le temps de déplacement entre les étapes est pris en compte, hors visites.</string>
+
+    <!-- Session Expiration -->
+    <string name="session_expired_title">Session expirée</string>
+    <string name="session_expired_message">Déconnexion pour inactivité, veuillez vous reconnecter.</string>
+
+    <!-- Navigation Gamification -->
+    <string name="nav_route_completed">Parcours terminé !</string>
+    <string name="nav_place_visited">Lieu visité : %s</string>
+    <string name="nav_place_visited_points">+%1$d points ! Lieu débloqué</string>
+    <string name="nav_route_completed_points">Parcours terminé ! +%1$d points gagnés</string>
+</resources>
