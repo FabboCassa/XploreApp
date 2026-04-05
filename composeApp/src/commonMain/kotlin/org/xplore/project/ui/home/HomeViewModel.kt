@@ -710,16 +710,34 @@ class HomeViewModel(
         )
 
         if (distanceMeters < 50.0) {
-            // Stop reached — advance to next
+            // Stop reached — mark as visited and advance to next
+            val visitedPin = nextStop
+
+            // Fire-and-forget: record visit on backend for global points (+10 per place)
+            if (!tokenManager.isGuest) {
+                viewModelScope.launch {
+                    try {
+                        communityRepository.visitPlace(visitedPin.id)
+                    } catch (_: Exception) {
+                        // Silent — don't disrupt navigation for visit-tracking errors
+                    }
+                }
+            }
+
             val newIndex = nextIndex + 1
+            val pointsPerVisit = 10
             if (newIndex >= stops.size) {
                 // All stops visited — navigation complete
                 navigationNotifier.stopNavigation()
+                val totalPointsEarned = stops.size * pointsPerVisit
                 viewModelScope.launch {
                     _uiState.update { it.copy(
                         nextStopIndex = newIndex,
                         routeInfo = null,
-                        itinerarySnackbar = "Percorso completato!",
+                        itinerarySnackbar = getString(
+                            Res.string.nav_route_completed_points,
+                            totalPointsEarned,
+                        ),
                     ) }
                     delay(3000)
                     _uiState.update { it.copy(
@@ -729,7 +747,18 @@ class HomeViewModel(
                     ) }
                 }
             } else {
-                _uiState.update { it.copy(nextStopIndex = newIndex) }
+                // Show per-stop points snackbar
+                viewModelScope.launch {
+                    _uiState.update { it.copy(
+                        nextStopIndex = newIndex,
+                        itinerarySnackbar = getString(
+                            Res.string.nav_place_visited_points,
+                            pointsPerVisit,
+                        ),
+                    ) }
+                    delay(2000)
+                    _uiState.update { it.copy(itinerarySnackbar = null) }
+                }
                 fetchRouteFromCurrentPosition()
             }
         }

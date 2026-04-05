@@ -387,4 +387,10 @@
     <!-- Session Expiration -->
     <string name="session_expired_title">Sessione Scaduta</string>
     <string name="session_expired_message">Logout per inattività, rieffettuare il login.</string>
+
+    <!-- Navigation Gamification -->
+    <string name="nav_route_completed">Percorso completato!</string>
+    <string name="nav_place_visited">Luogo visitato: %s</string>
+    <string name="nav_place_visited_points">+%1$d punti! Luogo sbloccato</string>
+    <string name="nav_route_completed_points">Percorso completato! +%1$d punti guadagnati</string>
 </resources>
