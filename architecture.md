@@ -85,3 +85,21 @@ Cosa accade nel motore dell'app quando ci stai giocando "da fuori"?
 5.  **Risposta:** Il server Cloud ci risponde confermando `HTTP 200 OK`. Il **Repository** impacchetta questo successo e lo rigira all'indietro al **ViewModel**.
 6.  **Stato Rinfrescato:** Il **ViewModel** aggiorna il suo "Stato Esistenziale", trasformandolo emotivamente ed internamente in *'Salvataggio appena Riuscito'*.
 7.  **Aggiornamento UI:** La **Schermata visiva**, che osserva ("ascolta") costantemente lo stato d'animo del ViewModel, percepisce il cambiamento fulmineo in tempo reale e mostra uno snackbar (l'avvisino colorato toast) a fondo schermo all'**Utente** confermando l'azione!
+
+---
+
+## 🔒 5. Sicurezza e Preparazione Play Store (Security Posture)
+L'applicazione è configurata per rispettare gli standard di sicurezza necessari per la pubblicazione sul Google Play Store o su App Store. I seguenti meccanismi sono implementati o previsti a livello di compilazione e architettura:
+
+### Obfuscation & Minification (R8 / ProGuard)
+- **Cosa fa:** Rende il codice incomprensibile (obfuscation) a chi tenta di fare reverse-engineering (decompilare l'app per rubarne il codice) e riduce il peso dell'app eliminando le risorse non utilizzate (shrinking).
+- **Implementazione:** In `build.gradle.kts`, la configurazione `release` ha `isMinifyEnabled = true` e `isShrinkResources = true`.
+- **Regole Custom:** È presente un file `proguard-rules.pro` dedicato per preservare le classi che fanno largo uso di reflection, come `Kotlin Serialization`, `Ktor` e `Koin`. Questo evita crash in produzione.
+
+### Gestione degli URL di Rete (Base URL)
+- Nelle fasi di sviluppo (Debug), l'applicazione punta all'ambiente locale (es. `10.0.2.2`).
+- Quando l'infrastruttura backend verrà deployata su un server remoto (Produzione), gli URL hardcoded in `AppModule.kt` verranno sostituiti dinamicamente per iniettarli in base al flavor/ambiente, tramite un costrutto `expect`/`actual` legato al `BuildConfig` nativo, assicurando che nessuna Release version esponga endpoint e porte di sviluppo sensibili. Un promemoria TODO è attualmente in `AppModule.kt`.
+
+### Token e Network Security
+- **Cleartext Traffic:** Viene permesso il traffico in chiaro `HTTP` *solo* per `localhost` / `10.0.2.2` durante lo sviluppo (grazie a `network_security_config.xml`). In produzione, viene categoricamente forzato il traffico HTTPS su canale TLS cifrato.
+- **Refresh Token Storage:** La gestione di sessione utilizza Ktor Auth Plugin e salva il JWT access e refresh token tramite il `TokenManager` (incapsulato nel livello local data), che intercetta i codici HTTP 401 e refresha automaticamente i credentials senza esporli alla UI. Appena la sessione è invalidata, viene scatenato un Logout universale tracciato in app.

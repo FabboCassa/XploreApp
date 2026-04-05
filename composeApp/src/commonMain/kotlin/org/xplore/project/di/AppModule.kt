@@ -71,6 +71,10 @@ import org.xplore.project.data.remote.dto.TokenResponseDto
 
 val appModule = module {
     // ── Network ──────────────────────────────────────────────
+    // TODO: When the backend is deployed to a production server, replace ALL
+    //  hardcoded "https://10.0.2.2:7109" URLs below (and in refreshTokens)
+    //  with a BuildConfig / expect-actual based injection so that debug builds
+    //  point to the emulator and release builds point to the real server.
     single {
         val tm = get<TokenManager>()
         createHttpClient().config {
